@@ -158,5 +158,21 @@
     "updated_at": "2025-11-18T09:24:29.288721+00:00",
     "name": "beast",
     "username": "beast_200x"
+  },
+  "local_user": {
+    "state": {
+      "balance": 35,
+      "stamina": 991,
+      "lastTs": 1764014318951,
+      "profile": "https://remanga.org/user/12762/about",
+      "b_levels": {},
+      "p_levels": {},
+      "claimedDiff": 0,
+      "spentEnergy": 0,
+      "totalEnergy": 839,
+      "name": "Player"
+    },
+    "updated_at": "2025-11-24T19:58:38.957539+00:00",
+    "name": "Player"
   }
 }
