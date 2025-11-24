@@ -18,7 +18,7 @@
       --green: #26ff85;
       --red: #ff4d4d;
     }
-    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; outline: none; }
+    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; outline: none; -webkit-tap-highlight-color: transparent; }
     body {
       margin: 0; background: var(--bg); color: var(--text);
       font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
@@ -29,7 +29,7 @@
     /* --- UI --- */
     .header {
       position: fixed; top: 0; left: 0; right: 0; height: 85px;
-      padding: 10px 15px; background: rgba(19,19,43,0.95);
+      padding: 10px 15px; background: rgba(19,19,43,0.98);
       border-bottom: 1px solid var(--card-border); z-index: 100;
       display: flex; flex-direction: column; gap: 5px;
     }
@@ -37,16 +37,14 @@
     .balance { font-size: 24px; font-weight: 900; color: var(--text); }
     .premium-res { font-size: 16px; font-weight: bold; color: var(--energy-color); display: flex; align-items: center; gap: 5px; }
     
-    /* Полоска стамины */
     .stamina-bar-bg { width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-top: 5px; }
     .stamina-bar-fill { height: 100%; background: var(--accent-2); width: 100%; transition: width 0.2s; }
     .stamina-text { font-size: 10px; color: var(--text-sec); text-align: center; margin-top: 2px; }
 
-    /* Уведомление о профиле */
     .profile-linker {
       position: fixed; top: 90px; left: 10px; right: 10px;
       background: var(--red); padding: 10px; text-align: center; font-size: 12px;
-      border-radius: 8px; cursor: pointer; display: none; z-index: 90;
+      border-radius: 8px; cursor: pointer; display: none; z-index: 90; color: white; font-weight: bold;
     }
     .profile-linker.active { display: block; }
 
@@ -59,12 +57,9 @@
     }
     .screen.show { display: flex; }
     
-    /* Экран игры специфичен */
-    #screen-game {
-      justify-content: center; 
-    }
+    #screen-game { justify-content: center; }
 
-    /* --- Кнопка Тапа --- */
+    /* --- Кнопка --- */
     .circle-container {
       position: relative; width: 260px; height: 260px; 
       display: flex; justify-content: center; align-items: center;
@@ -75,13 +70,12 @@
       background: radial-gradient(circle at 30% 30%, #2b2b50, #101025);
       box-shadow: 0 0 30px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0,0,0,0.5);
       border: 4px solid var(--accent-2);
-      z-index: 2;
-      transition: transform 0.05s;
+      z-index: 2; transition: transform 0.05s;
     }
     .tap-btn:active { transform: scale(0.95); }
-    .tap-btn h1 { margin: 0; font-size: 32px; color: var(--accent-2); text-shadow: 0 0 10px var(--accent-2); pointer-events: none; display: flex; height: 100%; justify-content: center; align-items: center; }
+    .tap-btn h1 { margin: 0; font-size: 32px; color: var(--accent-2); text-shadow: 0 0 10px var(--accent-2); pointer-events: none; }
 
-    /* --- МЕНЮ СНИЗУ (Исправлено) --- */
+    /* --- Меню --- */
     .tabs {
       position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
       background: var(--card); border-top: 1px solid var(--card-border);
@@ -97,47 +91,49 @@
     .tab-btn.active .tab-icon { color: var(--accent-2); transform: scale(1.1); }
     .tab-icon { font-size: 22px; transition: 0.2s; }
 
-    /* --- КАРТОЧКИ МАГАЗИНА --- */
+    /* --- Карточки --- */
     .list-container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 10px; }
-    .section-title { width: 100%; max-width: 600px; font-size: 14px; color: var(--text-sec); text-transform: uppercase; margin-bottom: 10px; }
+    .section-title { width: 100%; max-width: 600px; font-size: 14px; color: var(--text-sec); text-transform: uppercase; margin-bottom: 10px; margin-top: 5px; }
 
     .card {
       background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
       padding: 12px; display: flex; align-items: center; gap: 12px; width: 100%;
     }
-    .card.premium { border: 1px solid var(--energy-color); background: rgba(255, 215, 0, 0.05); }
-    .card.locked { opacity: 0.5; filter: grayscale(1); }
+    .card.premium { border: 1px solid var(--energy-color); background: rgba(255, 215, 0, 0.03); }
+    .card.locked { opacity: 0.5; filter: grayscale(1); pointer-events: none; }
     
     .card-icon { font-size: 28px; min-width: 40px; text-align: center; }
-    .card-body { flex: 1; }
-    .card-name { font-weight: bold; font-size: 15px; }
+    .card-body { flex: 1; min-width: 0; }
+    .card-name { font-weight: bold; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .card-lvl { font-size: 11px; color: var(--accent-2); margin-left: 5px; }
-    .card-desc { font-size: 11px; color: var(--text-sec); }
+    .card-desc { font-size: 11px; color: var(--text-sec); line-height: 1.2; }
     
     .buy-btn {
       border: none; border-radius: 8px; padding: 8px 12px;
       font-weight: bold; font-size: 13px; min-width: 80px;
-      background: #333; color: #777;
+      background: #333; color: #777; cursor: not-allowed; transition: 0.2s;
     }
-    .buy-btn.can-buy { background: var(--accent); color: #fff; cursor: pointer; }
-    .buy-btn.premium-btn.can-buy { background: linear-gradient(45deg, #ffd700, #ffaa00); color: #000; }
-    
-    /* Всплывашки */
-    .float-num { position: absolute; font-weight: bold; font-size: 24px; pointer-events: none; animation: floatUp 0.8s ease-out forwards; color: #fff; z-index: 50; }
+    .buy-btn.can-buy { background: var(--accent); color: #fff; cursor: pointer; box-shadow: 0 4px 10px rgba(176, 38, 255, 0.2); }
+    .buy-btn.premium-btn.can-buy { background: linear-gradient(45deg, #ffd700, #ffaa00); color: #000; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.25); }
+    .buy-btn.maxed { background: transparent; border: 1px solid var(--green); color: var(--green); }
+
+    /* Всплывающие цифры */
+    .float-num { position: absolute; font-weight: bold; font-size: 24px; pointer-events: none; animation: floatUp 0.8s ease-out forwards; color: #fff; z-index: 50; text-shadow: 0 2px 4px #000; }
     .float-num.crit { color: var(--energy-color); font-size: 30px; }
     @keyframes floatUp { to { transform: translateY(-120px); opacity: 0; } }
 
     /* Модалка и Тост */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; justify-content: center; align-items: center; }
     .modal { background: var(--card); padding: 20px; border-radius: 16px; width: 90%; max-width: 320px; border: 1px solid var(--accent); }
-    .inp { width: 100%; padding: 10px; background: #000; border: 1px solid #444; color: #fff; border-radius: 8px; margin: 10px 0; }
-    .toast { position: fixed; top: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); border: 1px solid var(--green); color: var(--green); padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .inp { width: 100%; padding: 10px; background: #080810; border: 1px solid #444; color: #fff; border-radius: 8px; margin: 10px 0; outline: none; }
+    .toast { position: fixed; top: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border: 1px solid var(--green); color: var(--green); padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     
     /* Топ */
     .rank-row { display: flex; align-items: center; padding: 10px; background: var(--card); border-radius: 10px; border: 1px solid var(--card-border); margin-bottom: 8px; width: 100%; }
-    .rank-idx { width: 30px; font-weight: 900; }
-    .rank-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .rank-idx { width: 30px; font-weight: 900; color: var(--text-sec); }
+    .rank-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; }
     .rank-val { color: var(--green); font-weight: bold; }
+    .rank-row.me { border: 1px solid var(--accent-2); box-shadow: 0 0 10px rgba(0, 240, 255, 0.2); background: rgba(0, 240, 255, 0.05); }
   </style>
 </head>
 <body>
@@ -145,17 +141,17 @@
   <div id="toast" class="toast">Сохранено</div>
 
   <div id="profileLinker" class="profile-linker" onclick="openProfileModal()">
-    ⚠️ Профиль не привязан! Нажми сюда.
+    ⚠️ Профиль ReManga не привязан!
   </div>
 
   <div class="header">
     <div class="top-row">
       <div>
-        <div style="font-size:10px; color:var(--text-sec)">МОНЕТЫ</div>
+        <div style="font-size:10px; color:var(--text-sec)">БАЛАНС</div>
         <div class="balance" id="balanceDisplay">0</div>
       </div>
       <div style="text-align:right">
-        <div style="font-size:10px; color:var(--text-sec)">ЭНЕРГИЯ (МОЛНИИ)</div>
+        <div style="font-size:10px; color:var(--text-sec)">ЭНЕРГИЯ</div>
         <div class="premium-res">
           <span>⚡</span> <span id="upgradeEnergyDisplay">0</span>
         </div>
@@ -174,28 +170,29 @@
       <button class="tap-btn" id="tapBtn"><h1>TAP</h1></button>
     </div>
     <div style="margin-top:20px; text-align:center; color:var(--text-sec); font-size:12px">
-      <div id="clickDmg">Урон: 1</div>
+      <div id="clickDmg">Клик: +1</div>
       <div id="autoDmg">Авто: 0/сек</div>
     </div>
   </div>
 
   <div class="screen" id="screen-shop">
-    <div class="section-title">Базовая прокачка (Монеты)</div>
+    <div class="section-title">Базовые улучшения (Монеты)</div>
     <div class="list-container" id="basicList"></div>
   </div>
 
   <div class="screen" id="screen-premium">
     <div class="section-title" style="color:var(--energy-color)">Элитные технологии (Энергия)</div>
     <div style="font-size:11px; color:#888; margin-bottom:10px; text-align:center">
-      1 Энергия = 100 Молний из файлов бота.<br>
-      <span id="lightningInfo">Найдено: 0</span>
+      1 Энергия = 100 Молний. Цена растет на +1 с уровнем.<br>
+      <span id="lightningInfo">Молний: 0</span>
     </div>
     <div class="list-container" id="premiumList"></div>
-    <button class="buy-btn" style="margin-top:20px; width:100%; max-width:600px; background:#222; color:#fff; border:1px solid #444" onclick="syncEnergy()">🔄 Синхронизация файлов</button>
+    <button class="buy-btn" style="margin-top:20px; width:100%; max-width:600px; background:#222; color:#fff; border:1px solid #444; cursor:pointer" onclick="syncEnergy()">🔄 Обновить данные</button>
   </div>
 
   <div class="screen" id="screen-top">
-    <div class="section-title">Топ Игроков</div>
+    <div class="section-title">Топ Лидеры</div>
+    <div style="font-size:11px; color:#666; margin-bottom:10px; text-align:center">Ваш результат обновляется мгновенно</div>
     <div class="list-container" id="topList">Загрузка...</div>
   </div>
 
@@ -204,10 +201,10 @@
       <span class="tab-icon">🎮</span> Игра
     </button>
     <button class="tab-btn" onclick="switchTab('shop', this)">
-      <span class="tab-icon">🛠</span> Прокачка
+      <span class="tab-icon">🛠</span> База
     </button>
     <button class="tab-btn" onclick="switchTab('premium', this)">
-      <span class="tab-icon" style="color:var(--energy-color)">⚡</span> Энергия
+      <span class="tab-icon" style="color:var(--energy-color)">⚡</span> Элита
     </button>
     <button class="tab-btn" onclick="switchTab('top', this)">
       <span class="tab-icon">🏆</span> Топ
@@ -217,7 +214,7 @@
   <div class="modal-overlay" id="profileModal">
     <div class="modal">
       <h3>Привязка ReManga</h3>
-      <p style="font-size:12px; color:#aaa">Вставь ссылку на профиль ReManga:</p>
+      <p style="font-size:12px; color:#aaa">Ссылка на профиль:</p>
       <input type="text" class="inp" id="profileInput" placeholder="https://remanga.org/user/..." />
       <button class="buy-btn can-buy" style="width:100%" onclick="saveProfile()">Сохранить</button>
       <button class="buy-btn" style="width:100%; margin-top:10px; background:transparent" onclick="closeProfileModal()">Отмена</button>
@@ -227,58 +224,95 @@
 <script>
 const tg = window.Telegram?.WebApp; tg?.expand();
 
-// --- КОНФИГ ---
+// === БАЛАНС И НАСТРОЙКИ ===
+
+// Базовая ветка (За монеты) - НЕРФ ЦЕН
 const BASIC_UPGRADES = [
-  { id: 'b_click', name: 'Сила Тапа', desc: '+1 к клику', icon: '✊', baseCost: 100, mult: 1.6, max: 20, type: 'click', val: 1 },
-  { id: 'b_auto', name: 'Авто-Бот', desc: '+1 в сек', icon: '🤖', baseCost: 250, mult: 1.5, max: 20, type: 'auto', val: 1 },
-  { id: 'b_crit', name: 'Линза', desc: '+1% шанс крита', icon: '🔍', baseCost: 500, mult: 1.8, max: 20, type: 'crit', val: 1 },
-  { id: 'b_stamina', name: 'Аккумулятор', desc: '+50 стамины', icon: '🔋', baseCost: 300, mult: 1.4, max: 20, type: 'stamina', val: 50 },
-  { id: 'b_regen', name: 'Генератор', desc: '+1 реген', icon: '🔌', baseCost: 1000, mult: 1.7, max: 20, type: 'regen', val: 1 }
+  { id: 'b_click', name: 'Сила Пальца', desc: '+1 к клику', icon: '👆', baseCost: 200, mult: 1.8, max: 20, type: 'click', val: 1 },
+  { id: 'b_auto', name: 'Авто-Кликер', desc: '+1 в сек', icon: '🤖', baseCost: 500, mult: 1.6, max: 20, type: 'auto', val: 1 },
+  { id: 'b_crit', name: 'Линза', desc: '+1% шанс крита', icon: '🔍', baseCost: 1000, mult: 2.0, max: 20, type: 'crit', val: 1 },
+  { id: 'b_stamina', name: 'Батарейка', desc: '+50 стамины', icon: '🔋', baseCost: 400, mult: 1.5, max: 20, type: 'stamina', val: 50 },
+  { id: 'b_regen', name: 'Зарядка', desc: '+1 реген', icon: '🔌', baseCost: 1500, mult: 1.9, max: 20, type: 'regen', val: 1 }
 ];
 
+// Элитная ветка (За энергию) - ДИНАМИЧЕСКАЯ ЦЕНА
+// Cost = baseCost + level
 const PREMIUM_UPGRADES = [
-  { id: 'p_thunder', name: 'Громоотвод', desc: 'Множитель клика x2', icon: '🔨', cost: 1, type: 'clickMult', val: 0.5 },
-  { id: 'p_plasma', name: 'Плазма', desc: '+100 к клику', icon: '💥', cost: 5, req: {id:'p_thunder', lvl:5}, type: 'clickFlat', val: 100 },
-  { id: 'p_static', name: 'Статика', desc: 'Множитель авто x2', icon: '🌐', cost: 1, type: 'autoMult', val: 0.5 },
-  { id: 'p_storm', name: 'Шторм', desc: '+500 в сек', icon: '🌪', cost: 5, req: {id:'p_static', lvl:5}, type: 'autoFlat', val: 500 },
-  { id: 'p_overload', name: 'Перегрузка', desc: 'Крит урон x10', icon: '⚡', cost: 3, type: 'critMult', val: 0.5 }
+  // Ветка клика
+  { id: 'p_thunder', name: 'Громоотвод', desc: '+20% к клику', icon: '🔨', baseCost: 1, type: 'clickMult', val: 0.2 },
+  { id: 'p_plasma', name: 'Плазма', desc: '+50 плоский урон', icon: '💥', baseCost: 5, req: {id:'p_thunder', lvl:5}, type: 'clickFlat', val: 50 },
+  
+  // Ветка авто
+  { id: 'p_static', name: 'Статика', desc: '+20% к авто', icon: '🌐', baseCost: 1, type: 'autoMult', val: 0.2 },
+  { id: 'p_storm', name: 'Шторм', desc: '+200 авто-доход', icon: '🌪', baseCost: 5, req: {id:'p_static', lvl:5}, type: 'autoFlat', val: 200 },
+  
+  // Ветка крита
+  { id: 'p_overload', name: 'Перегрузка', desc: 'Крит урон +50%', icon: '⚡', baseCost: 3, type: 'critMult', val: 0.5 },
+  
+  // Экономика
+  { id: 'p_effic', name: 'Оптимизация', desc: 'Скидка на базу 1%', icon: '📉', baseCost: 2, type: 'discount', val: 0.01 }
 ];
 
 const FILES = ['./history_ew.json', './history_ed.json', './history_ea.json'];
 
+// === STATE ===
 let state = {
   balance: 0,
   stamina: 1000,
   lastTs: Date.now(),
   profile: "",
-  b_levels: {}, 
-  p_levels: {},
+  
+  b_levels: {}, // { 'b_click': 2 }
+  p_levels: {}, 
+  
   claimedDiff: 0,
   spentEnergy: 0, 
   totalEnergy: 0, 
+  
   name: (tg?.initDataUnsafe?.user?.first_name || "Guest")
 };
 
+// Локальный кэш топа, чтобы обновлять его мгновенно
+let cachedTop = [];
+
+// === CORE ===
 function load() {
-  const raw = localStorage.getItem("neon_ltg_save_v2");
-  if (raw) try { state = { ...state, ...JSON.parse(raw) }; } catch(e){}
+  const raw = localStorage.getItem("neon_ltg_v3");
+  if (raw) {
+    try {
+      const s = JSON.parse(raw);
+      state = { ...state, ...s };
+    } catch(e){}
+  }
+  // Профиль из URL
   try { const p = new URLSearchParams(location.search).get("profile"); if (p) state.profile = normalizeProfile(p); } catch(e){}
-  calcStats(); updateUI(); syncEnergy();
+  
+  calcStats();
+  updateUI();
+  syncEnergy();
 }
-function save() { state.lastTs = Date.now(); localStorage.setItem("neon_ltg_save_v2", JSON.stringify(state)); }
+
+function save() {
+  state.lastTs = Date.now();
+  localStorage.setItem("neon_ltg_v3", JSON.stringify(state));
+}
 
 let lastSent = 0;
 function pushToBot() {
-  if (Date.now() - lastSent > 30000 && tg?.sendData) {
-    lastSent = Date.now(); tg.sendData(JSON.stringify({ type: "sync", state }));
+  const now = Date.now();
+  if (now - lastSent > 30000 && tg?.sendData) {
+    lastSent = now;
+    tg.sendData(JSON.stringify({ type: "sync", state }));
   }
 }
 
-let stats = { click: 1, auto: 0, crit: 0, maxStamina: 1000, regen: 1, critMult: 5 };
+// Stats
+let stats = { click: 1, auto: 0, crit: 0, maxStamina: 1000, regen: 1, discount: 0, critMult: 5 };
 
 function calcStats() {
-  let s = { click:1, auto:0, crit:0, maxStamina:1000, regen:1, clickMult:1, autoMult:1, critMult:5 };
-  
+  let s = { click: 1, auto: 0, crit: 0, maxStamina: 1000, regen: 1, discount: 0, clickMult: 1, autoMult: 1, critMult: 5 };
+
+  // Basic
   BASIC_UPGRADES.forEach(u => {
     const lvl = state.b_levels[u.id] || 0;
     if (u.type==='click') s.click += lvl * u.val;
@@ -288,6 +322,7 @@ function calcStats() {
     if (u.type==='regen') s.regen += lvl * u.val;
   });
 
+  // Premium
   PREMIUM_UPGRADES.forEach(u => {
     const lvl = state.p_levels[u.id] || 0;
     if (u.type==='clickMult') s.clickMult += lvl * u.val;
@@ -295,6 +330,7 @@ function calcStats() {
     if (u.type==='autoMult') s.autoMult += lvl * u.val;
     if (u.type==='autoFlat') s.auto += lvl * u.val;
     if (u.type==='critMult') s.critMult += lvl * u.val;
+    if (u.type==='discount') s.discount += lvl * u.val;
   });
 
   stats.click = Math.floor(s.click * s.clickMult);
@@ -302,31 +338,88 @@ function calcStats() {
   stats.crit = s.crit;
   stats.maxStamina = s.maxStamina;
   stats.regen = s.regen;
+  stats.discount = Math.min(0.8, s.discount); // Max 80%
   stats.critMult = s.critMult;
 }
 
+// Loop
 setInterval(() => {
-  if (stats.auto > 0) state.balance += stats.auto;
-  if (state.stamina < stats.maxStamina) state.stamina = Math.min(stats.maxStamina, state.stamina + stats.regen);
-  updateUI(); save(); pushToBot();
+  if (stats.auto > 0) {
+    state.balance += stats.auto;
+    refreshLocalTop(); // Обновляем топ локально, если автокликер работает
+  }
+  if (state.stamina < stats.maxStamina) {
+    state.stamina = Math.min(stats.maxStamina, state.stamina + stats.regen);
+  }
+  
+  updateUI();
+  save();
+  pushToBot();
 }, 1000);
 
+// Click
 document.getElementById('tapBtn').addEventListener('pointerdown', (e) => {
   if (state.stamina >= 1) {
     state.stamina -= 1;
+    
     let dmg = stats.click;
     let isCrit = Math.random() * 100 < stats.crit;
     if (isCrit) dmg = Math.floor(dmg * stats.critMult);
-    state.balance += dmg;
     
+    state.balance += dmg;
+    refreshLocalTop(); // Мгновенное обновление топа при клике
+    
+    // Anim
     const btn = document.getElementById('tapBtn');
     btn.style.transform = "scale(0.95)";
     setTimeout(() => btn.style.transform = "scale(1)", 50);
     createFloat(e.clientX, e.clientY, "+" + fmt(dmg), isCrit);
+    
     updateUI();
   }
 });
 
+// === SHOP ===
+function getPremiumCost(id, currentLvl) {
+  const u = PREMIUM_UPGRADES.find(x => x.id === id);
+  // Логика цены: База + Уровень (1, 2, 3...)
+  return u.baseCost + currentLvl;
+}
+
+function buyBasic(id) {
+  const u = BASIC_UPGRADES.find(x => x.id === id);
+  const lvl = state.b_levels[id] || 0;
+  if (lvl >= u.max) return;
+  
+  let cost = Math.floor(u.baseCost * Math.pow(u.mult, lvl));
+  cost = Math.floor(cost * (1 - stats.discount));
+  
+  if (state.balance >= cost) {
+    state.balance -= cost;
+    state.b_levels[id] = lvl + 1;
+    calcStats(); updateUI(); save(); showToast("Улучшено!");
+  }
+}
+
+function buyPremium(id) {
+  const u = PREMIUM_UPGRADES.find(x => x.id === id);
+  const lvl = state.p_levels[id] || 0;
+  
+  if (u.req) {
+    if ((state.p_levels[u.req.id] || 0) < u.req.lvl) return;
+  }
+  
+  const cost = getPremiumCost(id, lvl);
+  
+  if (state.totalEnergy >= cost) {
+    state.totalEnergy -= cost;
+    state.spentEnergy += cost;
+    state.p_levels[id] = lvl + 1;
+    calcStats(); updateUI(); save(); showToast("Элитный апгрейд!");
+  }
+}
+
+// === SYNC & TOP ===
 async function syncEnergy() {
   if (!state.profile) { document.getElementById('profileLinker').classList.add('active'); return; }
   document.getElementById('profileLinker').classList.remove('active');
@@ -349,60 +442,90 @@ async function syncEnergy() {
     }
     const lifetime = Math.floor(totalDiff / 100);
     state.totalEnergy = Math.max(0, lifetime - state.spentEnergy);
-    document.getElementById('lightningInfo').innerText = `Найдено: ${totalDiff} молний | Доступно: ${state.totalEnergy} энергии`;
+    document.getElementById('lightningInfo').innerText = `Молний: ${totalDiff} | Энергии: ${state.totalEnergy}`;
     showToast("Синхронизация OK");
   } catch(e) { showToast("Ошибка сети"); }
   
-  if(btn) { btn.innerText = "🔄 Синхронизация файлов"; btn.disabled = false; }
+  if(btn) { btn.innerText = "🔄 Обновить данные"; btn.disabled = false; }
   updateUI();
 }
 
-function normalizeProfile(url) {
-  try { return "https://remanga.org/user/" + url.match(/user\/(\d+)/)[1] + "/about"; } catch { return url; }
+async function loadRealTop() {
+  const list = document.getElementById('topList'); 
+  if (cachedTop.length === 0) list.innerHTML = "Загрузка...";
+  
+  try {
+    const r = await fetch('./tap_saves.json?t=' + Date.now());
+    if (r.ok) {
+      const d = await r.json();
+      cachedTop = Object.keys(d).map(k => ({
+        id: String(k),
+        name: d[k].name || "ID:"+k, 
+        score: (d[k].state?.balance || 0), 
+        isMe: String(k) === String(tg?.initDataUnsafe?.user?.id)
+      }));
+      
+      // Если меня нет в списке (новичок), добавим временно
+      const myId = String(tg?.initDataUnsafe?.user?.id);
+      if (myId && !cachedTop.find(x => x.id === myId)) {
+        cachedTop.push({ id: myId, name: state.name, score: state.balance, isMe: true });
+      }
+      
+      refreshLocalTop();
+    }
+  } catch { list.innerHTML = "Ошибка загрузки топа"; }
 }
 
-function buyBasic(id) {
-  const u = BASIC_UPGRADES.find(x => x.id === id);
-  const lvl = state.b_levels[id] || 0;
-  if (lvl >= u.max) return;
-  const cost = Math.floor(u.baseCost * Math.pow(u.mult, lvl));
-  if (state.balance >= cost) {
-    state.balance -= cost; state.b_levels[id] = lvl + 1;
-    calcStats(); updateUI(); save(); showToast("Куплено!");
-  }
+// Функция для обновления топа БЕЗ перезагрузки файла (мгновенно меняет мой счет)
+function refreshLocalTop() {
+  const list = document.getElementById('topList');
+  // Если топ еще не загружен и мы не на вкладке топа - выходим
+  if (cachedTop.length === 0) return;
+  if (!document.getElementById('screen-top').classList.contains('show')) return;
+
+  // Обновляем мой счет в кэше
+  const myId = String(tg?.initDataUnsafe?.user?.id);
+  const me = cachedTop.find(x => x.id === myId);
+  if (me) me.score = state.balance;
+
+  // Сортируем
+  cachedTop.sort((a,b) => b.score - a.score);
+
+  // Рендерим
+  let html = "";
+  cachedTop.slice(0, 50).forEach((p, i) => {
+    html += `
+      <div class="rank-row ${p.isMe ? 'me' : ''}">
+        <div class="rank-idx">${i+1}</div>
+        <div class="rank-name">${p.name}</div>
+        <div class="rank-val">${fmt(p.score)}</div>
+      </div>`;
+  });
+  list.innerHTML = html || "Пусто";
 }
 
-function buyPremium(id) {
-  const u = PREMIUM_UPGRADES.find(x => x.id === id);
-  const lvl = state.p_levels[id] || 0;
-  if (u.req) {
-    if ((state.p_levels[u.req.id] || 0) < u.req.lvl) return;
-  }
-  if (state.totalEnergy >= u.cost) {
-    state.totalEnergy -= u.cost; state.spentEnergy += u.cost;
-    state.p_levels[id] = lvl + 1;
-    calcStats(); updateUI(); save(); showToast("Элитное улучшение!");
-  }
-}
-
+// === UI HELPERS ===
 function updateUI() {
   document.getElementById('balanceDisplay').innerText = fmt(state.balance);
   document.getElementById('upgradeEnergyDisplay').innerText = state.totalEnergy;
+  
   const pct = (state.stamina / stats.maxStamina) * 100;
   document.getElementById('staminaFill').style.width = pct + "%";
   document.getElementById('staminaText').innerText = `${Math.floor(state.stamina)} / ${Math.floor(stats.maxStamina)}`;
   
-  document.getElementById('clickDmg').innerText = `Урон: ${fmt(stats.click)}`;
+  document.getElementById('clickDmg').innerText = `Клик: +${fmt(stats.click)}`;
   document.getElementById('autoDmg').innerText = `Авто: ${fmt(stats.auto)}/сек`;
 
-  renderShop();
+  renderShops();
 }
 
-function renderShop() {
+function renderShops() {
+  // Basic
   const bList = document.getElementById('basicList'); bList.innerHTML = "";
   BASIC_UPGRADES.forEach(u => {
     const lvl = state.b_levels[u.id] || 0;
-    const cost = Math.floor(u.baseCost * Math.pow(u.mult, lvl));
+    let cost = Math.floor(u.baseCost * Math.pow(u.mult, lvl));
+    cost = Math.floor(cost * (1 - stats.discount));
     const can = state.balance >= cost && lvl < u.max;
     const maxed = lvl >= u.max;
     
@@ -410,7 +533,7 @@ function renderShop() {
     <div class="card">
       <div class="card-icon">${u.icon}</div>
       <div class="card-body">
-        <div class="card-name">${u.name} <span class="card-lvl">Lvl ${lvl}</span></div>
+        <div class="card-name">${u.name} <span class="card-lvl">${lvl}/${u.max}</span></div>
         <div class="card-desc">${u.desc}</div>
       </div>
       <button class="buy-btn ${can?'can-buy':''} ${maxed?'maxed':''}" onclick="buyBasic('${u.id}')">
@@ -419,16 +542,19 @@ function renderShop() {
     </div>`;
   });
 
+  // Premium
   const pList = document.getElementById('premiumList'); pList.innerHTML = "";
   PREMIUM_UPGRADES.forEach(u => {
     const lvl = state.p_levels[u.id] || 0;
     let locked = false, msg = u.desc;
     if (u.req) {
       if ((state.p_levels[u.req.id]||0) < u.req.lvl) {
-        locked = true; msg = `Нужен ${PREMIUM_UPGRADES.find(x=>x.id===u.req.id).name} Lvl ${u.req.lvl}`;
+        locked = true; 
+        msg = `Требует: ${PREMIUM_UPGRADES.find(x=>x.id===u.req.id).name} Lvl ${u.req.lvl}`;
       }
     }
-    const can = !locked && state.totalEnergy >= u.cost;
+    const cost = getPremiumCost(u.id, lvl);
+    const can = !locked && state.totalEnergy >= cost;
     
     pList.innerHTML += `
     <div class="card premium ${locked?'locked':''}">
@@ -438,32 +564,15 @@ function renderShop() {
         <div class="card-desc">${msg}</div>
       </div>
       <button class="buy-btn premium-btn ${can?'can-buy':''}" onclick="buyPremium('${u.id}')">
-        ⚡ ${u.cost}
+        ⚡ ${cost}
       </button>
     </div>`;
   });
 }
 
-async function loadRealTop() {
-  const list = document.getElementById('topList'); list.innerHTML = "Загрузка...";
-  try {
-    const r = await fetch('./tap_saves.json?t=' + Date.now());
-    if(!r.ok) throw new Error();
-    const d = await r.json();
-    let arr = Object.keys(d).map(k => ({
-      name: d[k].name || "ID:"+k, score: (d[k].state?.balance||0), isMe: String(k)===String(tg?.initDataUnsafe?.user?.id)
-    }));
-    arr.sort((a,b)=>b.score-a.score);
-    list.innerHTML = "";
-    if(!arr.length) list.innerHTML = "Пусто";
-    arr.slice(0,50).forEach((p,i)=>{
-      list.innerHTML += `<div class="rank-row ${p.isMe?'me':''}">
-        <div class="rank-idx">${i+1}</div><div class="rank-name">${p.name}</div><div class="rank-val">${fmt(p.score)}</div>
-      </div>`;
-    });
-  } catch { list.innerHTML = "Ошибка загрузки топа"; }
+function normalizeProfile(url) {
+  try { return "https://remanga.org/user/" + url.match(/user\/(\d+)/)[1] + "/about"; } catch { return url; }
 }
-
 function fmt(n) {
   if (n >= 1e9) return (n/1e9).toFixed(2) + "B";
   if (n >= 1e6) return (n/1e6).toFixed(2) + "M";
