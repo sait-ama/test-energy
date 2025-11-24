@@ -3,96 +3,62 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Neon Tap: Manual Save</title>
+  <title>Neon Tap: Hardcore</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #050511;
-      --card: #16162e;
-      --card-border: #2a2a4a;
-      --accent: #b026ff;
-      --accent-2: #00f0ff;
-      --energy-color: #ffd700;
-      --text: #ffffff;
-      --text-sec: #8b8bce;
-      --green: #26ff85;
-      --red: #ff4d4d;
+      --bg: #050511; --card: #16162e; --card-border: #2a2a4a;
+      --accent: #b026ff; --accent-2: #00f0ff; --energy-color: #ffd700;
+      --text: #ffffff; --text-sec: #8b8bce; --green: #26ff85; --red: #ff4d4d;
     }
-    * { box-sizing: border-box; user-select: none; -webkit-user-select: none; outline: none; -webkit-tap-highlight-color: transparent; }
-    body {
-      margin: 0; background: var(--bg); color: var(--text);
-      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-      height: 100vh; overflow: hidden; 
-      display: flex; flex-direction: column;
-    }
+    * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
 
-    /* --- ХЕДЕР --- */
+    /* --- UI --- */
     .header {
-      position: fixed; top: 0; left: 0; right: 0; height: 100px;
-      padding: 10px 15px; background: rgba(19,19,43,0.98);
-      border-bottom: 1px solid var(--card-border); z-index: 100;
+      position: fixed; top: 0; left: 0; right: 0; height: 100px; padding: 10px 15px;
+      background: rgba(19,19,43,0.98); border-bottom: 1px solid var(--card-border); z-index: 100;
       display: flex; flex-direction: column; gap: 5px;
     }
     .top-row { display: flex; justify-content: space-between; align-items: center; }
     .balance { font-size: 24px; font-weight: 900; color: var(--text); }
-    .premium-res { font-size: 16px; font-weight: bold; color: var(--energy-color); display: flex; align-items: center; gap: 5px; }
+    .premium-res { font-size: 16px; font-weight: bold; color: var(--energy-color); }
     
-    .controls-row { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-top: 2px; }
-    
+    .controls-row { display: flex; gap: 10px; align-items: center; margin-top: 5px; }
     .save-btn {
-      background: linear-gradient(90deg, var(--green), #00cc66);
-      border: none; color: #000; font-weight: 900;
-      padding: 6px 16px; border-radius: 6px; font-size: 12px;
-      cursor: pointer; box-shadow: 0 0 10px rgba(38, 255, 133, 0.3);
-      text-transform: uppercase; letter-spacing: 1px;
+      background: linear-gradient(90deg, var(--green), #00cc66); border: none; color: #000;
+      font-weight: 900; padding: 8px 16px; border-radius: 6px; font-size: 12px; cursor: pointer;
+      text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 0 10px rgba(38, 255, 133, 0.3);
     }
     .save-btn:active { transform: scale(0.95); }
 
-    .stamina-bar-bg { flex: 1; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
+    .stamina-bar-bg { flex: 1; height: 8px; background: #333; border-radius: 4px; overflow: hidden; }
     .stamina-bar-fill { height: 100%; background: var(--accent-2); width: 100%; transition: width 0.2s; }
-    .stamina-text { font-size: 10px; color: var(--text-sec); margin-left: 10px; width: 70px; text-align: right; }
+    .stamina-text { font-size: 10px; color: var(--text-sec); margin-left: 10px; width: 60px; text-align: right; }
 
     /* --- ЭКРАНЫ --- */
     .screen {
       position: absolute; top: 100px; bottom: 70px; left: 0; right: 0;
-      overflow-y: auto; padding: 20px; 
-      background: var(--bg);
+      overflow-y: auto; padding: 20px; background: var(--bg);
       display: none; flex-direction: column; align-items: center;
     }
     .screen.show { display: flex; }
     #screen-game { justify-content: center; }
 
-    /* --- ЭЛЕМЕНТЫ --- */
+    /* --- ИГРА --- */
     .circle-container { position: relative; width: 260px; height: 260px; display: flex; justify-content: center; align-items: center; margin: auto; }
     .tap-btn {
       width: 230px; height: 230px; border-radius: 50%; border: none; cursor: pointer;
       background: radial-gradient(circle at 30% 30%, #2b2b50, #101025);
       box-shadow: 0 0 30px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0,0,0,0.5);
-      border: 4px solid var(--accent-2);
-      z-index: 2; transition: transform 0.05s;
+      border: 4px solid var(--accent-2); z-index: 2; transition: transform 0.05s;
     }
     .tap-btn:active { transform: scale(0.95); }
     .tap-btn h1 { margin: 0; font-size: 32px; color: var(--accent-2); text-shadow: 0 0 10px var(--accent-2); pointer-events: none; }
 
-    /* --- МЕНЮ --- */
-    .tabs {
-      position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
-      background: var(--card); border-top: 1px solid var(--card-border);
-      display: flex; justify-content: space-around; align-items: center;
-      z-index: 100; padding-bottom: 5px;
-    }
-    .tab-btn {
-      background: transparent; border: none; color: var(--text-sec);
-      font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px;
-      cursor: pointer; flex: 1; height: 100%; justify-content: center;
-    }
-    .tab-btn.active { color: var(--text); font-weight: bold; }
-    .tab-btn.active .tab-icon { color: var(--accent-2); transform: scale(1.1); }
-    .tab-icon { font-size: 22px; transition: 0.2s; }
-
     /* --- СПИСКИ --- */
     .list-container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 10px; }
-    .section-title { width: 100%; max-width: 600px; font-size: 14px; color: var(--text-sec); text-transform: uppercase; margin-bottom: 10px; margin-top: 5px; }
+    .section-title { width: 100%; max-width: 600px; font-size: 14px; color: var(--text-sec); text-transform: uppercase; margin-bottom: 10px; }
 
     .card {
       background: var(--card); border: 1px solid var(--card-border); border-radius: 12px;
@@ -103,9 +69,9 @@
     
     .card-icon { font-size: 28px; min-width: 40px; text-align: center; }
     .card-body { flex: 1; min-width: 0; }
-    .card-name { font-weight: bold; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-name { font-weight: bold; font-size: 15px; }
     .card-lvl { font-size: 11px; color: var(--accent-2); margin-left: 5px; }
-    .card-desc { font-size: 11px; color: var(--text-sec); line-height: 1.2; }
+    .card-desc { font-size: 11px; color: var(--text-sec); }
     
     .buy-btn {
       border: none; border-radius: 8px; padding: 8px 12px;
@@ -113,8 +79,23 @@
       background: #333; color: #777; cursor: not-allowed; transition: 0.2s;
     }
     .buy-btn.can-buy { background: var(--accent); color: #fff; cursor: pointer; box-shadow: 0 4px 10px rgba(176, 38, 255, 0.2); }
-    .buy-btn.premium-btn.can-buy { background: linear-gradient(45deg, #ffd700, #ffaa00); color: #000; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.25); }
+    .buy-btn.premium-btn.can-buy { background: linear-gradient(45deg, #ffd700, #ffaa00); color: #000; }
     .buy-btn.maxed { background: transparent; border: 1px solid var(--green); color: var(--green); }
+
+    /* --- МЕНЮ --- */
+    .tabs {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
+      background: var(--card); border-top: 1px solid var(--card-border);
+      display: flex; justify-content: space-around; align-items: center; z-index: 100;
+    }
+    .tab-btn {
+      background: transparent; border: none; color: var(--text-sec);
+      font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 4px;
+      cursor: pointer; flex: 1; height: 100%; justify-content: center;
+    }
+    .tab-btn.active { color: var(--text); font-weight: bold; }
+    .tab-btn.active .tab-icon { color: var(--accent-2); transform: scale(1.1); }
+    .tab-icon { font-size: 22px; transition: 0.2s; }
 
     /* --- ПРОЧЕЕ --- */
     .float-num { position: absolute; font-weight: bold; font-size: 24px; pointer-events: none; animation: floatUp 0.8s ease-out forwards; color: #fff; z-index: 50; text-shadow: 0 2px 4px #000; }
@@ -127,7 +108,6 @@
     
     .profile-linker { position: fixed; top: 105px; left: 10px; right: 10px; background: var(--red); padding: 10px; text-align: center; font-size: 12px; border-radius: 8px; cursor: pointer; display: none; z-index: 90; color: white; font-weight: bold; }
     .profile-linker.active { display: block; }
-
     .toast { position: fixed; top: 110px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border: 1px solid var(--green); color: var(--green); padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     
     .rank-row { display: flex; align-items: center; padding: 10px; background: var(--card); border-radius: 10px; border: 1px solid var(--card-border); margin-bottom: 8px; width: 100%; }
@@ -140,10 +120,7 @@
 <body>
 
   <div id="toast" class="toast">Сохранено</div>
-
-  <div id="profileLinker" class="profile-linker" onclick="openProfileModal()">
-    ⚠️ Профиль ReManga не привязан!
-  </div>
+  <div id="profileLinker" class="profile-linker" onclick="openProfileModal()">⚠️ Профиль ReManga не привязан!</div>
 
   <div class="header">
     <div class="top-row">
@@ -153,28 +130,20 @@
       </div>
       <div style="text-align:right">
         <div style="font-size:10px; color:var(--text-sec)">ЭНЕРГИЯ</div>
-        <div class="premium-res">
-          <span>⚡</span> <span id="upgradeEnergyDisplay">0</span>
-        </div>
+        <div class="premium-res"><span>⚡</span> <span id="upgradeEnergyDisplay">0</span></div>
       </div>
     </div>
-    
     <div class="controls-row">
-      <button class="save-btn" onclick="manualSave()">💾 Сохранить</button>
-      
+      <button class="save-btn" onclick="sendDataToBot()">💾 Сохранить</button>
       <div style="display:flex; align-items:center; flex:1; margin-left:10px;">
-        <div class="stamina-bar-bg">
-          <div class="stamina-bar-fill" id="staminaFill"></div>
-        </div>
+        <div class="stamina-bar-bg"><div class="stamina-bar-fill" id="staminaFill"></div></div>
         <div class="stamina-text" id="staminaText">1000</div>
       </div>
     </div>
   </div>
 
   <div class="screen show" id="screen-game">
-    <div class="circle-container">
-      <button class="tap-btn" id="tapBtn"><h1>TAP</h1></button>
-    </div>
+    <div class="circle-container"><button class="tap-btn" id="tapBtn"><h1>TAP</h1></button></div>
     <div style="margin-top:20px; text-align:center; color:var(--text-sec); font-size:12px">
       <div id="clickDmg">Клик: +1</div>
       <div id="autoDmg">Авто: 0/сек</div>
@@ -187,38 +156,25 @@
   </div>
 
   <div class="screen" id="screen-premium">
-    <div class="section-title" style="color:var(--energy-color)">Элитные (Цена растет на +1)</div>
+    <div class="section-title" style="color:var(--energy-color)">Элитные (Цена +1)</div>
     <div style="font-size:11px; color:#888; margin-bottom:10px; text-align:center">
-      1 Энергия = 100 Молний.<br>
-      <span id="lightningInfo">Молний: 0</span>
+      1 Энергия = 100 Молний (из файлов).<br><span id="lightningInfo">Молний: 0</span>
     </div>
     <div class="list-container" id="premiumList"></div>
-    <button class="buy-btn" style="margin-top:20px; width:100%; max-width:600px; background:#222; color:#fff; border:1px solid #444; cursor:pointer" onclick="syncEnergy()">🔄 Проверить файлы</button>
+    <button class="buy-btn" style="margin-top:20px; width:100%; max-width:600px; background:#222; color:#fff; border:1px solid #444;" onclick="syncEnergy()">🔄 Проверить файлы</button>
   </div>
 
   <div class="screen" id="screen-top">
-    <div class="section-title">Топ Игроков</div>
-    <div style="font-size:11px; color:#666; margin-bottom:10px; text-align:center">
-      Обновляется только при нажатии "Сохранить"
-    </div>
-    <div class="list-container" id="topList">
-      <div style="text-align:center; padding:20px; color:#555">Нажми "Сохранить", чтобы загрузить Топ</div>
-    </div>
+    <div class="section-title">Топ Лидеры</div>
+    <div style="font-size:11px; color:#666; margin-bottom:10px; text-align:center">Обновляется при нажатии "Сохранить"</div>
+    <div class="list-container" id="topList">Загрузка...</div>
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('game', this)">
-      <span class="tab-icon">🎮</span> Игра
-    </button>
-    <button class="tab-btn" onclick="switchTab('shop', this)">
-      <span class="tab-icon">🛠</span> База
-    </button>
-    <button class="tab-btn" onclick="switchTab('premium', this)">
-      <span class="tab-icon" style="color:var(--energy-color)">⚡</span> Элита
-    </button>
-    <button class="tab-btn" onclick="switchTab('top', this)">
-      <span class="tab-icon">🏆</span> Топ
-    </button>
+    <button class="tab-btn active" onclick="switchTab('game', this)"><span class="tab-icon">🎮</span></button>
+    <button class="tab-btn" onclick="switchTab('shop', this)"><span class="tab-icon">🛠</span></button>
+    <button class="tab-btn" onclick="switchTab('premium', this)"><span class="tab-icon" style="color:var(--energy-color)">⚡</span></button>
+    <button class="tab-btn" onclick="switchTab('top', this)"><span class="tab-icon">🏆</span></button>
   </div>
 
   <div class="modal-overlay" id="profileModal">
@@ -232,9 +188,8 @@
 
 <script>
 const tg = window.Telegram?.WebApp; tg?.expand();
-const BOT_URL = "http://127.0.0.1:8080/sync"; // Адрес бота на твоем ПК
 
-// --- БАЛАНС ---
+// === БАЛАНС ===
 const BASIC_UPGRADES = [
   { id: 'b_click', name: 'Сила Пальца', desc: '+0.5 к клику', icon: '👆', baseCost: 200, mult: 1.8, max: 20, type: 'click', val: 0.5 },
   { id: 'b_auto', name: 'Авто-Кликер', desc: '+0.5 в сек', icon: '🤖', baseCost: 500, mult: 1.6, max: 20, type: 'auto', val: 0.5 },
@@ -242,202 +197,73 @@ const BASIC_UPGRADES = [
   { id: 'b_stamina', name: 'Батарейка', desc: '+25 стамины', icon: '🔋', baseCost: 400, mult: 1.5, max: 20, type: 'stamina', val: 25 },
   { id: 'b_regen', name: 'Зарядка', desc: '+0.5 реген', icon: '🔌', baseCost: 1500, mult: 1.9, max: 20, type: 'regen', val: 0.5 }
 ];
-
 const PREMIUM_UPGRADES = [
   { id: 'p_thunder', name: 'Громоотвод', desc: '+10% к клику', icon: '🔨', baseCost: 1, type: 'clickMult', val: 0.1 },
-  { id: 'p_plasma', name: 'Плазма', desc: '+25 плоский урон', icon: '💥', baseCost: 5, req: {id:'p_thunder', lvl:5}, type: 'clickFlat', val: 25 },
+  { id: 'p_plasma', name: 'Плазма', desc: '+25 урон', icon: '💥', baseCost: 5, req: {id:'p_thunder', lvl:5}, type: 'clickFlat', val: 25 },
   { id: 'p_static', name: 'Статика', desc: '+10% к авто', icon: '🌐', baseCost: 1, type: 'autoMult', val: 0.1 },
-  { id: 'p_storm', name: 'Шторм', desc: '+100 авто-доход', icon: '🌪', baseCost: 5, req: {id:'p_static', lvl:5}, type: 'autoFlat', val: 100 },
-  { id: 'p_overload', name: 'Перегрузка', desc: 'Крит урон +25%', icon: '⚡', baseCost: 3, type: 'critMult', val: 0.25 },
-  { id: 'p_effic', name: 'Оптимизация', desc: 'Скидка на базу 0.5%', icon: '📉', baseCost: 2, type: 'discount', val: 0.005 }
+  { id: 'p_storm', name: 'Шторм', desc: '+100 авто', icon: '🌪', baseCost: 5, req: {id:'p_static', lvl:5}, type: 'autoFlat', val: 100 },
+  { id: 'p_overload', name: 'Перегрузка', desc: 'Крит +25%', icon: '⚡', baseCost: 3, type: 'critMult', val: 0.25 },
+  { id: 'p_effic', name: 'Оптимизация', desc: 'Скидка 0.5%', icon: '📉', baseCost: 2, type: 'discount', val: 0.005 }
 ];
-
 const FILES = ['./history_ew.json', './history_ed.json', './history_ea.json'];
 
-let state = {
-  balance: 0, stamina: 1000, lastTs: Date.now(), profile: "",
-  b_levels: {}, p_levels: {}, 
-  claimedDiff: 0, spentEnergy: 0, totalEnergy: 0, 
-  name: (tg?.initDataUnsafe?.user?.first_name || "Player")
-};
-
+let state = { balance: 0, stamina: 1000, b_levels: {}, p_levels: {}, claimedDiff: 0, spentEnergy: 0, totalEnergy: 0, name: (tg?.initDataUnsafe?.user?.first_name || "Player") };
 let stats = { click: 1, auto: 0, crit: 0, maxStamina: 1000, regen: 1, discount: 0, critMult: 5 };
 
 function load() {
-  const raw = localStorage.getItem("neon_manual_v1");
+  const raw = localStorage.getItem("neon_v7_full");
   if (raw) try { state = { ...state, ...JSON.parse(raw) }; } catch(e){}
   try { const p = new URLSearchParams(location.search).get("profile"); if (p) state.profile = normalizeProfile(p); } catch(e){}
   calcStats(); updateUI(); syncEnergy();
 }
+function saveLocal() { localStorage.setItem("neon_v7_full", JSON.stringify(state)); }
 
-function saveLocal() {
-  state.lastTs = Date.now();
-  localStorage.setItem("neon_manual_v1", JSON.stringify(state));
-}
-
-// --- КНОПКА СОХРАНИТЬ ---
-async function manualSave() {
-  const btn = document.querySelector('.save-btn');
-  const originalText = btn.innerText;
-  btn.innerText = "⏳..."; btn.disabled = true;
-
-  const uid = tg?.initDataUnsafe?.user?.id || "local_user";
-  
-  try {
-    // 1. Отправляем данные боту
-    await fetch(BOT_URL, {
-      method: "POST",
-      body: JSON.stringify({ uid: uid, state: state })
-    });
-    
-    // 2. Если успешно - обновляем Топ (скачиваем файл заново)
-    await loadRealTop();
-    
-    showToast("Сохранено!");
-  } catch (e) {
-    showToast("Ошибка! Бот не запущен?");
-    console.error(e);
-  } finally {
-    btn.innerText = originalText; btn.disabled = false;
-    saveLocal(); // Локально тоже бэкапим
+// === ОТПРАВКА БОТУ (SEND DATA) ===
+function sendDataToBot() {
+  saveLocal();
+  if (tg && tg.sendData) {
+    // Это закрывает игру и передает JSON боту
+    tg.sendData(JSON.stringify({ type: "save_manual", state: state }));
+  } else {
+    alert("Эта кнопка работает только внутри Telegram!");
   }
 }
 
-// --- ИГРА ---
+// === ИГРА ===
 function calcStats() {
   let s = { click: 1, auto: 0, crit: 0, maxStamina: 1000, regen: 1, discount: 0, clickMult: 1, autoMult: 1, critMult: 5 };
-  BASIC_UPGRADES.forEach(u => {
-    const lvl = state.b_levels[u.id] || 0;
-    if (u.type==='click') s.click += lvl * u.val;
-    if (u.type==='auto') s.auto += lvl * u.val;
-    if (u.type==='crit') s.crit += lvl * u.val;
-    if (u.type==='stamina') s.maxStamina += lvl * u.val;
-    if (u.type==='regen') s.regen += lvl * u.val;
-  });
-  PREMIUM_UPGRADES.forEach(u => {
-    const lvl = state.p_levels[u.id] || 0;
-    if (u.type==='clickMult') s.clickMult += lvl * u.val;
-    if (u.type==='clickFlat') s.click += lvl * u.val;
-    if (u.type==='autoMult') s.autoMult += lvl * u.val;
-    if (u.type==='autoFlat') s.auto += lvl * u.val;
-    if (u.type==='critMult') s.critMult += lvl * u.val;
-    if (u.type==='discount') s.discount += lvl * u.val;
-  });
-  stats.click = s.click * s.clickMult;
-  stats.auto = s.auto * s.autoMult;
-  stats.crit = s.crit;
-  stats.maxStamina = s.maxStamina;
-  stats.regen = s.regen;
-  stats.discount = Math.min(0.8, s.discount);
-  stats.critMult = s.critMult;
+  BASIC_UPGRADES.forEach(u => { const l = state.b_levels[u.id] || 0; if (u.type==='click') s.click += l*u.val; if (u.type==='auto') s.auto += l*u.val; if (u.type==='crit') s.crit += l*u.val; if (u.type==='stamina') s.maxStamina += l*u.val; if (u.type==='regen') s.regen += l*u.val; });
+  PREMIUM_UPGRADES.forEach(u => { const l = state.p_levels[u.id] || 0; if (u.type==='clickMult') s.clickMult += l*u.val; if (u.type==='clickFlat') s.click += l*u.val; if (u.type==='autoMult') s.autoMult += l*u.val; if (u.type==='autoFlat') s.auto += l*u.val; if (u.type==='critMult') s.critMult += l*u.val; if (u.type==='discount') s.discount += l*u.val; });
+  stats.click = s.click * s.clickMult; stats.auto = s.auto * s.autoMult; stats.crit = s.crit; stats.maxStamina = s.maxStamina; stats.regen = s.regen; stats.discount = Math.min(0.8, s.discount); stats.critMult = s.critMult;
 }
 
-setInterval(() => {
-  if (stats.auto > 0) state.balance += stats.auto;
-  if (state.stamina < stats.maxStamina) state.stamina = Math.min(stats.maxStamina, state.stamina + stats.regen);
-  updateUI(); saveLocal(); // Авто-сохранение только в браузер (не в файл)
-}, 1000);
+setInterval(() => { if (stats.auto > 0) state.balance += stats.auto; if (state.stamina < stats.maxStamina) state.stamina = Math.min(stats.maxStamina, state.stamina + stats.regen); updateUI(); saveLocal(); }, 1000);
 
 document.getElementById('tapBtn').addEventListener('pointerdown', (e) => {
   if (state.stamina >= 1) {
-    state.stamina -= 1;
-    let dmg = stats.click;
-    let isCrit = Math.random() * 100 < stats.crit;
-    if (isCrit) dmg = dmg * stats.critMult;
+    state.stamina -= 1; let dmg = stats.click;
+    if (Math.random()*100 < stats.crit) dmg *= stats.critMult;
     state.balance += dmg;
-    
-    const btn = document.getElementById('tapBtn');
-    btn.style.transform = "scale(0.95)";
-    setTimeout(() => btn.style.transform = "scale(1)", 50);
-    createFloat(e.clientX, e.clientY, "+" + fmt(dmg), isCrit);
+    const btn = document.getElementById('tapBtn'); btn.style.transform = "scale(0.95)"; setTimeout(() => btn.style.transform = "scale(1)", 50);
+    createFloat(e.clientX, e.clientY, "+" + fmt(dmg), dmg > stats.click);
     updateUI();
   }
 });
 
-// --- МАГАЗИН ---
-function getPremiumCost(id, currentLvl) {
-  const u = PREMIUM_UPGRADES.find(x => x.id === id);
-  return u.baseCost + currentLvl; // Цена растет на 1
-}
-
+// === МАГАЗИН ===
 function buyBasic(id) {
-  const u = BASIC_UPGRADES.find(x => x.id === id);
-  const lvl = state.b_levels[id] || 0;
-  if (lvl >= u.max) return;
-  let cost = Math.floor(u.baseCost * Math.pow(u.mult, lvl));
-  cost = Math.floor(cost * (1 - stats.discount));
-  if (state.balance >= cost) {
-    state.balance -= cost; state.b_levels[id] = lvl + 1;
-    calcStats(); updateUI(); saveLocal(); showToast("Куплено!");
-  }
+  const u = BASIC_UPGRADES.find(x => x.id === id), lvl = state.b_levels[id] || 0;
+  const cost = Math.floor(Math.floor(u.baseCost * Math.pow(u.mult, lvl)) * (1 - stats.discount));
+  if (state.balance >= cost && lvl < u.max) { state.balance -= cost; state.b_levels[id] = lvl + 1; calcStats(); updateUI(); saveLocal(); showToast("Куплено!"); }
 }
-
 function buyPremium(id) {
-  const u = PREMIUM_UPGRADES.find(x => x.id === id);
-  const lvl = state.p_levels[id] || 0;
-  if (u.req && (state.p_levels[u.req.id] || 0) < u.req.lvl) return;
-  const cost = getPremiumCost(id, lvl);
-  if (state.totalEnergy >= cost) {
-    state.totalEnergy -= cost; state.spentEnergy += cost; state.p_levels[id] = lvl + 1;
-    calcStats(); updateUI(); saveLocal(); showToast("Элитный апгрейд!");
-  }
+  const u = PREMIUM_UPGRADES.find(x => x.id === id), lvl = state.p_levels[id] || 0;
+  if (u.req && (state.p_levels[u.req.id]||0) < u.req.lvl) return;
+  const cost = u.baseCost + lvl;
+  if (state.totalEnergy >= cost) { state.totalEnergy -= cost; state.spentEnergy += cost; state.p_levels[id] = lvl + 1; calcStats(); updateUI(); saveLocal(); showToast("Элитный апгрейд!"); }
 }
 
-// --- СИНХРОНИЗАЦИЯ ---
-async function syncEnergy() {
-  if (!state.profile) { document.getElementById('profileLinker').classList.add('active'); return; }
-  document.getElementById('profileLinker').classList.remove('active');
-  const btn = document.querySelector('#screen-premium button');
-  if(btn) { btn.innerText = "Загрузка..."; btn.disabled = true; }
-  try {
-    let totalDiff = 0;
-    const norm = normalizeProfile(state.profile);
-    for (const file of FILES) {
-      try {
-        const r = await fetch(file + "?t=" + Date.now());
-        if (r.ok) {
-          const data = await r.json();
-          const row = data.find(x => normalizeProfile(x.profile) === norm);
-          if (row && row.diff) totalDiff += row.diff;
-        }
-      } catch(e){}
-    }
-    const lifetime = Math.floor(totalDiff / 100);
-    state.totalEnergy = Math.max(0, lifetime - state.spentEnergy);
-    document.getElementById('lightningInfo').innerText = `Молний: ${totalDiff} | Энергии: ${state.totalEnergy}`;
-    showToast("Синхронизация OK");
-  } catch(e) { showToast("Ошибка сети"); }
-  if(btn) { btn.innerText = "🔄 Проверить файлы"; btn.disabled = false; }
-  updateUI();
-}
-
-async function loadRealTop() {
-  const list = document.getElementById('topList'); 
-  list.innerHTML = "Загрузка...";
-  try {
-    const r = await fetch('./tap_saves.json?t=' + Date.now());
-    if (r.ok) {
-      const d = await r.json();
-      let arr = Object.keys(d).map(k => ({
-        name: d[k].name || "ID:"+k, 
-        score: (d[k].state?.balance || 0), 
-        isMe: String(k) === String(tg?.initDataUnsafe?.user?.id)
-      }));
-      arr.sort((a,b) => b.score - a.score);
-      
-      let html = "";
-      if(arr.length === 0) html = "Топ пуст";
-      arr.slice(0, 50).forEach((p, i) => {
-        html += `<div class="rank-row ${p.isMe ? 'me' : ''}">
-          <div class="rank-idx">${i+1}</div><div class="rank-name">${p.name}</div><div class="rank-val">${fmt(p.score)}</div>
-        </div>`;
-      });
-      list.innerHTML = html;
-    }
-  } catch { list.innerHTML = "Нажми Сохранить, чтобы обновить"; }
-}
-
-// --- UI ---
+// === UI & SYNC ===
 function updateUI() {
   document.getElementById('balanceDisplay').innerText = fmt(state.balance);
   document.getElementById('upgradeEnergyDisplay').innerText = state.totalEnergy;
@@ -447,60 +273,54 @@ function updateUI() {
   document.getElementById('autoDmg').innerText = `Авто: ${fmt(stats.auto)}/сек`;
   renderShops();
 }
-
 function renderShops() {
   const bList = document.getElementById('basicList'); bList.innerHTML = "";
   BASIC_UPGRADES.forEach(u => {
-    const lvl = state.b_levels[u.id] || 0;
-    let cost = Math.floor(u.baseCost * Math.pow(u.mult, lvl));
-    cost = Math.floor(cost * (1 - stats.discount));
-    const can = state.balance >= cost && lvl < u.max;
-    const maxed = lvl >= u.max;
-    bList.innerHTML += `
-    <div class="card">
-      <div class="card-icon">${u.icon}</div>
-      <div class="card-body">
-        <div class="card-name">${u.name} <span class="card-lvl">${lvl}/${u.max}</span></div>
-        <div class="card-desc">${u.desc}</div>
-      </div>
-      <button class="buy-btn ${can?'can-buy':''} ${maxed?'maxed':''}" onclick="buyBasic('${u.id}')">
-        ${maxed ? 'MAX' : fmt(cost)}
-      </button>
-    </div>`;
+    const lvl = state.b_levels[u.id] || 0, cost = Math.floor(Math.floor(u.baseCost * Math.pow(u.mult, lvl)) * (1 - stats.discount));
+    const can = state.balance >= cost && lvl < u.max, maxed = lvl >= u.max;
+    bList.innerHTML += `<div class="card"><div class="card-icon">${u.icon}</div><div class="card-body"><div class="card-name">${u.name} <span class="card-lvl">${lvl}/${u.max}</span></div><div class="card-desc">${u.desc}</div></div><button class="buy-btn ${can?'can-buy':''} ${maxed?'maxed':''}" onclick="buyBasic('${u.id}')">${maxed ? 'MAX' : fmt(cost)}</button></div>`;
   });
-
   const pList = document.getElementById('premiumList'); pList.innerHTML = "";
   PREMIUM_UPGRADES.forEach(u => {
-    const lvl = state.p_levels[u.id] || 0;
-    let locked = false, msg = u.desc;
-    if (u.req && (state.p_levels[u.req.id]||0) < u.req.lvl) {
-      locked = true; msg = `Требует: ${PREMIUM_UPGRADES.find(x=>x.id===u.req.id).name} Lvl ${u.req.lvl}`;
-    }
-    const cost = getPremiumCost(u.id, lvl);
+    const lvl = state.p_levels[u.id] || 0, cost = u.baseCost + lvl;
+    let locked = u.req && (state.p_levels[u.req.id]||0) < u.req.lvl;
     const can = !locked && state.totalEnergy >= cost;
-    pList.innerHTML += `
-    <div class="card premium ${locked?'locked':''}">
-      <div class="card-icon">${u.icon}</div>
-      <div class="card-body">
-        <div class="card-name" style="color:var(--energy-color)">${u.name} <span class="card-lvl">Lvl ${lvl}</span></div>
-        <div class="card-desc">${msg}</div>
-      </div>
-      <button class="buy-btn premium-btn ${can?'can-buy':''}" onclick="buyPremium('${u.id}')">
-        ⚡ ${cost}
-      </button>
-    </div>`;
+    pList.innerHTML += `<div class="card premium ${locked?'locked':''}"><div class="card-icon">${u.icon}</div><div class="card-body"><div class="card-name" style="color:var(--energy-color)">${u.name} <span class="card-lvl">Lvl ${lvl}</span></div><div class="card-desc">${locked ? 'Требует пред. уровень' : u.desc}</div></div><button class="buy-btn premium-btn ${can?'can-buy':''}" onclick="buyPremium('${u.id}')">⚡ ${cost}</button></div>`;
   });
 }
-
+async function syncEnergy() {
+  if (!state.profile) { document.getElementById('profileLinker').classList.add('active'); return; }
+  try {
+    let totalDiff = 0, norm = normalizeProfile(state.profile);
+    for (const file of FILES) {
+      const r = await fetch(file + "?t=" + Date.now());
+      if (r.ok) (await r.json()).forEach(row => { if (normalizeProfile(row.profile) === norm) totalDiff += row.diff || 0; });
+    }
+    state.totalEnergy = Math.max(0, Math.floor(totalDiff / 100) - state.spentEnergy);
+    document.getElementById('lightningInfo').innerText = `Молний: ${totalDiff}`;
+    showToast("Синхронизация OK"); updateUI();
+  } catch(e) {}
+}
+async function loadRealTop() {
+  const list = document.getElementById('topList'); list.innerHTML = "Загрузка...";
+  try {
+    const r = await fetch('./tap_saves.json?t=' + Date.now());
+    if (r.ok) {
+      const d = await r.json();
+      let arr = Object.keys(d).map(k => ({ name: d[k].name || "ID:"+k, score: (d[k].state?.balance || 0), isMe: String(k) === String(tg?.initDataUnsafe?.user?.id) }));
+      arr.sort((a,b) => b.score - a.score);
+      list.innerHTML = arr.slice(0, 50).map((p, i) => `<div class="rank-row ${p.isMe ? 'me' : ''}"><div class="rank-idx">${i+1}</div><div class="rank-name">${p.name}</div><div class="rank-val">${fmt(p.score)}</div></div>`).join('');
+    }
+  } catch { list.innerHTML = "Ошибка загрузки"; }
+}
 function normalizeProfile(url) { try { return "https://remanga.org/user/" + url.match(/user\/(\d+)/)[1] + "/about"; } catch { return url; } }
-function fmt(n) { if (n>=1e6) return (n/1e6).toFixed(2)+"M"; if (n>=1e3) return (n/1e3).toFixed(1)+"K"; return Number(n).toFixed(1).replace(/\.0$/, ''); }
+function fmt(n) { if (n >= 1e6) return (n/1e6).toFixed(2)+"M"; if (n >= 1e3) return (n/1e3).toFixed(1)+"K"; return Number(n).toFixed(1).replace(/\.0$/, ''); }
 function createFloat(x,y,t,c) { const el=document.createElement('div'); el.className='float-num '+(c?'crit':''); el.textContent=t; el.style.left=(x||150)+'px'; el.style.top=(y||300)+'px'; document.body.appendChild(el); setTimeout(()=>el.remove(),800); }
 function showToast(m) { const t=document.getElementById('toast'); t.textContent=m; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,2000); }
 function switchTab(n,b) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('show')); document.getElementById('screen-'+n).classList.add('show'); document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); if(n==='top') loadRealTop(); }
 function openProfileModal(){document.getElementById('profileModal').style.display='flex'}
 function closeProfileModal(){document.getElementById('profileModal').style.display='none'}
 function saveProfile(){ const v=document.getElementById('profileInput').value.trim(); if(v){ state.profile=normalizeProfile(v); saveLocal(); closeProfileModal(); syncEnergy(); } }
-
 load();
 </script>
 </body>
