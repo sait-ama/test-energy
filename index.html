@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Neon Tap: Hardcore</title>
+  <title>Neon Tap: Manual Save</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -26,9 +26,9 @@
       display: flex; flex-direction: column;
     }
 
-    /* --- UI --- */
+    /* --- ХЕДЕР --- */
     .header {
-      position: fixed; top: 0; left: 0; right: 0; height: 85px;
+      position: fixed; top: 0; left: 0; right: 0; height: 100px;
       padding: 10px 15px; background: rgba(19,19,43,0.98);
       border-bottom: 1px solid var(--card-border); z-index: 100;
       display: flex; flex-direction: column; gap: 5px;
@@ -37,34 +37,33 @@
     .balance { font-size: 24px; font-weight: 900; color: var(--text); }
     .premium-res { font-size: 16px; font-weight: bold; color: var(--energy-color); display: flex; align-items: center; gap: 5px; }
     
-    .stamina-bar-bg { width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; margin-top: 5px; }
-    .stamina-bar-fill { height: 100%; background: var(--accent-2); width: 100%; transition: width 0.2s; }
-    .stamina-text { font-size: 10px; color: var(--text-sec); text-align: center; margin-top: 2px; }
-
-    .profile-linker {
-      position: fixed; top: 90px; left: 10px; right: 10px;
-      background: var(--red); padding: 10px; text-align: center; font-size: 12px;
-      border-radius: 8px; cursor: pointer; display: none; z-index: 90; color: white; font-weight: bold;
+    .controls-row { display: flex; gap: 10px; align-items: center; justify-content: space-between; margin-top: 2px; }
+    
+    .save-btn {
+      background: linear-gradient(90deg, var(--green), #00cc66);
+      border: none; color: #000; font-weight: 900;
+      padding: 6px 16px; border-radius: 6px; font-size: 12px;
+      cursor: pointer; box-shadow: 0 0 10px rgba(38, 255, 133, 0.3);
+      text-transform: uppercase; letter-spacing: 1px;
     }
-    .profile-linker.active { display: block; }
+    .save-btn:active { transform: scale(0.95); }
+
+    .stamina-bar-bg { flex: 1; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
+    .stamina-bar-fill { height: 100%; background: var(--accent-2); width: 100%; transition: width 0.2s; }
+    .stamina-text { font-size: 10px; color: var(--text-sec); margin-left: 10px; width: 70px; text-align: right; }
 
     /* --- ЭКРАНЫ --- */
     .screen {
-      position: absolute; top: 85px; bottom: 70px; left: 0; right: 0;
+      position: absolute; top: 100px; bottom: 70px; left: 0; right: 0;
       overflow-y: auto; padding: 20px; 
       background: var(--bg);
       display: none; flex-direction: column; align-items: center;
     }
     .screen.show { display: flex; }
-    
     #screen-game { justify-content: center; }
 
-    /* --- Кнопка --- */
-    .circle-container {
-      position: relative; width: 260px; height: 260px; 
-      display: flex; justify-content: center; align-items: center;
-      margin: auto;
-    }
+    /* --- ЭЛЕМЕНТЫ --- */
+    .circle-container { position: relative; width: 260px; height: 260px; display: flex; justify-content: center; align-items: center; margin: auto; }
     .tap-btn {
       width: 230px; height: 230px; border-radius: 50%; border: none; cursor: pointer;
       background: radial-gradient(circle at 30% 30%, #2b2b50, #101025);
@@ -75,7 +74,7 @@
     .tap-btn:active { transform: scale(0.95); }
     .tap-btn h1 { margin: 0; font-size: 32px; color: var(--accent-2); text-shadow: 0 0 10px var(--accent-2); pointer-events: none; }
 
-    /* --- Меню --- */
+    /* --- МЕНЮ --- */
     .tabs {
       position: fixed; bottom: 0; left: 0; right: 0; height: 70px;
       background: var(--card); border-top: 1px solid var(--card-border);
@@ -91,7 +90,7 @@
     .tab-btn.active .tab-icon { color: var(--accent-2); transform: scale(1.1); }
     .tab-icon { font-size: 22px; transition: 0.2s; }
 
-    /* --- Карточки --- */
+    /* --- СПИСКИ --- */
     .list-container { width: 100%; max-width: 600px; display: flex; flex-direction: column; gap: 10px; }
     .section-title { width: 100%; max-width: 600px; font-size: 14px; color: var(--text-sec); text-transform: uppercase; margin-bottom: 10px; margin-top: 5px; }
 
@@ -117,18 +116,20 @@
     .buy-btn.premium-btn.can-buy { background: linear-gradient(45deg, #ffd700, #ffaa00); color: #000; box-shadow: 0 4px 10px rgba(255, 215, 0, 0.25); }
     .buy-btn.maxed { background: transparent; border: 1px solid var(--green); color: var(--green); }
 
-    /* Всплывающие цифры */
+    /* --- ПРОЧЕЕ --- */
     .float-num { position: absolute; font-weight: bold; font-size: 24px; pointer-events: none; animation: floatUp 0.8s ease-out forwards; color: #fff; z-index: 50; text-shadow: 0 2px 4px #000; }
     .float-num.crit { color: var(--energy-color); font-size: 30px; }
     @keyframes floatUp { to { transform: translateY(-120px); opacity: 0; } }
 
-    /* Модалка и Тост */
     .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 200; display: none; justify-content: center; align-items: center; }
     .modal { background: var(--card); padding: 20px; border-radius: 16px; width: 90%; max-width: 320px; border: 1px solid var(--accent); }
     .inp { width: 100%; padding: 10px; background: #080810; border: 1px solid #444; color: #fff; border-radius: 8px; margin: 10px 0; outline: none; }
-    .toast { position: fixed; top: 100px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border: 1px solid var(--green); color: var(--green); padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     
-    /* Топ */
+    .profile-linker { position: fixed; top: 105px; left: 10px; right: 10px; background: var(--red); padding: 10px; text-align: center; font-size: 12px; border-radius: 8px; cursor: pointer; display: none; z-index: 90; color: white; font-weight: bold; }
+    .profile-linker.active { display: block; }
+
+    .toast { position: fixed; top: 110px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.9); border: 1px solid var(--green); color: var(--green); padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    
     .rank-row { display: flex; align-items: center; padding: 10px; background: var(--card); border-radius: 10px; border: 1px solid var(--card-border); margin-bottom: 8px; width: 100%; }
     .rank-idx { width: 30px; font-weight: 900; color: var(--text-sec); }
     .rank-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: bold; }
@@ -157,11 +158,16 @@
         </div>
       </div>
     </div>
-    <div>
-      <div class="stamina-bar-bg">
-        <div class="stamina-bar-fill" id="staminaFill"></div>
+    
+    <div class="controls-row">
+      <button class="save-btn" onclick="manualSave()">💾 Сохранить</button>
+      
+      <div style="display:flex; align-items:center; flex:1; margin-left:10px;">
+        <div class="stamina-bar-bg">
+          <div class="stamina-bar-fill" id="staminaFill"></div>
+        </div>
+        <div class="stamina-text" id="staminaText">1000</div>
       </div>
-      <div class="stamina-text" id="staminaText">1000 / 1000</div>
     </div>
   </div>
 
@@ -176,7 +182,7 @@
   </div>
 
   <div class="screen" id="screen-shop">
-    <div class="section-title">Базовые (Урезаны в 2 раза)</div>
+    <div class="section-title">Базовые (Монеты)</div>
     <div class="list-container" id="basicList"></div>
   </div>
 
@@ -187,13 +193,17 @@
       <span id="lightningInfo">Молний: 0</span>
     </div>
     <div class="list-container" id="premiumList"></div>
-    <button class="buy-btn" style="margin-top:20px; width:100%; max-width:600px; background:#222; color:#fff; border:1px solid #444; cursor:pointer" onclick="syncEnergy()">🔄 Обновить данные</button>
+    <button class="buy-btn" style="margin-top:20px; width:100%; max-width:600px; background:#222; color:#fff; border:1px solid #444; cursor:pointer" onclick="syncEnergy()">🔄 Проверить файлы</button>
   </div>
 
   <div class="screen" id="screen-top">
-    <div class="section-title">Топ Лидеры</div>
-    <div style="font-size:11px; color:#666; margin-bottom:10px; text-align:center">Твой результат обновляется сразу</div>
-    <div class="list-container" id="topList">Загрузка...</div>
+    <div class="section-title">Топ Игроков</div>
+    <div style="font-size:11px; color:#666; margin-bottom:10px; text-align:center">
+      Обновляется только при нажатии "Сохранить"
+    </div>
+    <div class="list-container" id="topList">
+      <div style="text-align:center; padding:20px; color:#555">Нажми "Сохранить", чтобы загрузить Топ</div>
+    </div>
   </div>
 
   <div class="tabs">
@@ -214,7 +224,6 @@
   <div class="modal-overlay" id="profileModal">
     <div class="modal">
       <h3>Привязка ReManga</h3>
-      <p style="font-size:12px; color:#aaa">Ссылка на профиль:</p>
       <input type="text" class="inp" id="profileInput" placeholder="https://remanga.org/user/..." />
       <button class="buy-btn can-buy" style="width:100%" onclick="saveProfile()">Сохранить</button>
       <button class="buy-btn" style="width:100%; margin-top:10px; background:transparent" onclick="closeProfileModal()">Отмена</button>
@@ -223,10 +232,9 @@
 
 <script>
 const tg = window.Telegram?.WebApp; tg?.expand();
+const BOT_URL = "http://127.0.0.1:8080/sync"; // Адрес бота на твоем ПК
 
-// === БАЛАНС (НЕРФ X2) ===
-// Теперь прирост идет по +0.5 за уровень!
-
+// --- БАЛАНС ---
 const BASIC_UPGRADES = [
   { id: 'b_click', name: 'Сила Пальца', desc: '+0.5 к клику', icon: '👆', baseCost: 200, mult: 1.8, max: 20, type: 'click', val: 0.5 },
   { id: 'b_auto', name: 'Авто-Кликер', desc: '+0.5 в сек', icon: '🤖', baseCost: 500, mult: 1.6, max: 20, type: 'auto', val: 0.5 },
@@ -236,79 +244,68 @@ const BASIC_UPGRADES = [
 ];
 
 const PREMIUM_UPGRADES = [
-  // Ветка клика (бонусы уменьшены в 2 раза)
   { id: 'p_thunder', name: 'Громоотвод', desc: '+10% к клику', icon: '🔨', baseCost: 1, type: 'clickMult', val: 0.1 },
   { id: 'p_plasma', name: 'Плазма', desc: '+25 плоский урон', icon: '💥', baseCost: 5, req: {id:'p_thunder', lvl:5}, type: 'clickFlat', val: 25 },
-  
-  // Ветка авто
   { id: 'p_static', name: 'Статика', desc: '+10% к авто', icon: '🌐', baseCost: 1, type: 'autoMult', val: 0.1 },
   { id: 'p_storm', name: 'Шторм', desc: '+100 авто-доход', icon: '🌪', baseCost: 5, req: {id:'p_static', lvl:5}, type: 'autoFlat', val: 100 },
-  
-  // Ветка крита
   { id: 'p_overload', name: 'Перегрузка', desc: 'Крит урон +25%', icon: '⚡', baseCost: 3, type: 'critMult', val: 0.25 },
-  
-  // Экономика
   { id: 'p_effic', name: 'Оптимизация', desc: 'Скидка на базу 0.5%', icon: '📉', baseCost: 2, type: 'discount', val: 0.005 }
 ];
 
 const FILES = ['./history_ew.json', './history_ed.json', './history_ea.json'];
 
-// === STATE ===
 let state = {
-  balance: 0,
-  stamina: 1000,
-  lastTs: Date.now(),
-  profile: "",
-  
-  b_levels: {}, 
-  p_levels: {}, 
-  
-  claimedDiff: 0,
-  spentEnergy: 0, 
-  totalEnergy: 0, 
-  
-  name: (tg?.initDataUnsafe?.user?.first_name || "Guest")
+  balance: 0, stamina: 1000, lastTs: Date.now(), profile: "",
+  b_levels: {}, p_levels: {}, 
+  claimedDiff: 0, spentEnergy: 0, totalEnergy: 0, 
+  name: (tg?.initDataUnsafe?.user?.first_name || "Player")
 };
 
-let cachedTop = [];
-
-// === CORE ===
-function load() {
-  const raw = localStorage.getItem("neon_ltg_v4_nerf");
-  if (raw) {
-    try {
-      const s = JSON.parse(raw);
-      state = { ...state, ...s };
-    } catch(e){}
-  }
-  try { const p = new URLSearchParams(location.search).get("profile"); if (p) state.profile = normalizeProfile(p); } catch(e){}
-  
-  calcStats();
-  updateUI();
-  syncEnergy();
-}
-
-function save() {
-  state.lastTs = Date.now();
-  localStorage.setItem("neon_ltg_v4_nerf", JSON.stringify(state));
-}
-
-let lastSent = 0;
-function pushToBot() {
-  const now = Date.now();
-  if (now - lastSent > 30000 && tg?.sendData) {
-    lastSent = now;
-    tg.sendData(JSON.stringify({ type: "sync", state }));
-  }
-}
-
-// Stats (Support floats)
 let stats = { click: 1, auto: 0, crit: 0, maxStamina: 1000, regen: 1, discount: 0, critMult: 5 };
 
+function load() {
+  const raw = localStorage.getItem("neon_manual_v1");
+  if (raw) try { state = { ...state, ...JSON.parse(raw) }; } catch(e){}
+  try { const p = new URLSearchParams(location.search).get("profile"); if (p) state.profile = normalizeProfile(p); } catch(e){}
+  calcStats(); updateUI(); syncEnergy();
+}
+
+function saveLocal() {
+  state.lastTs = Date.now();
+  localStorage.setItem("neon_manual_v1", JSON.stringify(state));
+}
+
+// --- КНОПКА СОХРАНИТЬ ---
+async function manualSave() {
+  const btn = document.querySelector('.save-btn');
+  const originalText = btn.innerText;
+  btn.innerText = "⏳..."; btn.disabled = true;
+
+  const uid = tg?.initDataUnsafe?.user?.id || "local_user";
+  
+  try {
+    // 1. Отправляем данные боту
+    await fetch(BOT_URL, {
+      method: "POST",
+      body: JSON.stringify({ uid: uid, state: state })
+    });
+    
+    // 2. Если успешно - обновляем Топ (скачиваем файл заново)
+    await loadRealTop();
+    
+    showToast("Сохранено!");
+  } catch (e) {
+    showToast("Ошибка! Бот не запущен?");
+    console.error(e);
+  } finally {
+    btn.innerText = originalText; btn.disabled = false;
+    saveLocal(); // Локально тоже бэкапим
+  }
+}
+
+// --- ИГРА ---
 function calcStats() {
   let s = { click: 1, auto: 0, crit: 0, maxStamina: 1000, regen: 1, discount: 0, clickMult: 1, autoMult: 1, critMult: 5 };
-
-  // Basic
   BASIC_UPGRADES.forEach(u => {
     const lvl = state.b_levels[u.id] || 0;
     if (u.type==='click') s.click += lvl * u.val;
@@ -317,8 +314,6 @@ function calcStats() {
     if (u.type==='stamina') s.maxStamina += lvl * u.val;
     if (u.type==='regen') s.regen += lvl * u.val;
   });
-
-  // Premium
   PREMIUM_UPGRADES.forEach(u => {
     const lvl = state.p_levels[u.id] || 0;
     if (u.type==='clickMult') s.clickMult += lvl * u.val;
@@ -328,100 +323,72 @@ function calcStats() {
     if (u.type==='critMult') s.critMult += lvl * u.val;
     if (u.type==='discount') s.discount += lvl * u.val;
   });
-
-  // No floor here to allow fractional stats
   stats.click = s.click * s.clickMult;
   stats.auto = s.auto * s.autoMult;
   stats.crit = s.crit;
   stats.maxStamina = s.maxStamina;
   stats.regen = s.regen;
-  stats.discount = Math.min(0.8, s.discount); 
+  stats.discount = Math.min(0.8, s.discount);
   stats.critMult = s.critMult;
 }
 
-// Loop
 setInterval(() => {
-  if (stats.auto > 0) {
-    state.balance += stats.auto;
-    refreshLocalTop();
-  }
-  if (state.stamina < stats.maxStamina) {
-    state.stamina = Math.min(stats.maxStamina, state.stamina + stats.regen);
-  }
-  
-  updateUI();
-  save();
-  pushToBot();
+  if (stats.auto > 0) state.balance += stats.auto;
+  if (state.stamina < stats.maxStamina) state.stamina = Math.min(stats.maxStamina, state.stamina + stats.regen);
+  updateUI(); saveLocal(); // Авто-сохранение только в браузер (не в файл)
 }, 1000);
 
-// Click
 document.getElementById('tapBtn').addEventListener('pointerdown', (e) => {
   if (state.stamina >= 1) {
     state.stamina -= 1;
-    
     let dmg = stats.click;
     let isCrit = Math.random() * 100 < stats.crit;
     if (isCrit) dmg = dmg * stats.critMult;
-    
     state.balance += dmg;
-    refreshLocalTop();
     
     const btn = document.getElementById('tapBtn');
     btn.style.transform = "scale(0.95)";
     setTimeout(() => btn.style.transform = "scale(1)", 50);
     createFloat(e.clientX, e.clientY, "+" + fmt(dmg), isCrit);
-    
     updateUI();
   }
 });
 
-// === SHOP ===
+// --- МАГАЗИН ---
 function getPremiumCost(id, currentLvl) {
   const u = PREMIUM_UPGRADES.find(x => x.id === id);
-  return u.baseCost + currentLvl;
+  return u.baseCost + currentLvl; // Цена растет на 1
 }
 
 function buyBasic(id) {
   const u = BASIC_UPGRADES.find(x => x.id === id);
   const lvl = state.b_levels[id] || 0;
   if (lvl >= u.max) return;
-  
   let cost = Math.floor(u.baseCost * Math.pow(u.mult, lvl));
   cost = Math.floor(cost * (1 - stats.discount));
-  
   if (state.balance >= cost) {
-    state.balance -= cost;
-    state.b_levels[id] = lvl + 1;
-    calcStats(); updateUI(); save(); showToast("Улучшено!");
+    state.balance -= cost; state.b_levels[id] = lvl + 1;
+    calcStats(); updateUI(); saveLocal(); showToast("Куплено!");
   }
 }
 
 function buyPremium(id) {
   const u = PREMIUM_UPGRADES.find(x => x.id === id);
   const lvl = state.p_levels[id] || 0;
-  
-  if (u.req) {
-    if ((state.p_levels[u.req.id] || 0) < u.req.lvl) return;
-  }
-  
+  if (u.req && (state.p_levels[u.req.id] || 0) < u.req.lvl) return;
   const cost = getPremiumCost(id, lvl);
-  
   if (state.totalEnergy >= cost) {
-    state.totalEnergy -= cost;
-    state.spentEnergy += cost;
-    state.p_levels[id] = lvl + 1;
-    calcStats(); updateUI(); save(); showToast("Элитный апгрейд!");
+    state.totalEnergy -= cost; state.spentEnergy += cost; state.p_levels[id] = lvl + 1;
+    calcStats(); updateUI(); saveLocal(); showToast("Элитный апгрейд!");
   }
 }
 
-// === SYNC & TOP ===
+// --- СИНХРОНИЗАЦИЯ ---
 async function syncEnergy() {
   if (!state.profile) { document.getElementById('profileLinker').classList.add('active'); return; }
   document.getElementById('profileLinker').classList.remove('active');
-  
   const btn = document.querySelector('#screen-premium button');
   if(btn) { btn.innerText = "Загрузка..."; btn.disabled = true; }
-  
   try {
     let totalDiff = 0;
     const norm = normalizeProfile(state.profile);
@@ -440,76 +407,48 @@ async function syncEnergy() {
     document.getElementById('lightningInfo').innerText = `Молний: ${totalDiff} | Энергии: ${state.totalEnergy}`;
     showToast("Синхронизация OK");
   } catch(e) { showToast("Ошибка сети"); }
-  
-  if(btn) { btn.innerText = "🔄 Обновить данные"; btn.disabled = false; }
+  if(btn) { btn.innerText = "🔄 Проверить файлы"; btn.disabled = false; }
   updateUI();
 }
 
 async function loadRealTop() {
   const list = document.getElementById('topList'); 
-  if (cachedTop.length === 0) list.innerHTML = "Загрузка...";
-  
+  list.innerHTML = "Загрузка...";
   try {
     const r = await fetch('./tap_saves.json?t=' + Date.now());
     if (r.ok) {
       const d = await r.json();
-      cachedTop = Object.keys(d).map(k => ({
-        id: String(k),
+      let arr = Object.keys(d).map(k => ({
         name: d[k].name || "ID:"+k, 
         score: (d[k].state?.balance || 0), 
         isMe: String(k) === String(tg?.initDataUnsafe?.user?.id)
       }));
+      arr.sort((a,b) => b.score - a.score);
       
-      const myId = String(tg?.initDataUnsafe?.user?.id);
-      if (myId && !cachedTop.find(x => x.id === myId)) {
-        cachedTop.push({ id: myId, name: state.name, score: state.balance, isMe: true });
-      }
-      
-      refreshLocalTop();
+      let html = "";
+      if(arr.length === 0) html = "Топ пуст";
+      arr.slice(0, 50).forEach((p, i) => {
+        html += `<div class="rank-row ${p.isMe ? 'me' : ''}">
+          <div class="rank-idx">${i+1}</div><div class="rank-name">${p.name}</div><div class="rank-val">${fmt(p.score)}</div>
+        </div>`;
+      });
+      list.innerHTML = html;
     }
-  } catch { list.innerHTML = "Ошибка загрузки топа"; }
+  } catch { list.innerHTML = "Нажми Сохранить, чтобы обновить"; }
 }
 
-function refreshLocalTop() {
-  const list = document.getElementById('topList');
-  if (cachedTop.length === 0) return;
-  if (!document.getElementById('screen-top').classList.contains('show')) return;
-
-  const myId = String(tg?.initDataUnsafe?.user?.id);
-  const me = cachedTop.find(x => x.id === myId);
-  if (me) me.score = state.balance;
-
-  cachedTop.sort((a,b) => b.score - a.score);
-
-  let html = "";
-  cachedTop.slice(0, 50).forEach((p, i) => {
-    html += `
-      <div class="rank-row ${p.isMe ? 'me' : ''}">
-        <div class="rank-idx">${i+1}</div>
-        <div class="rank-name">${p.name}</div>
-        <div class="rank-val">${fmt(p.score)}</div>
-      </div>`;
-  });
-  list.innerHTML = html || "Пусто";
-}
-
-// === UI HELPERS ===
+// --- UI ---
 function updateUI() {
   document.getElementById('balanceDisplay').innerText = fmt(state.balance);
   document.getElementById('upgradeEnergyDisplay').innerText = state.totalEnergy;
-  
-  const pct = (state.stamina / stats.maxStamina) * 100;
-  document.getElementById('staminaFill').style.width = pct + "%";
-  document.getElementById('staminaText').innerText = `${Math.floor(state.stamina)} / ${Math.floor(stats.maxStamina)}`;
-  
+  document.getElementById('staminaFill').style.width = (state.stamina/stats.maxStamina*100) + "%";
+  document.getElementById('staminaText').innerText = Math.floor(state.stamina);
   document.getElementById('clickDmg').innerText = `Клик: +${fmt(stats.click)}`;
   document.getElementById('autoDmg').innerText = `Авто: ${fmt(stats.auto)}/сек`;
-
   renderShops();
 }
 
 function renderShops() {
-  // Basic
   const bList = document.getElementById('basicList'); bList.innerHTML = "";
   BASIC_UPGRADES.forEach(u => {
     const lvl = state.b_levels[u.id] || 0;
@@ -517,7 +456,6 @@ function renderShops() {
     cost = Math.floor(cost * (1 - stats.discount));
     const can = state.balance >= cost && lvl < u.max;
     const maxed = lvl >= u.max;
-    
     bList.innerHTML += `
     <div class="card">
       <div class="card-icon">${u.icon}</div>
@@ -531,20 +469,15 @@ function renderShops() {
     </div>`;
   });
 
-  // Premium
   const pList = document.getElementById('premiumList'); pList.innerHTML = "";
   PREMIUM_UPGRADES.forEach(u => {
     const lvl = state.p_levels[u.id] || 0;
     let locked = false, msg = u.desc;
-    if (u.req) {
-      if ((state.p_levels[u.req.id]||0) < u.req.lvl) {
-        locked = true; 
-        msg = `Требует: ${PREMIUM_UPGRADES.find(x=>x.id===u.req.id).name} Lvl ${u.req.lvl}`;
-      }
+    if (u.req && (state.p_levels[u.req.id]||0) < u.req.lvl) {
+      locked = true; msg = `Требует: ${PREMIUM_UPGRADES.find(x=>x.id===u.req.id).name} Lvl ${u.req.lvl}`;
     }
     const cost = getPremiumCost(u.id, lvl);
     const can = !locked && state.totalEnergy >= cost;
-    
     pList.innerHTML += `
     <div class="card premium ${locked?'locked':''}">
       <div class="card-icon">${u.icon}</div>
@@ -559,36 +492,14 @@ function renderShops() {
   });
 }
 
-function normalizeProfile(url) {
-  try { return "https://remanga.org/user/" + url.match(/user\/(\d+)/)[1] + "/about"; } catch { return url; }
-}
-function fmt(n) {
-  if (n >= 1e9) return (n/1e9).toFixed(2) + "B";
-  if (n >= 1e6) return (n/1e6).toFixed(2) + "M";
-  if (n >= 1e3) return (n/1e3).toFixed(1) + "K";
-  return Number(n).toFixed(1).replace(/\.0$/, ''); // Убираем .0 если целое
-}
-function createFloat(x,y,t,c) {
-  const el = document.createElement('div'); el.className='float-num '+(c?'crit':''); el.textContent=t;
-  el.style.left=(x||innerWidth/2)+'px'; el.style.top=(y||innerHeight/2)+'px';
-  document.body.appendChild(el); setTimeout(()=>el.remove(), 800);
-}
-function showToast(m) {
-  const t = document.getElementById('toast'); t.textContent=m; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,2000);
-}
-function switchTab(n,b) {
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('show'));
-  document.getElementById('screen-'+n).classList.add('show');
-  document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active'));
-  b.classList.add('active');
-  if(n==='top') loadRealTop();
-}
+function normalizeProfile(url) { try { return "https://remanga.org/user/" + url.match(/user\/(\d+)/)[1] + "/about"; } catch { return url; } }
+function fmt(n) { if (n>=1e6) return (n/1e6).toFixed(2)+"M"; if (n>=1e3) return (n/1e3).toFixed(1)+"K"; return Number(n).toFixed(1).replace(/\.0$/, ''); }
+function createFloat(x,y,t,c) { const el=document.createElement('div'); el.className='float-num '+(c?'crit':''); el.textContent=t; el.style.left=(x||150)+'px'; el.style.top=(y||300)+'px'; document.body.appendChild(el); setTimeout(()=>el.remove(),800); }
+function showToast(m) { const t=document.getElementById('toast'); t.textContent=m; t.style.opacity=1; setTimeout(()=>t.style.opacity=0,2000); }
+function switchTab(n,b) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('show')); document.getElementById('screen-'+n).classList.add('show'); document.querySelectorAll('.tab-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); if(n==='top') loadRealTop(); }
 function openProfileModal(){document.getElementById('profileModal').style.display='flex'}
 function closeProfileModal(){document.getElementById('profileModal').style.display='none'}
-function saveProfile(){
-  const v=document.getElementById('profileInput').value.trim();
-  if(v){ state.profile=normalizeProfile(v); save(); closeProfileModal(); syncEnergy(); }
-}
+function saveProfile(){ const v=document.getElementById('profileInput').value.trim(); if(v){ state.profile=normalizeProfile(v); saveLocal(); closeProfileModal(); syncEnergy(); } }
 
 load();
 </script>
