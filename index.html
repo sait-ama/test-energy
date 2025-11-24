@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>Neon Tap: Lightning Edition</title>
+  <title>Neon Tap: Hardcore</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -176,14 +176,14 @@
   </div>
 
   <div class="screen" id="screen-shop">
-    <div class="section-title">Базовые улучшения (Монеты)</div>
+    <div class="section-title">Базовые (Урезаны в 2 раза)</div>
     <div class="list-container" id="basicList"></div>
   </div>
 
   <div class="screen" id="screen-premium">
-    <div class="section-title" style="color:var(--energy-color)">Элитные технологии (Энергия)</div>
+    <div class="section-title" style="color:var(--energy-color)">Элитные (Цена растет на +1)</div>
     <div style="font-size:11px; color:#888; margin-bottom:10px; text-align:center">
-      1 Энергия = 100 Молний. Цена растет на +1 с уровнем.<br>
+      1 Энергия = 100 Молний.<br>
       <span id="lightningInfo">Молний: 0</span>
     </div>
     <div class="list-container" id="premiumList"></div>
@@ -192,7 +192,7 @@
 
   <div class="screen" id="screen-top">
     <div class="section-title">Топ Лидеры</div>
-    <div style="font-size:11px; color:#666; margin-bottom:10px; text-align:center">Ваш результат обновляется мгновенно</div>
+    <div style="font-size:11px; color:#666; margin-bottom:10px; text-align:center">Твой результат обновляется сразу</div>
     <div class="list-container" id="topList">Загрузка...</div>
   </div>
 
@@ -224,33 +224,31 @@
 <script>
 const tg = window.Telegram?.WebApp; tg?.expand();
 
-// === БАЛАНС И НАСТРОЙКИ ===
+// === БАЛАНС (НЕРФ X2) ===
+// Теперь прирост идет по +0.5 за уровень!
 
-// Базовая ветка (За монеты) - НЕРФ ЦЕН
 const BASIC_UPGRADES = [
-  { id: 'b_click', name: 'Сила Пальца', desc: '+1 к клику', icon: '👆', baseCost: 200, mult: 1.8, max: 20, type: 'click', val: 1 },
-  { id: 'b_auto', name: 'Авто-Кликер', desc: '+1 в сек', icon: '🤖', baseCost: 500, mult: 1.6, max: 20, type: 'auto', val: 1 },
-  { id: 'b_crit', name: 'Линза', desc: '+1% шанс крита', icon: '🔍', baseCost: 1000, mult: 2.0, max: 20, type: 'crit', val: 1 },
-  { id: 'b_stamina', name: 'Батарейка', desc: '+50 стамины', icon: '🔋', baseCost: 400, mult: 1.5, max: 20, type: 'stamina', val: 50 },
-  { id: 'b_regen', name: 'Зарядка', desc: '+1 реген', icon: '🔌', baseCost: 1500, mult: 1.9, max: 20, type: 'regen', val: 1 }
+  { id: 'b_click', name: 'Сила Пальца', desc: '+0.5 к клику', icon: '👆', baseCost: 200, mult: 1.8, max: 20, type: 'click', val: 0.5 },
+  { id: 'b_auto', name: 'Авто-Кликер', desc: '+0.5 в сек', icon: '🤖', baseCost: 500, mult: 1.6, max: 20, type: 'auto', val: 0.5 },
+  { id: 'b_crit', name: 'Линза', desc: '+0.5% шанс крита', icon: '🔍', baseCost: 1000, mult: 2.0, max: 20, type: 'crit', val: 0.5 },
+  { id: 'b_stamina', name: 'Батарейка', desc: '+25 стамины', icon: '🔋', baseCost: 400, mult: 1.5, max: 20, type: 'stamina', val: 25 },
+  { id: 'b_regen', name: 'Зарядка', desc: '+0.5 реген', icon: '🔌', baseCost: 1500, mult: 1.9, max: 20, type: 'regen', val: 0.5 }
 ];
 
-// Элитная ветка (За энергию) - ДИНАМИЧЕСКАЯ ЦЕНА
-// Cost = baseCost + level
 const PREMIUM_UPGRADES = [
-  // Ветка клика
-  { id: 'p_thunder', name: 'Громоотвод', desc: '+20% к клику', icon: '🔨', baseCost: 1, type: 'clickMult', val: 0.2 },
-  { id: 'p_plasma', name: 'Плазма', desc: '+50 плоский урон', icon: '💥', baseCost: 5, req: {id:'p_thunder', lvl:5}, type: 'clickFlat', val: 50 },
+  // Ветка клика (бонусы уменьшены в 2 раза)
+  { id: 'p_thunder', name: 'Громоотвод', desc: '+10% к клику', icon: '🔨', baseCost: 1, type: 'clickMult', val: 0.1 },
+  { id: 'p_plasma', name: 'Плазма', desc: '+25 плоский урон', icon: '💥', baseCost: 5, req: {id:'p_thunder', lvl:5}, type: 'clickFlat', val: 25 },
   
   // Ветка авто
-  { id: 'p_static', name: 'Статика', desc: '+20% к авто', icon: '🌐', baseCost: 1, type: 'autoMult', val: 0.2 },
-  { id: 'p_storm', name: 'Шторм', desc: '+200 авто-доход', icon: '🌪', baseCost: 5, req: {id:'p_static', lvl:5}, type: 'autoFlat', val: 200 },
+  { id: 'p_static', name: 'Статика', desc: '+10% к авто', icon: '🌐', baseCost: 1, type: 'autoMult', val: 0.1 },
+  { id: 'p_storm', name: 'Шторм', desc: '+100 авто-доход', icon: '🌪', baseCost: 5, req: {id:'p_static', lvl:5}, type: 'autoFlat', val: 100 },
   
   // Ветка крита
-  { id: 'p_overload', name: 'Перегрузка', desc: 'Крит урон +50%', icon: '⚡', baseCost: 3, type: 'critMult', val: 0.5 },
+  { id: 'p_overload', name: 'Перегрузка', desc: 'Крит урон +25%', icon: '⚡', baseCost: 3, type: 'critMult', val: 0.25 },
   
   // Экономика
-  { id: 'p_effic', name: 'Оптимизация', desc: 'Скидка на базу 1%', icon: '📉', baseCost: 2, type: 'discount', val: 0.01 }
+  { id: 'p_effic', name: 'Оптимизация', desc: 'Скидка на базу 0.5%', icon: '📉', baseCost: 2, type: 'discount', val: 0.005 }
 ];
 
 const FILES = ['./history_ew.json', './history_ed.json', './history_ea.json'];
@@ -262,7 +260,7 @@ let state = {
   lastTs: Date.now(),
   profile: "",
   
-  b_levels: {}, // { 'b_click': 2 }
+  b_levels: {}, 
   p_levels: {}, 
   
   claimedDiff: 0,
@@ -272,19 +270,17 @@ let state = {
   name: (tg?.initDataUnsafe?.user?.first_name || "Guest")
 };
 
-// Локальный кэш топа, чтобы обновлять его мгновенно
 let cachedTop = [];
 
 // === CORE ===
 function load() {
-  const raw = localStorage.getItem("neon_ltg_v3");
+  const raw = localStorage.getItem("neon_ltg_v4_nerf");
   if (raw) {
     try {
       const s = JSON.parse(raw);
       state = { ...state, ...s };
     } catch(e){}
   }
-  // Профиль из URL
   try { const p = new URLSearchParams(location.search).get("profile"); if (p) state.profile = normalizeProfile(p); } catch(e){}
   
   calcStats();
@@ -294,7 +290,7 @@ function load() {
 
 function save() {
   state.lastTs = Date.now();
-  localStorage.setItem("neon_ltg_v3", JSON.stringify(state));
+  localStorage.setItem("neon_ltg_v4_nerf", JSON.stringify(state));
 }
 
 let lastSent = 0;
@@ -306,7 +302,7 @@ function pushToBot() {
   }
 }
 
-// Stats
+// Stats (Support floats)
 let stats = { click: 1, auto: 0, crit: 0, maxStamina: 1000, regen: 1, discount: 0, critMult: 5 };
 
 function calcStats() {
@@ -333,12 +329,13 @@ function calcStats() {
     if (u.type==='discount') s.discount += lvl * u.val;
   });
 
-  stats.click = Math.floor(s.click * s.clickMult);
-  stats.auto = Math.floor(s.auto * s.autoMult);
+  // No floor here to allow fractional stats
+  stats.click = s.click * s.clickMult;
+  stats.auto = s.auto * s.autoMult;
   stats.crit = s.crit;
   stats.maxStamina = s.maxStamina;
   stats.regen = s.regen;
-  stats.discount = Math.min(0.8, s.discount); // Max 80%
+  stats.discount = Math.min(0.8, s.discount); 
   stats.critMult = s.critMult;
 }
 
@@ -346,7 +343,7 @@ function calcStats() {
 setInterval(() => {
   if (stats.auto > 0) {
     state.balance += stats.auto;
-    refreshLocalTop(); // Обновляем топ локально, если автокликер работает
+    refreshLocalTop();
   }
   if (state.stamina < stats.maxStamina) {
     state.stamina = Math.min(stats.maxStamina, state.stamina + stats.regen);
@@ -364,12 +361,11 @@ document.getElementById('tapBtn').addEventListener('pointerdown', (e) => {
     
     let dmg = stats.click;
     let isCrit = Math.random() * 100 < stats.crit;
-    if (isCrit) dmg = Math.floor(dmg * stats.critMult);
+    if (isCrit) dmg = dmg * stats.critMult;
     
     state.balance += dmg;
-    refreshLocalTop(); // Мгновенное обновление топа при клике
+    refreshLocalTop();
     
-    // Anim
     const btn = document.getElementById('tapBtn');
     btn.style.transform = "scale(0.95)";
     setTimeout(() => btn.style.transform = "scale(1)", 50);
@@ -382,7 +378,6 @@ document.getElementById('tapBtn').addEventListener('pointerdown', (e) => {
 // === SHOP ===
 function getPremiumCost(id, currentLvl) {
   const u = PREMIUM_UPGRADES.find(x => x.id === id);
-  // Логика цены: База + Уровень (1, 2, 3...)
   return u.baseCost + currentLvl;
 }
 
@@ -465,7 +460,6 @@ async function loadRealTop() {
         isMe: String(k) === String(tg?.initDataUnsafe?.user?.id)
       }));
       
-      // Если меня нет в списке (новичок), добавим временно
       const myId = String(tg?.initDataUnsafe?.user?.id);
       if (myId && !cachedTop.find(x => x.id === myId)) {
         cachedTop.push({ id: myId, name: state.name, score: state.balance, isMe: true });
@@ -476,22 +470,17 @@ async function loadRealTop() {
   } catch { list.innerHTML = "Ошибка загрузки топа"; }
 }
 
-// Функция для обновления топа БЕЗ перезагрузки файла (мгновенно меняет мой счет)
 function refreshLocalTop() {
   const list = document.getElementById('topList');
-  // Если топ еще не загружен и мы не на вкладке топа - выходим
   if (cachedTop.length === 0) return;
   if (!document.getElementById('screen-top').classList.contains('show')) return;
 
-  // Обновляем мой счет в кэше
   const myId = String(tg?.initDataUnsafe?.user?.id);
   const me = cachedTop.find(x => x.id === myId);
   if (me) me.score = state.balance;
 
-  // Сортируем
   cachedTop.sort((a,b) => b.score - a.score);
 
-  // Рендерим
   let html = "";
   cachedTop.slice(0, 50).forEach((p, i) => {
     html += `
@@ -577,7 +566,7 @@ function fmt(n) {
   if (n >= 1e9) return (n/1e9).toFixed(2) + "B";
   if (n >= 1e6) return (n/1e6).toFixed(2) + "M";
   if (n >= 1e3) return (n/1e3).toFixed(1) + "K";
-  return Math.floor(n);
+  return Number(n).toFixed(1).replace(/\.0$/, ''); // Убираем .0 если целое
 }
 function createFloat(x,y,t,c) {
   const el = document.createElement('div'); el.className='float-num '+(c?'crit':''); el.textContent=t;
