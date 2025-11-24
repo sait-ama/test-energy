@@ -161,9 +161,9 @@
   },
   "local_user": {
     "state": {
-      "balance": 35,
-      "stamina": 991,
-      "lastTs": 1764014318951,
+      "balance": 53,
+      "stamina": 986,
+      "lastTs": 1764015324634,
       "profile": "https://remanga.org/user/12762/about",
       "b_levels": {},
       "p_levels": {},
@@ -172,7 +172,7 @@
       "totalEnergy": 839,
       "name": "Player"
     },
-    "updated_at": "2025-11-24T19:58:38.957539+00:00",
+    "updated_at": "2025-11-24T20:15:24.642204+00:00",
     "name": "Player"
   }
 }
