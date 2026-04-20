@@ -593,11 +593,32 @@
             }
         }
         const wsUrl = `wss://patrina-unlusty-vince.ngrok-free.dev/ws`;
+        let socket;
+        let reconnectTimeout;
+        let pingInterval;
+
         function connectSocket() {
-            const socket = new WebSocket(wsUrl);
+            if (socket) {
+                socket.onopen = null;
+                socket.onmessage = null;
+                socket.onerror = null;
+                socket.onclose = null;
+                socket.close();
+            }
+
+            socket = new WebSocket(wsUrl);
+
             socket.onopen = () => {
                 statusEl.innerText = '🟢 Активно (В сети)';
                 statusEl.style.color = '#a6e3a1';
+
+                // Таймер для поддержания соединения (Ping)
+                if (pingInterval) clearInterval(pingInterval);
+                pingInterval = setInterval(() => {
+                    if (socket.readyState === WebSocket.OPEN) {
+                        socket.send(JSON.stringify({ type: 'ping' }));
+                    }
+                }, 30000);
             };
             socket.onmessage = (event) => {
                 const message = JSON.parse(event.data);
@@ -644,11 +665,24 @@
             socket.onclose = () => {
                 statusEl.innerText = '🔴 Подключение закрыто. Реконнект...';
                 statusEl.style.color = '#f38ba8';
-                setTimeout(connectSocket, 3000);
+                if (pingInterval) clearInterval(pingInterval);
+
+                clearTimeout(reconnectTimeout);
+                reconnectTimeout = setTimeout(connectSocket, 2000);
             };
-            return socket;
         }
-        let socket = connectSocket();
+
+        connectSocket();
+
+        // Обработка возвращения во вкладку (особенно важно для телефонов)
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                if (!socket || socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
+                    console.log('Tab visible, reconnecting...');
+                    connectSocket();
+                }
+            }
+        });
         function startCooldown(seconds) {
             if (IS_ADMIN && toggleNoCooldown.checked) return;
             cooldownActive = true;
