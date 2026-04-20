@@ -303,7 +303,7 @@
             display: none;
             background: #f38ba8;
             color: #11111b;
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
             width: 100%;
             box-sizing: border-box;
@@ -316,52 +316,51 @@
         .admin-title {
             font-weight: 900;
             text-transform: uppercase;
-            font-size: 14px;
-            margin-bottom: 10px;
+            font-size: 13px;
+            margin-bottom: 8px;
             display: block;
         }
 
-        .admin-btn {
-            background: #11111b;
-            color: #ffffff;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 12px;
-            width: 100%;
-            margin-bottom: 5px;
-            transition: background 0.2s;
-        }
-
-        .admin-btn:hover {
-            background: #313244;
-        }
-
         .admin-toggle-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px;
             text-align: left;
-            margin-top: 10px;
         }
 
         .admin-toggle {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            font-size: 12px;
+            font-size: 10px;
             color: #11111b;
             font-weight: bold;
             cursor: pointer;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 5px 8px;
+            background: rgba(255, 255, 255, 0.3);
+            padding: 4px 6px;
             border-radius: 4px;
         }
 
-        .admin-toggle input {
+        .admin-brush-group {
+            margin-top: 10px;
+            text-align: left;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px;
+            border-radius: 6px;
+        }
+
+        .admin-brush-label {
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        #brushSizeRange {
+            width: 100%;
             cursor: pointer;
+            accent-color: #11111b;
         }
 
         @media (max-width: 768px) {
@@ -463,15 +462,19 @@
             <span class="admin-title">👑 Админ-режим</span>
             <div class="admin-toggle-group">
                 <label class="admin-toggle">
-                    🚀 Без кулдауна
+                    🚀 No CD
                     <input type="checkbox" id="toggleNoCooldown" checked>
                 </label>
                 <label class="admin-toggle">
-                    🖌 Непрерывное рисование
+                    🖌 Paint
                     <input type="checkbox" id="toggleContinuous" onchange="cancelSelection()">
                 </label>
             </div>
-            <div style="font-size: 10px; opacity: 0.8; margin-top: 10px;">God Mode: АКТИВИРОВАН</div>
+            <div class="admin-brush-group">
+                <div class="admin-brush-label">Кисть: <span id="brushSizeVal">1x1</span></div>
+                <input type="range" id="brushSizeRange" min="1" max="10" value="1"
+                    oninput="updateBrushSizeLabel(this.value)">
+            </div>
         </div>
 
         <div class="palette" id="palette">
@@ -540,11 +543,16 @@
         let cooldownTime = 0;
         let selectedPixel = null; // {x, y}
         let IS_ADMIN = false;
+        let brushSize = 1;
 
         const toggleNoCooldown = document.getElementById('toggleNoCooldown');
         const toggleContinuous = document.getElementById('toggleContinuous');
+        const brushSizeVal = document.getElementById('brushSizeVal');
 
-        // Ожидаем подтверждения админ-статуса от сервера по IP
+        function updateBrushSizeLabel(val) {
+            brushSize = parseInt(val);
+            brushSizeVal.innerText = `${val}x${val}`;
+        }
 
         // --- Палитра ---
         const colorBtns = document.querySelectorAll('.color-btn');
@@ -750,16 +758,28 @@
             }
         }, { passive: false });
 
+        let isPanning = false;
         let isDragging = false;
         let startPanX = 0;
         let startPanY = 0;
         let hasMoved = false;
 
         container.addEventListener('mousedown', (e) => {
-            // Клик прокидывается через hoverCanvas автоматически благодаря pointer-events: none;
-            // Целью будет canvasWrapper или pixelCanvas или container
             if (e.target.closest('#container')) {
-                isDragging = true;
+                const rect = canvasWrapper.getBoundingClientRect();
+                const x = Math.floor((e.clientX - rect.left) / scale);
+                const y = Math.floor((e.clientY - rect.top) / scale);
+
+                // Если включен режим непрерывного рисования - приоритет рисованию
+                if (IS_ADMIN && toggleContinuous.checked && x >= 0 && x < 500 && y >= 0 && y < 500) {
+                    isPanning = false;
+                    isDragging = true;
+                    placePixelDirectly(x, y); // Ставим сразу первый пиксель
+                } else {
+                    isPanning = true;
+                    isDragging = false;
+                }
+
                 hasMoved = false;
                 startPanX = e.clientX - panX;
                 startPanY = e.clientY - panY;
@@ -772,7 +792,7 @@
             const x = Math.floor((e.clientX - rect.left) / scale);
             const y = Math.floor((e.clientY - rect.top) / scale);
 
-            if (isDragging) {
+            if (isPanning) {
                 hasMoved = true;
                 panX = e.clientX - startPanX;
                 panY = e.clientY - startPanY;
@@ -781,26 +801,16 @@
                 drawHover(x, y);
             }
 
-            if (!isDragging || hasMoved) {
+            if (!isPanning || hasMoved) {
                 if (x >= 0 && x < 500 && y >= 0 && y < 500) {
                     cursorCoords.innerText = `${x}, ${y}`;
                 }
             }
 
             // --- Continuous Paint (Админ) ---
-            if (isDragging && IS_ADMIN && toggleContinuous.checked && !hasMoved) {
-                // Если мы зажали мышь и двигаем, и включен непрерывный режим - фигачим пиксели
-                const rect = canvasWrapper.getBoundingClientRect();
-                const curX = Math.floor((e.clientX - rect.left) / scale);
-                const curY = Math.floor((e.clientY - rect.top) / scale);
-
-                if (curX >= 0 && curX < 500 && curY >= 0 && curY < 500) {
-                    // Проверка на тот же цвет (оптимизация трафика)
-                    const p = ctx.getImageData(curX, curY, 1, 1).data;
-                    const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1).toLowerCase();
-                    if (hex !== currentColor.toLowerCase()) {
-                        placePixelDirectly(curX, curY);
-                    }
+            if (!isPanning && isDragging && IS_ADMIN && toggleContinuous.checked) {
+                if (x >= 0 && x < 500 && y >= 0 && y < 500) {
+                    placePixelDirectly(x, y);
                 }
             }
         });
@@ -810,6 +820,7 @@
         });
 
         window.addEventListener('mouseup', (e) => {
+            isPanning = false;
             isDragging = false;
             // Возвращаем превью в конце перетаскивания
             const rect = canvasWrapper.getBoundingClientRect();
@@ -868,11 +879,26 @@
             if (cooldownActive && (!IS_ADMIN || !toggleNoCooldown.checked)) return;
 
             if (socket.readyState === WebSocket.OPEN) {
-                socket.send(JSON.stringify({
-                    x: x,
-                    y: y,
-                    color: currentColor
-                }));
+                // Если размер кисти больше 1 - рисуем квадрат
+                const offset = Math.floor(brushSize / 2);
+                for (let i = -offset; i < -offset + brushSize; i++) {
+                    for (let j = -offset; j < -offset + brushSize; j++) {
+                        const px = x + i;
+                        const py = y + j;
+
+                        if (px >= 0 && px < 500 && py >= 0 && py < 500) {
+                            // Оптимизация: не шлем если цвет уже тот же
+                            const p = ctx.getImageData(px, py, 1, 1).data;
+                            const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1).toLowerCase();
+                            if (hex !== currentColor.toLowerCase()) {
+                                socket.send(JSON.stringify({ x: px, y: py, color: currentColor }));
+                                // Локально тоже рисуем сразу для отзывчивости (админам можно)
+                                ctx.fillStyle = currentColor;
+                                ctx.fillRect(px, py, 1, 1);
+                            }
+                        }
+                    }
+                }
             } else {
                 showToast("Нет подключения к серверу");
             }
