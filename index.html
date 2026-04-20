@@ -316,18 +316,13 @@
         }
 
         .admin-title {
-            font-weight: 900;
-            text-transform: uppercase;
-            font-size: 13px;
-            margin-bottom: 8px;
-            display: block;
+            display: none;
         }
 
         .admin-toggle-group {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px;
-            text-align: left;
+            display: flex;
+            gap: 4px;
+            margin-bottom: 4px;
         }
 
         .admin-toggle {
@@ -344,23 +339,24 @@
         }
 
         .admin-brush-group {
-            margin-top: 10px;
-            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 8px;
             background: rgba(255, 255, 255, 0.2);
-            padding: 6px;
-            border-radius: 6px;
+            padding: 4px 8px;
+            border-radius: 4px;
         }
 
         .admin-brush-label {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 4px;
+            color: #11111b;
+            white-space: nowrap;
         }
 
         #brushSizeRange {
-            width: 100%;
+            flex: 1;
+            height: 4px;
             cursor: pointer;
             accent-color: #11111b;
         }
@@ -405,9 +401,23 @@
                 height: 26px;
             }
 
-            .controls {
-                width: auto;
-                margin-bottom: 0;
+            .admin-panel {
+                padding: 6px;
+                margin-bottom: 5px;
+            }
+
+            .admin-toggle-group {
+                gap: 2px;
+            }
+
+            .admin-toggle {
+                padding: 2px 4px;
+                font-size: 9px;
+            }
+
+            .admin-brush-group {
+                padding: 2px 6px;
+                gap: 4px;
             }
 
             .status {
