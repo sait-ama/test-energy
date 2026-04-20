@@ -298,6 +298,47 @@
             pointer-events: none;
         }
 
+        /* --- Admin Panel Styles --- */
+        .admin-panel {
+            display: none;
+            background: #f38ba8;
+            color: #11111b;
+            padding: 15px;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 2px solid #ffffff;
+            box-shadow: 0 0 15px rgba(243, 139, 168, 0.4);
+        }
+
+        .admin-title {
+            font-weight: 900;
+            text-transform: uppercase;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .admin-btn {
+            background: #11111b;
+            color: #ffffff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+            width: 100%;
+            margin-bottom: 5px;
+            transition: background 0.2s;
+        }
+
+        .admin-btn:hover {
+            background: #313244;
+        }
+
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
@@ -393,6 +434,12 @@
             Курсор: <span id="cursorCoords">0, 0</span>
         </div>
 
+        <div id="adminPanel" class="admin-panel">
+            <span class="admin-title">👑 Админ-панель</span>
+            <button class="admin-btn" onclick="adminClearCanvas()">Очистить всё</button>
+            <div style="font-size: 10px; opacity: 0.8; margin-top: 5px;">Режим бога: ВКЛ (без кулдауна)</div>
+        </div>
+
         <div class="palette" id="palette">
             <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
             <div class="color-btn" style="background-color: #4a4a4a;" data-color="#4a4a4a"></div>
@@ -458,6 +505,9 @@
         let cooldownActive = false;
         let cooldownTime = 0;
         let selectedPixel = null; // {x, y}
+        let IS_ADMIN = false;
+
+        // Ожидаем подтверждения админ-статуса от сервера по IP
 
         // --- Палитра ---
         const colorBtns = document.querySelectorAll('.color-btn');
@@ -546,6 +596,12 @@
                     mCtx.fillStyle = message.color;
                     // Рисуем пиксель на миникарте размером 1x1, чтобы он не исчезал (0.3 - слишком мало)
                     mCtx.fillRect(Math.floor(message.x * 0.3), Math.floor(message.y * 0.3), 1, 1);
+                } else if (message.type === 'admin_status') {
+                    IS_ADMIN = message.value;
+                    if (IS_ADMIN) {
+                        document.getElementById('adminPanel').style.display = 'block';
+                        showToast("Режим администратора активирован!");
+                    }
                 } else if (message.type === 'error') {
                     showToast(message.message);
                 } else if (message.type === 'success') {
@@ -838,6 +894,15 @@
             isDragging = false;
             initialPinchDistance = null;
         });
+
+        function adminClearCanvas() {
+            if (!IS_ADMIN) return;
+            if (confirm("ВЫ УВЕРЕНЫ, ЧТО ХОТИТЕ ОЧИСТИТЬ ВЕСЬ ХОЛСТ?")) {
+                socket.send(JSON.stringify({
+                    action: "clear"
+                }));
+            }
+        }
 
     </script>
 </body>
