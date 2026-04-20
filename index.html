@@ -339,6 +339,31 @@
             background: #313244;
         }
 
+        .admin-toggle-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-align: left;
+            margin-top: 10px;
+        }
+
+        .admin-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #11111b;
+            font-weight: bold;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 8px;
+            border-radius: 4px;
+        }
+
+        .admin-toggle input {
+            cursor: pointer;
+        }
+
         @media (max-width: 768px) {
             body {
                 flex-direction: column;
@@ -435,9 +460,18 @@
         </div>
 
         <div id="adminPanel" class="admin-panel">
-            <span class="admin-title">👑 Админ-панель</span>
-            <button class="admin-btn" onclick="adminClearCanvas()">Очистить всё</button>
-            <div style="font-size: 10px; opacity: 0.8; margin-top: 5px;">Режим бога: ВКЛ (без кулдауна)</div>
+            <span class="admin-title">👑 Админ-режим</span>
+            <div class="admin-toggle-group">
+                <label class="admin-toggle">
+                    🚀 Без кулдауна
+                    <input type="checkbox" id="toggleNoCooldown" checked>
+                </label>
+                <label class="admin-toggle">
+                    🖌 Непрерывное рисование
+                    <input type="checkbox" id="toggleContinuous" onchange="cancelSelection()">
+                </label>
+            </div>
+            <div style="font-size: 10px; opacity: 0.8; margin-top: 10px;">God Mode: АКТИВИРОВАН</div>
         </div>
 
         <div class="palette" id="palette">
@@ -506,6 +540,9 @@
         let cooldownTime = 0;
         let selectedPixel = null; // {x, y}
         let IS_ADMIN = false;
+
+        const toggleNoCooldown = document.getElementById('toggleNoCooldown');
+        const toggleContinuous = document.getElementById('toggleContinuous');
 
         // Ожидаем подтверждения админ-статуса от сервера по IP
 
@@ -626,6 +663,7 @@
         let socket = connectSocket();
 
         function startCooldown(seconds) {
+            if (IS_ADMIN && toggleNoCooldown.checked) return; // Пропуск для админа
             cooldownActive = true;
             cooldownTime = seconds;
             updateCooldownUI();
@@ -748,6 +786,23 @@
                     cursorCoords.innerText = `${x}, ${y}`;
                 }
             }
+
+            // --- Continuous Paint (Админ) ---
+            if (isDragging && IS_ADMIN && toggleContinuous.checked && !hasMoved) {
+                // Если мы зажали мышь и двигаем, и включен непрерывный режим - фигачим пиксели
+                const rect = canvasWrapper.getBoundingClientRect();
+                const curX = Math.floor((e.clientX - rect.left) / scale);
+                const curY = Math.floor((e.clientY - rect.top) / scale);
+
+                if (curX >= 0 && curX < 500 && curY >= 0 && curY < 500) {
+                    // Проверка на тот же цвет (оптимизация трафика)
+                    const p = ctx.getImageData(curX, curY, 1, 1).data;
+                    const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1).toLowerCase();
+                    if (hex !== currentColor.toLowerCase()) {
+                        placePixelDirectly(curX, curY);
+                    }
+                }
+            }
         });
 
         container.addEventListener('mouseleave', () => {
@@ -786,7 +841,13 @@
                     return;
                 }
 
-                // 2. Выбор пикселя для подтверждения
+                if (IS_ADMIN && (toggleContinuous.checked || toggleNoCooldown.checked)) {
+                    // Админ с включенными фишками ставит пиксель сразу
+                    placePixelDirectly(x, y);
+                    return;
+                }
+
+                // 2. Выбор пикселя для подтверждения (для обычных юзеров или админа без фишек)
                 selectedPixel = { x, y };
                 drawHover(x, y);
 
@@ -798,16 +859,20 @@
 
         function sendPixel() {
             if (!selectedPixel || cooldownActive) return;
+            placePixelDirectly(selectedPixel.x, selectedPixel.y);
+            // Скрываем кнопку после отправки
+            cancelSelection();
+        }
+
+        function placePixelDirectly(x, y) {
+            if (cooldownActive && (!IS_ADMIN || !toggleNoCooldown.checked)) return;
 
             if (socket.readyState === WebSocket.OPEN) {
                 socket.send(JSON.stringify({
-                    x: selectedPixel.x,
-                    y: selectedPixel.y,
+                    x: x,
+                    y: y,
                     color: currentColor
                 }));
-
-                // Скрываем кнопку после отправки
-                cancelSelection();
             } else {
                 showToast("Нет подключения к серверу");
             }
@@ -896,12 +961,7 @@
         });
 
         function adminClearCanvas() {
-            if (!IS_ADMIN) return;
-            if (confirm("ВЫ УВЕРЕНЫ, ЧТО ХОТИТЕ ОЧИСТИТЬ ВЕСЬ ХОЛСТ?")) {
-                socket.send(JSON.stringify({
-                    action: "clear"
-                }));
-            }
+            // Удалено по запросу пользователя. Функцию можно вернуть при необходимости.
         }
 
     </script>
