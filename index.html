@@ -32,12 +32,10 @@
             cursor: grabbing;
         }
 
-        /* Обертка для канвасов, чтобы зумить их вместе */
         .canvas-wrapper {
             position: absolute;
             left: 0;
             top: 0;
-            /* Размеры будут управляться через JS */
             box-shadow: 0 0 20px rgba(0, 0, 0, 1);
             image-rendering: -webkit-optimize-contrast;
             image-rendering: pixelated;
@@ -66,7 +64,6 @@
             top: 0;
             left: 0;
             pointer-events: none;
-            /* Пропускает клики на нижний пиксельный слой */
             image-rendering: pixelated;
         }
 
@@ -104,6 +101,13 @@
         .info-panel span {
             color: #a6e3a1;
             font-weight: bold;
+        }
+
+        .zoom-level {
+            margin-top: 5px;
+            font-size: 11px;
+            color: #fab387;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         }
 
         .palette {
@@ -253,7 +257,6 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
         }
 
-        /* Миникарта */
         .minimap-wrapper {
             position: absolute;
             bottom: 20px;
@@ -298,7 +301,6 @@
             pointer-events: none;
         }
 
-        /* --- Admin Panel Styles --- */
         .admin-panel {
             display: none;
             background: #f38ba8;
@@ -435,40 +437,30 @@
 </head>
 
 <body>
-
     <div class="canvas-container" id="container">
-        <!-- Обертка слоя пикселей и слоя превью (hover) -->
         <div class="canvas-wrapper" id="canvasWrapper">
             <canvas id="pixelCanvas" width="500" height="500"></canvas>
             <canvas id="hoverCanvas" width="500" height="500"></canvas>
         </div>
-
         <div class="minimap-wrapper" id="minimapWrapper">
             <canvas id="minimapCanvas" width="150" height="150"
                 style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;"></canvas>
             <div class="minimap-viewport" id="minimapViewport"></div>
         </div>
     </div>
-
     <div class="sidebar">
         <h1>⚔️ PixelBattle</h1>
-
         <div class="info-panel">
             Размер: <span>500x500</span><br>
             Курсор: <span id="cursorCoords">0, 0</span>
+            <div class="zoom-level">Зум: <span id="zoomVal">100</span>%</div>
         </div>
-
         <div id="adminPanel" class="admin-panel">
             <span class="admin-title">👑 Админ-режим</span>
             <div class="admin-toggle-group">
-                <label class="admin-toggle">
-                    🚀 No CD
-                    <input type="checkbox" id="toggleNoCooldown" checked>
-                </label>
-                <label class="admin-toggle">
-                    🖌 Paint
-                    <input type="checkbox" id="toggleContinuous" onchange="cancelSelection()">
-                </label>
+                <label class="admin-toggle">🚀 No CD<input type="checkbox" id="toggleNoCooldown" checked></label>
+                <label class="admin-toggle">🖌 Paint<input type="checkbox" id="toggleContinuous"
+                        onchange="cancelSelection()"></label>
             </div>
             <div class="admin-brush-group">
                 <div class="admin-brush-label">Кисть: <span id="brushSizeVal">1x1</span></div>
@@ -476,7 +468,6 @@
                     oninput="updateBrushSizeLabel(this.value)">
             </div>
         </div>
-
         <div class="palette" id="palette">
             <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
             <div class="color-btn" style="background-color: #4a4a4a;" data-color="#4a4a4a"></div>
@@ -498,12 +489,10 @@
             <div class="color-btn" style="background-color: #8b4513;" data-color="#8b4513"></div>
             <div class="color-btn" style="background-color: #d2b48c;" data-color="#d2b48c"></div>
         </div>
-
         <div class="controls">
             <button class="zoom-btn" onclick="zoomInOut(-1)">-</button>
             <button class="zoom-btn" onclick="zoomInOut(1)">+</button>
         </div>
-
         <div class="cooldown-text" id="cooldownText">Готов к битве</div>
         <div id="confirmWrapper" class="confirm-wrapper" style="display:none;">
             <button class="confirm-btn" onclick="sendPixel()">✅ Подтвердить</button>
@@ -511,9 +500,7 @@
         </div>
         <div class="status" id="status">Подключение к серверу...</div>
     </div>
-
     <div class="toast" id="toast">Ошибка</div>
-
     <script>
         const canvasWrapper = document.getElementById('canvasWrapper');
         const canvas = document.getElementById('pixelCanvas');
@@ -521,40 +508,33 @@
         ctx.imageSmoothingEnabled = false;
         ctx.webkitImageSmoothingEnabled = false;
         ctx.mozImageSmoothingEnabled = false;
-
         const hoverCanvas = document.getElementById('hoverCanvas');
         const hCtx = hoverCanvas.getContext('2d');
         hCtx.imageSmoothingEnabled = false;
-
         const minimapCanvas = document.getElementById('minimapCanvas');
         const mCtx = minimapCanvas.getContext('2d', { willReadFrequently: true });
         mCtx.imageSmoothingEnabled = false;
         const minimapViewport = document.getElementById('minimapViewport');
         const minimapWrapper = document.getElementById('minimapWrapper');
-
         const container = document.getElementById('container');
         const statusEl = document.getElementById('status');
         const cooldownText = document.getElementById('cooldownText');
         const toastEl = document.getElementById('toast');
         const cursorCoords = document.getElementById('cursorCoords');
-
+        const zoomVal = document.getElementById('zoomVal');
         let currentColor = '#000000';
         let cooldownActive = false;
         let cooldownTime = 0;
-        let selectedPixel = null; // {x, y}
+        let selectedPixel = null;
         let IS_ADMIN = false;
         let brushSize = 1;
-
         const toggleNoCooldown = document.getElementById('toggleNoCooldown');
         const toggleContinuous = document.getElementById('toggleContinuous');
         const brushSizeVal = document.getElementById('brushSizeVal');
-
         function updateBrushSizeLabel(val) {
             brushSize = parseInt(val);
             brushSizeVal.innerText = `${val}x${val}`;
         }
-
-        // --- Палитра ---
         const colorBtns = document.querySelectorAll('.color-btn');
         colorBtns.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -563,47 +543,34 @@
                 currentColor = btn.getAttribute('data-color');
             });
         });
-
         function showToast(msg) {
             toastEl.innerText = msg;
             toastEl.style.opacity = 1;
             setTimeout(() => { toastEl.style.opacity = 0; }, 2000);
         }
-
         function syncMinimap() {
             mCtx.imageSmoothingEnabled = true;
             mCtx.drawImage(canvas, 0, 0, minimapCanvas.width, minimapCanvas.height);
             mCtx.imageSmoothingEnabled = false;
         }
-
-        // --- Hover Preview ---
-        function clearHover() {
-            hCtx.clearRect(0, 0, 500, 500);
-        }
-
+        function clearHover() { hCtx.clearRect(0, 0, 500, 500); }
         function drawHover(mouseX, mouseY) {
             clearHover();
-
-            // 1. Сначала рисуем выбранный пиксель (фиксированный), если он есть
             if (selectedPixel) {
                 const { x, y } = selectedPixel;
                 hCtx.globalAlpha = 0.8;
                 hCtx.fillStyle = currentColor;
                 hCtx.fillRect(x, y, 1, 1);
-
                 hCtx.globalAlpha = 1.0;
                 hCtx.strokeStyle = currentColor === '#ffffff' ? '#000000' : '#ffffff';
                 hCtx.lineWidth = 2 / scale;
                 hCtx.strokeRect(x, y, 1, 1);
             }
-
-            // 2. Затем рисуем текущий hover под мышкой (если он не совпадает с выбранным)
             if (mouseX !== null && mouseY !== null && mouseX >= 0 && mouseX < 500 && mouseY >= 0 && mouseY < 500) {
                 if (!selectedPixel || selectedPixel.x !== mouseX || selectedPixel.y !== mouseY) {
                     hCtx.globalAlpha = 0.4;
                     hCtx.fillStyle = currentColor;
                     hCtx.fillRect(mouseX, mouseY, 1, 1);
-
                     hCtx.globalAlpha = 0.8;
                     hCtx.strokeStyle = currentColor === '#ffffff' ? '#000000' : '#ffffff';
                     hCtx.lineWidth = 1 / scale;
@@ -611,21 +578,15 @@
                 }
             }
         }
-
-        // Подключение WebSocket
         const wsUrl = `wss://patrina-unlusty-vince.ngrok-free.dev/ws`;
-
         function connectSocket() {
             const socket = new WebSocket(wsUrl);
-
             socket.onopen = () => {
                 statusEl.innerText = '🟢 Активно (В сети)';
                 statusEl.style.color = '#a6e3a1';
             };
-
             socket.onmessage = (event) => {
                 const message = JSON.parse(event.data);
-
                 if (message.type === 'init') {
                     const data = message.data;
                     for (let y = 0; y < data.length; y++) {
@@ -639,43 +600,36 @@
                     ctx.fillStyle = message.color;
                     ctx.fillRect(message.x, message.y, 1, 1);
                     mCtx.fillStyle = message.color;
-                    // Рисуем пиксель на миникарте размером 1x1, чтобы он не исчезал (0.3 - слишком мало)
                     mCtx.fillRect(Math.floor(message.x * 0.3), Math.floor(message.y * 0.3), 1, 1);
                 } else if (message.type === 'admin_status') {
                     IS_ADMIN = message.value;
                     if (IS_ADMIN) {
                         document.getElementById('adminPanel').style.display = 'block';
-                        showToast("Режим администратора активирован!");
+                        showToast("Режим администратора активированного!");
                     }
                 } else if (message.type === 'error') {
                     showToast(message.message);
                 } else if (message.type === 'success') {
-                    startCooldown(7);
+                    if (!IS_ADMIN) startCooldown(7);
                 }
             };
-
             socket.onerror = (error) => {
                 statusEl.innerText = '🔴 Ошибка подключения';
                 statusEl.style.color = '#f38ba8';
             };
-
             socket.onclose = () => {
                 statusEl.innerText = '🔴 Подключение закрыто. Реконнект...';
                 statusEl.style.color = '#f38ba8';
                 setTimeout(connectSocket, 3000);
             };
-
             return socket;
         }
-
         let socket = connectSocket();
-
         function startCooldown(seconds) {
-            if (IS_ADMIN && toggleNoCooldown.checked) return; // Пропуск для админа
+            if (IS_ADMIN && toggleNoCooldown.checked) return;
             cooldownActive = true;
             cooldownTime = seconds;
             updateCooldownUI();
-
             const timer = setInterval(() => {
                 cooldownTime--;
                 updateCooldownUI();
@@ -687,111 +641,95 @@
                 }
             }, 1000);
         }
-
         function updateCooldownUI() {
             if (cooldownTime > 0) {
                 cooldownText.innerText = `Ждите: ${cooldownTime} с`;
                 cooldownText.style.color = '#f38ba8';
             }
         }
-
-        // --- Зум и панорамирование ---
-        let scale = Math.min(container.clientWidth / 600, container.clientHeight / 600);
-        if (scale < 0.5) scale = 0.5;
-
+        let minScale = Math.min(container.clientWidth / 600, container.clientHeight / 600);
+        if (minScale < 0.1) minScale = 0.1;
+        let scale = minScale;
+        let maxScale = minScale * 200;
         let panX = (container.clientWidth - 500 * scale) / 2;
         let panY = (container.clientHeight - 500 * scale) / 2;
-
         function applyTransform() {
-            // Используем прямое изменение размеров вместо scale для iPhone
             canvasWrapper.style.left = panX + 'px';
             canvasWrapper.style.top = panY + 'px';
             canvasWrapper.style.width = (500 * scale) + 'px';
             canvasWrapper.style.height = (500 * scale) + 'px';
-
-            // Миникарта: используем % для вьюпорта, чтобы работало на любых экранах
             const visibleW_pct = (container.clientWidth / scale) / 500 * 100;
             const visibleH_pct = (container.clientHeight / scale) / 500 * 100;
             const startX_pct = (-panX / scale) / 500 * 100;
             const startY_pct = (-panY / scale) / 500 * 100;
-
             minimapViewport.style.left = startX_pct + '%';
             minimapViewport.style.top = startY_pct + '%';
             minimapViewport.style.width = visibleW_pct + '%';
             minimapViewport.style.height = visibleH_pct + '%';
+            const zoomPercent = 100 + Math.round(((scale - minScale) / (maxScale - minScale)) * 400);
+            zoomVal.innerText = zoomPercent;
         }
-
-        window.addEventListener('resize', applyTransform);
+        window.addEventListener('resize', () => {
+            const oldMinScale = minScale;
+            minScale = Math.min(container.clientWidth / 600, container.clientHeight / 600);
+            if (minScale < 0.1) minScale = 0.1;
+            const ratio = minScale / oldMinScale;
+            scale *= ratio;
+            maxScale = minScale * 200;
+            panX *= ratio;
+            panY *= ratio;
+            applyTransform();
+        });
         applyTransform();
-
         function zoomInOut(delta, mouseX = null, mouseY = null) {
             let oldScale = scale;
-
-            // Умный зум: чем больше текущий масштаб, тем быстрее он меняется дальше
             let zoomFactor = Math.abs(delta) < 1 ? scale * delta : delta;
             scale += zoomFactor;
-
-            // РАСШИРЕННЫЕ ЛИМИТЫ (допускаем огромное увеличение)
-            if (scale < 0.1) scale = 0.1;
-            if (scale > 150) scale = 150; // До 150x зума!
-
+            if (scale < minScale) scale = minScale;
+            if (scale > maxScale) scale = maxScale;
             const cx = mouseX !== null ? mouseX : container.clientWidth / 2;
             const cy = mouseY !== null ? mouseY : container.clientHeight / 2;
-
             panX = cx - (cx - panX) * (scale / oldScale);
             panY = cy - (cy - panY) * (scale / oldScale);
-
             applyTransform();
         }
-
         container.addEventListener('wheel', (e) => {
             e.preventDefault();
-            const zoomAmount = e.deltaY < 0 ? 0.3 : -0.3; // 30% от текущего зума каждый щелчок
+            const zoomAmount = e.deltaY < 0 ? 0.3 : -0.3;
             zoomInOut(zoomAmount, e.clientX, e.clientY);
-
-            // Обновляем превью под мышкой после зума
             const rect = canvasWrapper.getBoundingClientRect();
             const x = Math.floor((e.clientX - rect.left) / scale);
             const y = Math.floor((e.clientY - rect.top) / scale);
-            if (!isDragging) {
-                drawHover(x, y);
-            }
+            if (!isDragging) { drawHover(x, y); }
         }, { passive: false });
-
         let isPanning = false;
         let isDragging = false;
         let startPanX = 0;
         let startPanY = 0;
         let hasMoved = false;
-
         container.addEventListener('mousedown', (e) => {
             if (e.target.closest('#container')) {
                 const rect = canvasWrapper.getBoundingClientRect();
                 const x = Math.floor((e.clientX - rect.left) / scale);
                 const y = Math.floor((e.clientY - rect.top) / scale);
-
-                // Если включен режим непрерывного рисования - приоритет рисованию
                 if (IS_ADMIN && toggleContinuous.checked && x >= 0 && x < 500 && y >= 0 && y < 500) {
                     isPanning = false;
                     isDragging = true;
-                    placePixelDirectly(x, y); // Ставим сразу первый пиксель
+                    placePixelDirectly(x, y);
                 } else {
                     isPanning = true;
                     isDragging = false;
                 }
-
                 hasMoved = false;
                 startPanX = e.clientX - panX;
                 startPanY = e.clientY - panY;
-                clearHover(); // Скрываем превью при движении
+                clearHover();
             }
         });
-
         window.addEventListener('mousemove', (e) => {
             const rect = canvasWrapper.getBoundingClientRect();
             const x = Math.floor((e.clientX - rect.left) / scale);
             const y = Math.floor((e.clientY - rect.top) / scale);
-
             if (isPanning) {
                 hasMoved = true;
                 panX = e.clientX - startPanX;
@@ -800,140 +738,105 @@
             } else if (e.target.closest('#container') && e.target.id !== 'minimapWrapper' && !e.target.closest('#minimapWrapper')) {
                 drawHover(x, y);
             }
-
             if (!isPanning || hasMoved) {
                 if (x >= 0 && x < 500 && y >= 0 && y < 500) {
                     cursorCoords.innerText = `${x}, ${y}`;
                 }
             }
-
-            // --- Continuous Paint (Админ) ---
             if (!isPanning && isDragging && IS_ADMIN && toggleContinuous.checked) {
                 if (x >= 0 && x < 500 && y >= 0 && y < 500) {
                     placePixelDirectly(x, y);
                 }
             }
         });
-
-        container.addEventListener('mouseleave', () => {
-            clearHover();
-        });
-
+        container.addEventListener('mouseleave', () => { clearHover(); });
         window.addEventListener('mouseup', (e) => {
             isPanning = false;
             isDragging = false;
-            // Возвращаем превью в конце перетаскивания
             const rect = canvasWrapper.getBoundingClientRect();
             const x = Math.floor((e.clientX - rect.left) / scale);
             const y = Math.floor((e.clientY - rect.top) / scale);
-            if (e.target.closest('#container')) {
-                drawHover(x, y);
-            }
+            if (e.target.closest('#container')) { drawHover(x, y); }
         });
-
-        // Подготовка к отправке (выбор пикселя)
         canvasWrapper.addEventListener('click', (e) => {
             if (hasMoved) return;
-            if (cooldownActive) {
-                showToast("Кулдаун еще не прошел!");
-                return;
-            }
-
+            if (cooldownActive) { showToast("Кулдаун еще не прошел!"); return; }
             const rect = canvasWrapper.getBoundingClientRect();
             const x = Math.floor((e.clientX - rect.left) / scale);
             const y = Math.floor((e.clientY - rect.top) / scale);
-
             if (x >= 0 && x < 500 && y >= 0 && y < 500) {
-                // 1. Проверка на тот же цвет
                 const p = ctx.getImageData(x, y, 1, 1).data;
                 const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1).toLowerCase();
-                if (hex === currentColor.toLowerCase()) {
-                    showToast("Этот цвет уже здесь!");
-                    return;
-                }
-
+                if (hex === currentColor.toLowerCase()) { showToast("Этот цвет уже здесь!"); return; }
                 if (IS_ADMIN && (toggleContinuous.checked || toggleNoCooldown.checked)) {
-                    // Админ с включенными фишками ставит пиксель сразу
                     placePixelDirectly(x, y);
                     return;
                 }
-
-                // 2. Выбор пикселя для подтверждения (для обычных юзеров или админа без фишек)
                 selectedPixel = { x, y };
                 drawHover(x, y);
-
-                // Показываем блок подтверждения
                 document.getElementById('confirmWrapper').style.display = 'flex';
                 document.getElementById('cooldownText').style.display = 'none';
             }
         });
-
         function sendPixel() {
             if (!selectedPixel || cooldownActive) return;
             placePixelDirectly(selectedPixel.x, selectedPixel.y);
-            // Скрываем кнопку после отправки
             cancelSelection();
         }
-
         function placePixelDirectly(x, y) {
             if (cooldownActive && (!IS_ADMIN || !toggleNoCooldown.checked)) return;
-
             if (socket.readyState === WebSocket.OPEN) {
-                // Если размер кисти больше 1 - рисуем квадрат
                 const offset = Math.floor(brushSize / 2);
                 for (let i = -offset; i < -offset + brushSize; i++) {
                     for (let j = -offset; j < -offset + brushSize; j++) {
                         const px = x + i;
                         const py = y + j;
-
                         if (px >= 0 && px < 500 && py >= 0 && py < 500) {
-                            // Оптимизация: не шлем если цвет уже тот же
                             const p = ctx.getImageData(px, py, 1, 1).data;
                             const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1).toLowerCase();
                             if (hex !== currentColor.toLowerCase()) {
                                 socket.send(JSON.stringify({ x: px, y: py, color: currentColor }));
-                                // Локально тоже рисуем сразу для отзывчивости (админам можно)
                                 ctx.fillStyle = currentColor;
                                 ctx.fillRect(px, py, 1, 1);
                             }
                         }
                     }
                 }
-            } else {
-                showToast("Нет подключения к серверу");
-            }
+            } else { showToast("Нет подключения к серверу"); }
         }
-
         function cancelSelection() {
             selectedPixel = null;
             document.getElementById('confirmWrapper').style.display = 'none';
             document.getElementById('cooldownText').style.display = 'block';
             clearHover();
         }
-
-        // Клики по миникарте
         minimapWrapper.addEventListener('mousedown', (e) => {
-            e.stopPropagation(); // Не перетаскиваем основное поле
+            e.stopPropagation();
             const rect = minimapWrapper.getBoundingClientRect();
             const clickPercentX = (e.clientX - rect.left) / rect.width;
             const clickPercentY = (e.clientY - rect.top) / rect.height;
-
             const targetCanvasX = clickPercentX * 500;
             const targetCanvasY = clickPercentY * 500;
-
             panX = (container.clientWidth / 2) - (targetCanvasX * scale);
             panY = (container.clientHeight / 2) - (targetCanvasY * scale);
             applyTransform();
         });
-
-        // Мобильный тач
         let initialPinchDistance = null;
         let initialScale = 1;
-
         container.addEventListener('touchstart', (e) => {
-            clearHover(); // На мобилках нет Hover
+            clearHover();
             if (e.touches.length === 1 && !e.target.closest('#minimapWrapper')) {
-                isDragging = true;
+                const rect = canvasWrapper.getBoundingClientRect();
+                const x = Math.floor((e.touches[0].clientX - rect.left) / scale);
+                const y = Math.floor((e.touches[0].clientY - rect.top) / scale);
+                if (IS_ADMIN && toggleContinuous.checked && x >= 0 && x < 500 && y >= 0 && y < 500) {
+                    isPanning = false;
+                    isDragging = true;
+                    placePixelDirectly(x, y);
+                } else {
+                    isPanning = true;
+                    isDragging = false;
+                }
                 hasMoved = false;
                 startPanX = e.touches[0].clientX - panX;
                 startPanY = e.touches[0].clientY - panY;
@@ -941,55 +844,42 @@
                 isDragging = false;
                 const touch1 = e.touches[0];
                 const touch2 = e.touches[1];
-                initialPinchDistance = Math.hypot(
-                    touch1.clientX - touch2.clientX,
-                    touch1.clientY - touch2.clientY
-                );
+                initialPinchDistance = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
                 initialScale = scale;
             }
         }, { passive: false });
-
         container.addEventListener('touchmove', (e) => {
             e.preventDefault();
-            if (e.touches.length === 1 && isDragging) {
-                hasMoved = true;
-                panX = e.touches[0].clientX - startPanX;
-                panY = e.touches[0].clientY - startPanY;
-                applyTransform();
+            const rect = canvasWrapper.getBoundingClientRect();
+            if (e.touches.length === 1 && (isPanning || isDragging)) {
+                const x = Math.floor((e.touches[0].clientX - rect.left) / scale);
+                const y = Math.floor((e.touches[0].clientY - rect.top) / scale);
+                if (isPanning) {
+                    hasMoved = true;
+                    panX = e.touches[0].clientX - startPanX;
+                    panY = e.touches[0].clientY - startPanY;
+                    applyTransform();
+                } else if (!isPanning && isDragging && IS_ADMIN && toggleContinuous.checked) {
+                    if (x >= 0 && x < 500 && y >= 0 && y < 500) { placePixelDirectly(x, y); }
+                }
             } else if (e.touches.length === 2 && initialPinchDistance) {
                 const touch1 = e.touches[0];
                 const touch2 = e.touches[1];
-                const currentDistance = Math.hypot(
-                    touch1.clientX - touch2.clientX,
-                    touch1.clientY - touch2.clientY
-                );
+                const currentDistance = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
                 const zoomFactor = currentDistance / initialPinchDistance;
-
                 let oldScale = scale;
                 scale = initialScale * zoomFactor;
-
-                if (scale < 0.1) scale = 0.1;
-                if (scale > 150) scale = 150;
-
+                if (scale < minScale) scale = minScale;
+                if (scale > maxScale) scale = maxScale;
                 const cx = (touch1.clientX + touch2.clientX) / 2;
                 const cy = (touch1.clientY + touch2.clientY) / 2;
-
                 panX = cx - (cx - panX) * (scale / oldScale);
                 panY = cy - (cy - panY) * (scale / oldScale);
-
                 applyTransform();
             }
         }, { passive: false });
-
-        container.addEventListener('touchend', (e) => {
-            isDragging = false;
-            initialPinchDistance = null;
-        });
-
-        function adminClearCanvas() {
-            // Удалено по запросу пользователя. Функцию можно вернуть при необходимости.
-        }
-
+        container.addEventListener('touchend', (e) => { isDragging = false; isPanning = false; initialPinchDistance = null; });
+        function adminClearCanvas() { }
     </script>
 </body>
 
