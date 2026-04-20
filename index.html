@@ -634,7 +634,7 @@
                 } else if (message.type === 'error') {
                     showToast(message.message);
                 } else if (message.type === 'success') {
-                    if (!IS_ADMIN) startCooldown(7);
+                    startCooldown(7);
                 }
             };
             socket.onerror = (error) => {
@@ -653,6 +653,8 @@
             if (IS_ADMIN && toggleNoCooldown.checked) return;
             cooldownActive = true;
             cooldownTime = seconds;
+            document.getElementById('confirmWrapper').style.display = 'none';
+            document.getElementById('cooldownText').style.display = 'block';
             updateCooldownUI();
             const timer = setInterval(() => {
                 cooldownTime--;
@@ -821,20 +823,24 @@
                                 const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1).toLowerCase();
                                 if (hex !== currentColor.toLowerCase()) {
                                     pixels.push({ x: px, y: py, color: currentColor });
-                                    ctx.fillStyle = currentColor;
-                                    ctx.fillRect(px, py, 1, 1);
+                                    if (toggleNoCooldown.checked) {
+                                        ctx.fillStyle = currentColor;
+                                        ctx.fillRect(px, py, 1, 1);
+                                    }
                                 }
                             }
                         }
                     }
-                    if (pixels.length > 0) socket.send(JSON.stringify({ pixels: pixels }));
+                    if (pixels.length > 0) socket.send(JSON.stringify({ pixels: pixels, no_cd: toggleNoCooldown.checked }));
                 } else {
                     const p = ctx.getImageData(x, y, 1, 1).data;
                     const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1).toLowerCase();
                     if (hex !== currentColor.toLowerCase()) {
-                        socket.send(JSON.stringify({ x: x, y: y, color: currentColor }));
-                        ctx.fillStyle = currentColor;
-                        ctx.fillRect(x, y, 1, 1);
+                        socket.send(JSON.stringify({ x: x, y: y, color: currentColor, no_cd: toggleNoCooldown.checked }));
+                        if (toggleNoCooldown.checked) {
+                            ctx.fillStyle = currentColor;
+                            ctx.fillRect(x, y, 1, 1);
+                        }
                     }
                 }
             } else { showToast("Нет подключения к серверу"); }
