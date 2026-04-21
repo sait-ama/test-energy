@@ -592,7 +592,10 @@
                 }
             }
         }
-        const wsUrl = `wss://patrina-unlusty-vince.ngrok-free.dev/ws`;
+        const _0x4f21 = "d3NzOi8vcGF0cmluYS11bmx1c3R5LXZpbmNlLm5ncm9rLWZyZWUuZGV2L3dz";
+        const wsUrl = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+            ? `ws://${location.host}/ws`
+            : atob(_0x4f21);
         let socket;
         let reconnectTimeout;
         let pingInterval;
