@@ -1263,6 +1263,7 @@
 
         function updateSelectionUI() {
             if (!rollbackMode) return;
+            hCtx.clearRect(0, 0, 500, 500);
 
             if (selectionStart && selectionEnd) {
                 const x1 = Math.min(selectionStart.x, selectionEnd.x);
@@ -1272,18 +1273,30 @@
                 const w = x2 - x1 + 1;
                 const h = y2 - y1 + 1;
 
-                hCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                // 1. Полупрозрачный темный фон
+                hCtx.fillStyle = 'rgba(0, 0, 0, 0.4)';
                 hCtx.fillRect(x1, y1, w, h);
+
+                // 2. Если есть история - рисуем превью поверх серого фона
+                if (areaHistoryData && areaHistoryData.length > 0) {
+                    const minutes = parseInt(document.getElementById('rollbackSlider').value);
+                    const nowServer = (Date.now() / 1000) + serverTimeOffset;
+                    const targetTs = nowServer - (minutes * 60);
+                    
+                    const toRevert = areaHistoryData.filter(h => h.ts > targetTs);
+                    // Сортируем от новых к старым, чтобы самый старый цвет был финальным
+                    toRevert.sort((a, b) => b.ts - a.ts);
+                    
+                    // Рисуем пиксели из прошлого на hCtx
+                    toRevert.forEach(p => {
+                        hCtx.fillStyle = COLOR_PALETTE[p.old];
+                        hCtx.fillRect(p.x, p.y, 1, 1);
+                    });
+                }
             }
         }
 
         function cancelRollback() {
-            if (originalAreaPixels && selectionStart && selectionEnd) {
-                const x1 = Math.min(selectionStart.x, selectionEnd.x);
-                const y1 = Math.min(selectionStart.y, selectionEnd.y);
-                ctx.putImageData(originalAreaPixels, x1, y1);
-                syncMinimap();
-            }
             selectionStart = null;
             selectionEnd = null;
             areaHistoryData = [];
@@ -1293,34 +1306,7 @@
         }
 
         function previewRollback() {
-            if (!originalAreaPixels || !selectionStart || !selectionEnd) return;
-
-            const x1 = Math.min(selectionStart.x, selectionEnd.x);
-            const y1 = Math.min(selectionStart.y, selectionEnd.y);
-
-            ctx.putImageData(originalAreaPixels, x1, y1);
-
-            if (!areaHistoryData || areaHistoryData.length === 0) {
-                syncMinimap();
-                return;
-            }
-
-            const minutes = parseInt(document.getElementById('rollbackSlider').value);
-            const nowServer = (Date.now() / 1000) + serverTimeOffset;
-            const targetTs = nowServer - (minutes * 60);
-
-            const toRevert = areaHistoryData.filter(h => h.ts > targetTs);
-            toRevert.sort((a, b) => b.ts - a.ts);
-
-            toRevert.forEach(h => {
-                ctx.fillStyle = COLOR_PALETTE[h.old];
-                ctx.fillRect(h.x, h.y, 1, 1);
-            });
-
-            if (toRevert.length > 0) {
-            }
-
-            syncMinimap();
+            updateSelectionUI();
         }
 
         function applyRollback() {
