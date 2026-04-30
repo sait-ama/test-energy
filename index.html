@@ -440,7 +440,7 @@
             }
 
             .sidebar {
-                padding: 0 !important; /* Отступы переносим внутрь */
+                padding: 0 !important;
                 gap: 0 !important;
                 height: auto !important;
                 position: fixed;
@@ -451,7 +451,7 @@
                 background: #1e1e2e;
                 border-top: 1px solid #313244;
                 box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
-                overflow: visible !important; /* Чтобы кнопки сверху не обрезались */
+                overflow: visible !important;
             }
 
             .sidebar-scroll-area {
@@ -463,17 +463,42 @@
                 gap: 5px;
             }
 
-            .sidebar h1 { display: none; }
-            .palette { gap: 4px !important; margin-bottom: 5px !important; }
-            .color-btn { width: 25px !important; height: 25px !important; }
-            .info-panel { font-size: 10px !important; margin-bottom: 0 !important; }
-            .admin-toggle-wrapper { font-size: 10px !important; }
-            .cooldown-text { font-size: 14px !important; margin-bottom: 5px !important; }
-            .rollback-panel { bottom: 5px !important; padding: 8px !important; }
+            .sidebar h1 {
+                display: none;
+            }
+
+            .palette {
+                gap: 4px !important;
+                margin-bottom: 5px !important;
+            }
+
+            .color-btn {
+                width: 25px !important;
+                height: 25px !important;
+            }
+
+            .info-panel {
+                font-size: 10px !important;
+                margin-bottom: 0 !important;
+            }
+
+            .admin-toggle-wrapper {
+                font-size: 10px !important;
+            }
+
+            .cooldown-text {
+                font-size: 14px !important;
+                margin-bottom: 5px !important;
+            }
+
+            .rollback-panel {
+                bottom: 5px !important;
+                padding: 8px !important;
+            }
 
             .confirm-wrapper {
                 position: absolute;
-                bottom: 100%; /* Всегда строго над меню */
+                bottom: 100%;
                 left: 0;
                 transform: none;
                 flex-direction: row;
@@ -490,7 +515,8 @@
                 border-top: 1px solid #313244;
             }
 
-            .confirm-btn, .cancel-btn {
+            .confirm-btn,
+            .cancel-btn {
                 flex: 1;
                 padding: 8px;
                 font-size: 14px;
@@ -551,61 +577,62 @@
     <div class="sidebar">
         <div class="sidebar-scroll-area">
             <h1>⚔️ PixelBattle</h1>
-        <div class="admin-header-row">
-            <div id="noCdToggle" class="admin-toggle-wrapper admin-only">
-                <label class="admin-toggle">🚀 No CD<input type="checkbox" id="toggleNoCooldown" checked></label>
+            <div class="admin-header-row">
+                <div id="noCdToggle" class="admin-toggle-wrapper admin-only">
+                    <label class="admin-toggle">🚀 No CD<input type="checkbox" id="toggleNoCooldown" checked></label>
+                </div>
+
+                <div class="info-panel">
+                    Размер: <span>500x500</span><br>
+                    Курсор: <span id="cursorCoords">0, 0</span>
+                    <div class="zoom-level">Зум: <span id="zoomVal">100</span>%</div>
+                </div>
+
+                <div id="paintToggle" class="admin-toggle-wrapper admin-only">
+                    <label class="admin-toggle">🖌 Paint<input type="checkbox" id="toggleContinuous"
+                            onchange="cancelSelection()"></label>
+                </div>
             </div>
 
-            <div class="info-panel">
-                Размер: <span>500x500</span><br>
-                Курсор: <span id="cursorCoords">0, 0</span>
-                <div class="zoom-level">Зум: <span id="zoomVal">100</span>%</div>
+            <div id="adminBrushGroup" class="admin-brush-group admin-only">
+                <div class="admin-brush-label">Кисть: <span id="brushSizeVal">1x1</span></div>
+                <input type="range" id="brushSizeRange" min="1" max="10" value="1"
+                    oninput="updateBrushSizeLabel(this.value)">
             </div>
 
-            <div id="paintToggle" class="admin-toggle-wrapper admin-only">
-                <label class="admin-toggle">🖌 Paint<input type="checkbox" id="toggleContinuous"
-                        onchange="cancelSelection()"></label>
+            <div id="adminTokenGroup" class="admin-only" style="width: 100%; margin-top: 10px;">
+                <button onclick="generateTempToken()"
+                    style="width: 100%; background: #fab387; color: #11111b; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer;">⏳
+                    Выдать админку (10м)</button>
             </div>
-        </div>
 
-        <div id="adminBrushGroup" class="admin-brush-group admin-only">
-            <div class="admin-brush-label">Кисть: <span id="brushSizeVal">1x1</span></div>
-            <input type="range" id="brushSizeRange" min="1" max="10" value="1"
-                oninput="updateBrushSizeLabel(this.value)">
-        </div>
-
-        <div id="adminTokenGroup" class="admin-only" style="width: 100%; margin-top: 10px;">
-            <button onclick="generateTempToken()"
-                style="width: 100%; background: #fab387; color: #11111b; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer;">⏳
-                Выдать админку (10м)</button>
-        </div>
-
-        <div class="master-only" style="width: 100%; margin-top: 10px;">
-            <button id="rollbackModeBtn" onclick="toggleRollbackMode()"
-                style="width: 100%; background: #f38ba8; color: #11111b; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">⏪
-                Откат участка</button>
-        </div>
-        <div class="palette" id="palette">
-            <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
-            <div class="color-btn" style="background-color: #828282;" data-color="#828282"></div>
-            <div class="color-btn" style="background-color: #ffffff; border: 1px solid #cdd6f4;" data-color="#ffffff">
+            <div class="master-only" style="width: 100%; margin-top: 10px;">
+                <button id="rollbackModeBtn" onclick="toggleRollbackMode()"
+                    style="width: 100%; background: #f38ba8; color: #11111b; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">⏪
+                    Откат участка</button>
             </div>
-            <div class="color-btn" style="background-color: #ff0000;" data-color="#ff0000"></div>
-            <div class="color-btn" style="background-color: #ff4500;" data-color="#ff4500"></div>
-            <div class="color-btn" style="background-color: #ff8800;" data-color="#ff8800"></div>
-            <div class="color-btn" style="background-color: #ffd700;" data-color="#ffd700"></div>
-            <div class="color-btn" style="background-color: #ffff00;" data-color="#ffff00"></div>
-            <div class="color-btn" style="background-color: #00ff00;" data-color="#00ff00"></div>
-            <div class="color-btn" style="background-color: #006400;" data-color="#006400"></div>
-            <div class="color-btn" style="background-color: #00ffff;" data-color="#00ffff"></div>
-            <div class="color-btn" style="background-color: #0000ff;" data-color="#0000ff"></div>
-            <div class="color-btn" style="background-color: #00008b;" data-color="#00008b"></div>
-            <div class="color-btn" style="background-color: #8a2be2;" data-color="#8a2be2"></div>
-            <div class="color-btn" style="background-color: #ff00ff;" data-color="#ff00ff"></div>
-            <div class="color-btn" style="background-color: #ffb6c1;" data-color="#ffb6c1"></div>
-            <div class="color-btn" style="background-color: #8b4513;" data-color="#8b4513"></div>
-            <div class="color-btn" style="background-color: #d2b48c;" data-color="#d2b48c"></div>
-        </div>
+            <div class="palette" id="palette">
+                <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
+                <div class="color-btn" style="background-color: #828282;" data-color="#828282"></div>
+                <div class="color-btn" style="background-color: #ffffff; border: 1px solid #cdd6f4;"
+                    data-color="#ffffff">
+                </div>
+                <div class="color-btn" style="background-color: #ff0000;" data-color="#ff0000"></div>
+                <div class="color-btn" style="background-color: #ff4500;" data-color="#ff4500"></div>
+                <div class="color-btn" style="background-color: #ff8800;" data-color="#ff8800"></div>
+                <div class="color-btn" style="background-color: #ffd700;" data-color="#ffd700"></div>
+                <div class="color-btn" style="background-color: #ffff00;" data-color="#ffff00"></div>
+                <div class="color-btn" style="background-color: #00ff00;" data-color="#00ff00"></div>
+                <div class="color-btn" style="background-color: #006400;" data-color="#006400"></div>
+                <div class="color-btn" style="background-color: #00ffff;" data-color="#00ffff"></div>
+                <div class="color-btn" style="background-color: #0000ff;" data-color="#0000ff"></div>
+                <div class="color-btn" style="background-color: #00008b;" data-color="#00008b"></div>
+                <div class="color-btn" style="background-color: #8a2be2;" data-color="#8a2be2"></div>
+                <div class="color-btn" style="background-color: #ff00ff;" data-color="#ff00ff"></div>
+                <div class="color-btn" style="background-color: #ffb6c1;" data-color="#ffb6c1"></div>
+                <div class="color-btn" style="background-color: #8b4513;" data-color="#8b4513"></div>
+                <div class="color-btn" style="background-color: #d2b48c;" data-color="#d2b48c"></div>
+            </div>
             <div id="confirmWrapper" class="confirm-wrapper" style="display:none;">
                 <button class="confirm-btn" onclick="sendPixel()">✅ Подтвердить</button>
                 <button class="cancel-btn" onclick="cancelSelection()">Отмена</button>
@@ -1024,7 +1051,6 @@
                 selectedPixel = { x, y };
                 drawHover(x, y);
                 document.getElementById('confirmWrapper').style.display = 'flex';
-                // Убираем текст кулдауна только если нужно, но лучше просто поверх
             }
         });
         function sendPixel() {
@@ -1150,7 +1176,6 @@
             }
         }
 
-        // --- ROLLBACK LOGIC ---
         function toggleRollbackMode() {
             rollbackMode = !rollbackMode;
             const btn = document.getElementById('rollbackModeBtn');
