@@ -440,20 +440,29 @@
             }
 
             .sidebar {
-                padding: 5px !important;
-                gap: 5px !important;
+                padding: 0 !important; /* Отступы переносим внутрь */
+                gap: 0 !important;
                 height: auto !important;
-                max-height: 35vh !important;
-                overflow-y: auto !important;
                 position: fixed;
                 bottom: 0;
                 left: 0;
                 width: 100%;
-                z-index: 100;
+                z-index: 200;
                 background: #1e1e2e;
                 border-top: 1px solid #313244;
-                box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+                box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+                overflow: visible !important; /* Чтобы кнопки сверху не обрезались */
             }
+
+            .sidebar-scroll-area {
+                max-height: 35vh;
+                overflow-y: auto;
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+                gap: 5px;
+            }
+
             .sidebar h1 { display: none; }
             .palette { gap: 4px !important; margin-bottom: 5px !important; }
             .color-btn { width: 25px !important; height: 25px !important; }
@@ -461,9 +470,10 @@
             .admin-toggle-wrapper { font-size: 10px !important; }
             .cooldown-text { font-size: 14px !important; margin-bottom: 5px !important; }
             .rollback-panel { bottom: 5px !important; padding: 8px !important; }
+
             .confirm-wrapper {
-                position: fixed;
-                bottom: 35vh; /* В упор к менюшке */
+                position: absolute;
+                bottom: 100%; /* Всегда строго над меню */
                 left: 0;
                 transform: none;
                 flex-direction: row;
@@ -471,14 +481,21 @@
                 max-width: none;
                 background: rgba(30, 30, 46, 0.98);
                 z-index: 500;
-                box-shadow: 0 -5px 15px rgba(0,0,0,0.3);
+                box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
                 margin: 0;
                 padding: 8px;
                 border-radius: 0;
                 border-left: none;
                 border-right: none;
+                border-top: 1px solid #313244;
             }
-            .confirm-btn, .cancel-btn { flex: 1; padding: 8px; font-size: 14px; margin: 0; }
+
+            .confirm-btn, .cancel-btn {
+                flex: 1;
+                padding: 8px;
+                font-size: 14px;
+                margin: 0;
+            }
         }
 
         .selection-overlay {
@@ -532,7 +549,8 @@
         </div>
     </div>
     <div class="sidebar">
-        <h1>⚔️ PixelBattle</h1>
+        <div class="sidebar-scroll-area">
+            <h1>⚔️ PixelBattle</h1>
         <div class="admin-header-row">
             <div id="noCdToggle" class="admin-toggle-wrapper admin-only">
                 <label class="admin-toggle">🚀 No CD<input type="checkbox" id="toggleNoCooldown" checked></label>
@@ -564,7 +582,8 @@
 
         <div class="master-only" style="width: 100%; margin-top: 10px;">
             <button id="rollbackModeBtn" onclick="toggleRollbackMode()"
-                style="width: 100%; background: #f38ba8; color: #11111b; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">⏪ Откат участка</button>
+                style="width: 100%; background: #f38ba8; color: #11111b; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">⏪
+                Откат участка</button>
         </div>
         <div class="palette" id="palette">
             <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
@@ -587,25 +606,28 @@
             <div class="color-btn" style="background-color: #8b4513;" data-color="#8b4513"></div>
             <div class="color-btn" style="background-color: #d2b48c;" data-color="#d2b48c"></div>
         </div>
-        <div class="cooldown-text" id="cooldownText">Готов к битве</div>
-        <div id="confirmWrapper" class="confirm-wrapper" style="display:none;">
-            <button class="confirm-btn" onclick="sendPixel()">✅ Подтвердить</button>
-            <button class="cancel-btn" onclick="cancelSelection()">Отмена</button>
+            <div id="confirmWrapper" class="confirm-wrapper" style="display:none;">
+                <button class="confirm-btn" onclick="sendPixel()">✅ Подтвердить</button>
+                <button class="cancel-btn" onclick="cancelSelection()">Отмена</button>
+            </div>
+            <div class="cooldown-text" id="cooldownText">Готов к битве</div>
+            <div class="status" id="status">Подключение к серверу...</div>
         </div>
-        <div class="status" id="status">Подключение к серверу...</div>
     </div>
     <div class="toast" id="toast">Ошибка</div>
 
     <div id="rollbackPanel" class="rollback-panel">
         <div class="rollback-header">
             <span>Откат во времени</span>
-            <button onclick="cancelRollback()" style="background:none; border:none; color:#f38ba8; cursor:pointer; font-size:20px;">✖</button>
+            <button onclick="cancelRollback()"
+                style="background:none; border:none; color:#f38ba8; cursor:pointer; font-size:20px;">✖</button>
         </div>
         <div style="font-size: 14px; color: #a6adc8;">Выберите время, к которому нужно вернуть выделенный участок:</div>
         <input type="range" id="rollbackSlider" min="1" max="120" value="5">
         <div style="display: flex; justify-content: space-between; font-weight: bold;">
             <span id="rollbackTimeText">5 минут назад</span>
-            <button onclick="applyRollback()" style="background: #a6e3a1; color: #11111b; border: none; padding: 5px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">Применить</button>
+            <button onclick="applyRollback()"
+                style="background: #a6e3a1; color: #11111b; border: none; padding: 5px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">Применить</button>
         </div>
     </div>
     <script>
@@ -751,25 +773,25 @@
                 } else if (message.type === 'admin_status') {
                     IS_ADMIN = message.value;
                     IS_MASTER = message.is_master;
-                    
+
                     if (IS_ADMIN) {
                         document.querySelectorAll('.admin-only').forEach(el => {
                             el.classList.add('show-admin');
                             el.style.setProperty('display', 'flex', 'important');
                         });
-                        
+
                         const tokenGroup = document.getElementById('adminTokenGroup');
                         if (tokenGroup) {
                             tokenGroup.style.setProperty('display', IS_MASTER ? 'flex' : 'none', 'important');
                         }
-                        
+
                         if (IS_MASTER) {
                             document.querySelectorAll('.master-only').forEach(el => {
                                 el.classList.add('show-master');
                                 el.style.setProperty('display', 'flex', 'important');
                             });
                         }
-                        
+
                         showToast("Режим администратора активирован!");
                     } else {
                         document.querySelectorAll('.admin-only').forEach(el => {
@@ -1147,7 +1169,7 @@
             const y1 = Math.min(selectionStart.y, selectionEnd.y);
             const x2 = Math.max(selectionStart.x, selectionEnd.x);
             const y2 = Math.max(selectionStart.y, selectionEnd.y);
-            
+
             overlay.style.left = x1 + 'px';
             overlay.style.top = y1 + 'px';
             overlay.style.width = (x2 - x1 + 1) + 'px';
@@ -1168,22 +1190,22 @@
             const y1 = Math.min(selectionStart.y, selectionEnd.y);
             const x2 = Math.max(selectionStart.x, selectionEnd.x);
             const y2 = Math.max(selectionStart.y, selectionEnd.y);
-            
+
             const minutes = parseInt(document.getElementById('rollbackSlider').value);
             const targetTs = (Date.now() / 1000) - (minutes * 60);
-            
+
             socket.send(JSON.stringify({
                 type: 'rollback',
                 x1, y1, x2, y2,
                 timestamp: targetTs
             }));
-            
+
             showToast("Запрос на откат отправлен...");
             cancelRollback();
             toggleRollbackMode();
         }
 
-        document.getElementById('rollbackSlider').oninput = function() {
+        document.getElementById('rollbackSlider').oninput = function () {
             document.getElementById('rollbackTimeText').innerText = this.value + " мин. назад";
         };
     </script>
