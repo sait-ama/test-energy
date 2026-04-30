@@ -539,11 +539,12 @@
 
         .selection-overlay {
             position: absolute;
-            border: 3px dashed #f38ba8;
-            background: rgba(243, 139, 168, 0.3);
+            border: 2px solid #a6e3a1;
+            background: rgba(166, 227, 161, 0.2);
             pointer-events: none;
             display: none;
-            z-index: 1000;
+            z-index: 10000;
+            box-shadow: 0 0 10px rgba(166, 227, 161, 0.5);
         }
 
         .rollback-panel {
@@ -663,7 +664,8 @@
                 style="background:none; border:none; color:#f38ba8; cursor:pointer; font-size:20px;">✖</button>
         </div>
         <div style="font-size: 14px; color: #a6adc8;">Выберите время, к которому нужно вернуть выделенный участок:</div>
-        <input type="range" id="rollbackSlider" min="1" max="120" value="5">
+        <input type="range" id="rollbackSlider" min="1" max="1440" value="5"
+            oninput="document.getElementById('rollbackTimeText').innerText = this.value + ' минут назад'; previewRollback()">
         <div style="display: flex; justify-content: space-between; font-weight: bold;">
             <span id="rollbackTimeText">5 минут назад</span>
             <button onclick="applyRollback()"
@@ -699,6 +701,8 @@
         let rollbackMode = false;
         let selectionStart = null;
         let selectionEnd = null;
+        let areaHistoryData = [];
+        let originalAreaPixels = null;
         let brushSize = 1;
         const toggleNoCooldown = document.getElementById('toggleNoCooldown');
         const toggleContinuous = document.getElementById('toggleContinuous');
@@ -851,6 +855,14 @@
                         localStorage.removeItem('adminToken');
                         showToast("Режим администратора отключен");
                     }
+                } else if (message.type === 'area_history') {
+                    areaHistoryData = message.history;
+                    const x1 = Math.min(selectionStart.x, selectionEnd.x);
+                    const y1 = Math.min(selectionStart.y, selectionEnd.y);
+                    const w = Math.abs(selectionEnd.x - selectionStart.x) + 1;
+                    const h = Math.abs(selectionEnd.y - selectionStart.y) + 1;
+                    originalAreaPixels = ctx.getImageData(x1, y1, w, h);
+                    showToast("История получена. Двигайте ползунок!");
                 } else if (message.type === 'token_generated') {
                     const url = new URL(window.location.href);
                     url.searchParams.set('key', message.token);
@@ -1045,6 +1057,15 @@
         window.addEventListener('mouseup', (e) => {
             isPanning = false;
             if (isDragging && rollbackMode && selectionStart && selectionEnd) {
+                const x1 = Math.min(selectionStart.x, selectionEnd.x);
+                const y1 = Math.min(selectionStart.y, selectionEnd.y);
+                const x2 = Math.max(selectionStart.x, selectionEnd.x);
+                const y2 = Math.max(selectionStart.y, selectionEnd.y);
+
+                socket.send(JSON.stringify({
+                    type: 'get_area_history',
+                    x1, y1, x2, y2
+                }));
                 document.getElementById('rollbackPanel').style.display = 'flex';
             }
             isDragging = false;
@@ -1198,6 +1219,15 @@
         }, { passive: false });
         container.addEventListener('touchend', (e) => {
             if (isDragging && rollbackMode && selectionStart && selectionEnd) {
+                const x1 = Math.min(selectionStart.x, selectionEnd.x);
+                const y1 = Math.min(selectionStart.y, selectionEnd.y);
+                const x2 = Math.max(selectionStart.x, selectionEnd.x);
+                const y2 = Math.max(selectionStart.y, selectionEnd.y);
+
+                socket.send(JSON.stringify({
+                    type: 'get_area_history',
+                    x1, y1, x2, y2
+                }));
                 document.getElementById('rollbackPanel').style.display = 'flex';
             }
             isDragging = false;
@@ -1238,10 +1268,40 @@
         }
 
         function cancelRollback() {
+            if (originalAreaPixels && selectionStart && selectionEnd) {
+                const x1 = Math.min(selectionStart.x, selectionEnd.x);
+                const y1 = Math.min(selectionStart.y, selectionEnd.y);
+                ctx.putImageData(originalAreaPixels, x1, y1);
+                syncMinimap();
+            }
             selectionStart = null;
             selectionEnd = null;
+            areaHistoryData = [];
+            originalAreaPixels = null;
             updateSelectionUI();
             document.getElementById('rollbackPanel').style.display = 'none';
+        }
+
+        function previewRollback() {
+            if (!originalAreaPixels || !selectionStart || !selectionEnd) return;
+
+            const x1 = Math.min(selectionStart.x, selectionEnd.x);
+            const y1 = Math.min(selectionStart.y, selectionEnd.y);
+
+            ctx.putImageData(originalAreaPixels, x1, y1);
+
+            const minutes = parseInt(document.getElementById('rollbackSlider').value);
+            const targetTs = (Date.now() / 1000) - (minutes * 60);
+
+            const toApply = areaHistoryData.filter(h => h.ts > targetTs);
+            toApply.sort((a, b) => b.ts - a.ts);
+
+            toApply.forEach(h => {
+                ctx.fillStyle = COLOR_PALETTE[h.old];
+                ctx.fillRect(h.x, h.y, 1, 1);
+            });
+
+            syncMinimap();
         }
 
         function applyRollback() {
@@ -1260,7 +1320,8 @@
                 timestamp: targetTs
             }));
 
-            showToast("Запрос на откат отправлен...");
+            showToast("Откат применен!");
+            originalAreaPixels = null;
             cancelRollback();
             toggleRollbackMode();
         }
