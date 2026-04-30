@@ -537,23 +537,6 @@
             }
         }
 
-        .selection-overlay {
-            position: absolute;
-            border: 2px solid #a6e3a1;
-            background: rgba(166, 227, 161, 0.2);
-            pointer-events: none;
-            display: none;
-            z-index: 10000;
-            box-shadow: 0 0 15px rgba(166, 227, 161, 0.6);
-            animation: selection-pulse 1.5s infinite;
-        }
-
-        @keyframes selection-pulse {
-            0% { border-color: #a6e3a1; box-shadow: 0 0 5px rgba(166, 227, 161, 0.4); }
-            50% { border-color: #ffffff; box-shadow: 0 0 20px rgba(166, 227, 161, 0.8); }
-            100% { border-color: #a6e3a1; box-shadow: 0 0 5px rgba(166, 227, 161, 0.4); }
-        }
-
         #pixelCanvas, #hoverCanvas {
             z-index: 1;
         }
@@ -591,7 +574,6 @@
         <div class="canvas-wrapper" id="canvasWrapper">
             <canvas id="pixelCanvas" width="500" height="500"></canvas>
             <canvas id="hoverCanvas" width="500" height="500"></canvas>
-            <div id="selectionOverlay" class="selection-overlay"></div>
         </div>
         <div class="minimap-wrapper" id="minimapWrapper">
             <canvas id="minimapCanvas" width="150" height="150"
@@ -740,9 +722,13 @@
             mCtx.drawImage(canvas, 0, 0, minimapCanvas.width, minimapCanvas.height);
             mCtx.imageSmoothingEnabled = false;
         }
-        function clearHover() { hCtx.clearRect(0, 0, 500, 500); }
+        function clearHover() {
+            hCtx.clearRect(0, 0, 500, 500);
+            if (rollbackMode) updateSelectionUI();
+        }
         function drawHover(mouseX, mouseY) {
             clearHover();
+            if (rollbackMode && isDragging) return;
             if (selectedPixel) {
                 const { x, y } = selectedPixel;
                 hCtx.globalAlpha = 0.8;
@@ -1266,21 +1252,27 @@
         }
 
         function updateSelectionUI() {
-            const overlay = document.getElementById('selectionOverlay');
-            if (!rollbackMode || !selectionStart || !selectionEnd) {
-                overlay.style.display = 'none';
-                return;
-            }
-            const x1 = Math.min(selectionStart.x, selectionEnd.x);
-            const y1 = Math.min(selectionStart.y, selectionEnd.y);
-            const x2 = Math.max(selectionStart.x, selectionEnd.x);
-            const y2 = Math.max(selectionStart.y, selectionEnd.y);
+            if (!rollbackMode) return;
+            
+            if (selectionStart && selectionEnd) {
+                const x1 = Math.min(selectionStart.x, selectionEnd.x);
+                const y1 = Math.min(selectionStart.y, selectionEnd.y);
+                const x2 = Math.max(selectionStart.x, selectionEnd.x);
+                const y2 = Math.max(selectionStart.y, selectionEnd.y);
+                const w = x2 - x1 + 1;
+                const h = y2 - y1 + 1;
 
-            overlay.style.left = x1 + 'px';
-            overlay.style.top = y1 + 'px';
-            overlay.style.width = (x2 - x1 + 1) + 'px';
-            overlay.style.height = (y2 - y1 + 1) + 'px';
-            overlay.style.display = 'block';
+                // Полупрозрачный темный фон
+                hCtx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                hCtx.fillRect(x1, y1, w, h);
+
+                // Яркая рамка
+                hCtx.strokeStyle = '#a6e3a1';
+                hCtx.lineWidth = 2;
+                hCtx.setLineDash([5, 3]);
+                hCtx.strokeRect(x1, y1, w, h);
+                hCtx.setLineDash([]);
+            }
         }
 
         function cancelRollback() {
@@ -1294,29 +1286,29 @@
             selectionEnd = null;
             areaHistoryData = [];
             originalAreaPixels = null;
-            updateSelectionUI();
+            hCtx.clearRect(0, 0, 500, 500);
             document.getElementById('rollbackPanel').style.display = 'none';
         }
 
         function previewRollback() {
             if (!originalAreaPixels || !selectionStart || !selectionEnd) return;
-
+            
             const x1 = Math.min(selectionStart.x, selectionEnd.x);
             const y1 = Math.min(selectionStart.y, selectionEnd.y);
-
+            
             ctx.putImageData(originalAreaPixels, x1, y1);
-
+            
             const minutes = parseInt(document.getElementById('rollbackSlider').value);
             const targetTs = (Date.now() / 1000) - (minutes * 60);
-
+            
             const toApply = areaHistoryData.filter(h => h.ts > targetTs);
             toApply.sort((a, b) => b.ts - a.ts);
-
+            
             toApply.forEach(h => {
                 ctx.fillStyle = COLOR_PALETTE[h.old];
                 ctx.fillRect(h.x, h.y, 1, 1);
             });
-
+            
             syncMinimap();
         }
 
