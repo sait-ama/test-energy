@@ -484,7 +484,9 @@
         </div>
 
         <div id="adminTokenGroup" class="admin-only" style="width: 100%; margin-top: 10px;">
-            <button onclick="generateTempToken()" style="width: 100%; background: #fab387; color: #11111b; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer;">⏳ Выдать админку (10м)</button>
+            <button onclick="generateTempToken()"
+                style="width: 100%; background: #fab387; color: #11111b; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer;">⏳
+                Выдать админку (10м)</button>
         </div>
         <div class="palette" id="palette">
             <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
@@ -619,7 +621,6 @@
                 statusEl.innerText = '🟢 Активно (В сети)';
                 statusEl.style.color = '#a6e3a1';
 
-                // Проверяем токен в URL
                 const urlParams = new URLSearchParams(window.location.search);
                 const key = urlParams.get('key') || urlParams.get('token');
                 if (key) {
@@ -628,7 +629,6 @@
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
 
-                // Таймер для поддержания соединения (Ping)
                 if (pingInterval) clearInterval(pingInterval);
                 pingInterval = setInterval(() => {
                     if (socket.readyState === WebSocket.OPEN) {
@@ -667,20 +667,24 @@
                             el.classList.add('show-admin');
                             el.style.setProperty('display', 'flex', 'important');
                         });
-                        
-                        // Скрываем кнопку выдачи токенов для временных админов
                         const tokenGroup = document.getElementById('adminTokenGroup');
                         if (tokenGroup) {
                             tokenGroup.style.setProperty('display', isMaster ? 'flex' : 'none', 'important');
                         }
-                        
                         showToast("Режим администратора активирован!");
+                    } else {
+                        document.querySelectorAll('.admin-only').forEach(el => {
+                            el.classList.remove('show-admin');
+                            el.style.setProperty('display', 'none', 'important');
+                        });
+                        if (selectedPixel) cancelSelection();
+                        showToast("Режим администратора отключен");
                     }
                 } else if (message.type === 'token_generated') {
                     const url = new URL(window.location.href);
                     url.searchParams.set('key', message.token);
                     const fullUrl = url.toString();
-                    
+
                     // Копируем в буфер обмена
                     navigator.clipboard.writeText(fullUrl).then(() => {
                         showToast("Ссылка скопирована! (10 минут)");
@@ -708,7 +712,6 @@
 
         connectSocket();
 
-        // Обработка возвращения во вкладку (особенно важно для телефонов)
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
                 if (!socket || socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
