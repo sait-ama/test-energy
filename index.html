@@ -661,11 +661,19 @@
                     });
                 } else if (message.type === 'admin_status') {
                     IS_ADMIN = message.value;
+                    const isMaster = message.is_master;
                     if (IS_ADMIN) {
                         document.querySelectorAll('.admin-only').forEach(el => {
                             el.classList.add('show-admin');
                             el.style.setProperty('display', 'flex', 'important');
                         });
+                        
+                        // Скрываем кнопку выдачи токенов для временных админов
+                        const tokenGroup = document.getElementById('adminTokenGroup');
+                        if (tokenGroup) {
+                            tokenGroup.style.setProperty('display', isMaster ? 'flex' : 'none', 'important');
+                        }
+                        
                         showToast("Режим администратора активирован!");
                     }
                 } else if (message.type === 'token_generated') {
