@@ -1138,7 +1138,13 @@
                 const rect = canvasWrapper.getBoundingClientRect();
                 const x = Math.floor((e.touches[0].clientX - rect.left) / scale);
                 const y = Math.floor((e.touches[0].clientY - rect.top) / scale);
-                if (IS_ADMIN && toggleContinuous.checked && x >= 0 && x < 500 && y >= 0 && y < 500) {
+                if (rollbackMode) {
+                    isPanning = false;
+                    isDragging = true;
+                    selectionStart = { x, y };
+                    selectionEnd = { x, y };
+                    updateSelectionUI();
+                } else if (IS_ADMIN && toggleContinuous.checked && x >= 0 && x < 500 && y >= 0 && y < 500) {
                     isPanning = false;
                     isDragging = true;
                     placePixelDirectly(x, y);
@@ -1168,6 +1174,9 @@
                     panX = e.touches[0].clientX - startPanX;
                     panY = e.touches[0].clientY - startPanY;
                     applyTransform();
+                } else if (isDragging && rollbackMode) {
+                    selectionEnd = { x, y };
+                    updateSelectionUI();
                 } else if (!isPanning && isDragging && IS_ADMIN && toggleContinuous.checked) {
                     if (x >= 0 && x < 500 && y >= 0 && y < 500) { placePixelDirectly(x, y); }
                 }
@@ -1187,7 +1196,14 @@
                 applyTransform();
             }
         }, { passive: false });
-        container.addEventListener('touchend', (e) => { isDragging = false; isPanning = false; initialPinchDistance = null; });
+        container.addEventListener('touchend', (e) => {
+            if (isDragging && rollbackMode && selectionStart && selectionEnd) {
+                document.getElementById('rollbackPanel').style.display = 'flex';
+            }
+            isDragging = false;
+            isPanning = false;
+            initialPinchDistance = null;
+        });
         function adminClearCanvas() { }
         function generateTempToken() {
             if (IS_ADMIN) {
@@ -1205,7 +1221,7 @@
 
         function updateSelectionUI() {
             const overlay = document.getElementById('selectionOverlay');
-            if (!selectionStart || !selectionEnd) {
+            if (!rollbackMode || !selectionStart || !selectionEnd) {
                 overlay.style.display = 'none';
                 return;
             }
