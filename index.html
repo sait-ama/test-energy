@@ -7,6 +7,10 @@
     <title>PixelBattle</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             display: flex;
             flex-direction: row;
@@ -391,8 +395,10 @@
                 z-index: 200;
                 background: #1e1e2e;
                 border-top: 1px solid #313244;
+                border-left: none !important;
                 box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
                 overflow: visible !important;
+                box-sizing: border-box !important;
             }
 
             .confirm-wrapper {
@@ -404,7 +410,7 @@
                 width: 100%;
                 max-width: none;
                 background: rgba(30, 30, 46, 0.98);
-                z-index: 9999 !important; /* На самом верху */
+                z-index: 9999 !important;
                 box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
                 margin: 0;
                 padding: 6px !important;
@@ -458,7 +464,7 @@
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                min-height: 15px !important; /* Еще ниже */
+                min-height: 15px !important;
                 line-height: 1 !important;
                 border: 1px solid rgba(255, 255, 255, 0.15) !important;
                 border-radius: 4px !important;
@@ -476,8 +482,8 @@
                 border-radius: 4px !important;
             }
 
-            /* Менюшку ниже */
-            #adminTokenGroup, .master-only {
+            #adminTokenGroup,
+            .master-only {
                 margin-top: 15px !important;
             }
 
@@ -604,7 +610,7 @@
             <div id="adminBrushGroup" class="admin-brush-group admin-only">
                 <div class="admin-brush-label">Кисть: <span id="brushSizeVal">1x1</span></div>
                 <input type="range" id="brushSizeRange" min="1" max="10" value="1"
-                    oninput="updateBrushSizeLabel(this.value)">
+                    oninput="updateBrushSizeLabel(this.value)" style="flex: 1; min-width: 0;">
             </div>
 
             <div id="adminTokenGroup" class="admin-only" style="width: 100%; margin-top: 10px;">
