@@ -661,12 +661,11 @@
         <div style="font-size: 14px; color: #a6adc8;">Выберите время, к которому нужно вернуть выделенный участок:</div>
         <input type="range" id="rollbackSlider" min="1" max="1440" value="5"
             oninput="document.getElementById('rollbackTimeText').innerText = this.value + ' минут назад'; previewRollback()">
-        <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 5px;">
-            <span id="rollbackTimeText">5 минут назад</span>
-            <span id="rollbackCountText" style="color: #fab387;">0 пикселей</span>
+        <div style="display: flex; justify-content: center; font-weight: bold; margin-top: 5px;">
+            <span id="rollbackTimeText" style="color: #a6e3a1;">5 минут назад</span>
         </div>
         <button onclick="applyRollback()"
-            style="background: #a6e3a1; color: #11111b; border: none; padding: 8px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%;">Применить откат</button>
+            style="background: #a6e3a1; color: #11111b; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px;">Применить изменения</button>
     </div>
     <script>
         const canvasWrapper = document.getElementById('canvasWrapper');
@@ -1274,34 +1273,41 @@
                 const w = x2 - x1 + 1;
                 const h = y2 - y1 + 1;
 
-                // 1. Полупрозрачный темный фон
-                hCtx.globalAlpha = 0.4;
-                hCtx.fillStyle = 'rgba(0, 0, 0, 1.0)';
-                hCtx.fillRect(x1, y1, w, h);
+                // 1. Затемняем ВСЁ полотно вокруг
+                hCtx.globalAlpha = 0.6;
+                hCtx.fillStyle = '#000000';
+                hCtx.fillRect(0, 0, 500, 500);
 
-                // 2. Если есть история - рисуем превью поверх серого фона
-                const countText = document.getElementById('rollbackCountText');
+                // 2. Вырезаем "окно" для выбранной области
+                hCtx.globalCompositeOperation = 'destination-out';
+                hCtx.fillRect(x1, y1, w, h);
+                hCtx.globalCompositeOperation = 'source-over';
+                hCtx.globalAlpha = 1.0;
+
+                // 3. Если у нас есть сохраненные пиксели области - рисуем их в окне
+                if (originalAreaPixels) {
+                    hCtx.putImageData(originalAreaPixels, x1, y1);
+                }
+
+                // 4. Если есть история - "отматываем" пиксели в этом окне
                 if (areaHistoryData && areaHistoryData.length > 0) {
                     const minutes = parseInt(document.getElementById('rollbackSlider').value);
                     const nowServer = (Date.now() / 1000) + serverTimeOffset;
                     const targetTs = nowServer - (minutes * 60);
                     
                     const toRevert = areaHistoryData.filter(h => h.ts > targetTs);
-                    // Сортируем от новых к старым
                     toRevert.sort((a, b) => b.ts - a.ts);
                     
-                    if (countText) countText.innerText = `${toRevert.length} пикселей`;
-
-                    // Рисуем пиксели из прошлого на hCtx с ПОЛНОЙ непрозрачностью
-                    hCtx.globalAlpha = 1.0;
                     toRevert.forEach(p => {
                         hCtx.fillStyle = COLOR_PALETTE[p.old];
                         hCtx.fillRect(p.x, p.y, 1, 1);
                     });
-                } else {
-                    if (countText) countText.innerText = `0 пикселей`;
                 }
-                hCtx.globalAlpha = 1.0; // Сброс
+                
+                // 5. Рисуем тонкую белую рамку для четкости
+                hCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                hCtx.lineWidth = 1;
+                hCtx.strokeRect(x1 - 0.5, y1 - 0.5, w + 1, h + 1);
             }
         }
 
