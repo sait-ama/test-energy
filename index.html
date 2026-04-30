@@ -44,6 +44,7 @@
             box-shadow: 0 0 20px rgba(0, 0, 0, 1);
             image-rendering: -webkit-optimize-contrast;
             image-rendering: pixelated;
+            transform-origin: 0 0;
         }
 
         #pixelCanvas,
@@ -726,6 +727,21 @@
             hCtx.clearRect(0, 0, 500, 500);
             if (rollbackMode) updateSelectionUI();
         }
+        function getCanvasCoords(e) {
+            const rect = canvasWrapper.getBoundingClientRect();
+            let clientX, clientY;
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            const x = Math.floor((clientX - rect.left) / (rect.width / 500));
+            const y = Math.floor((clientY - rect.top) / (rect.height / 500));
+            return { x, y };
+        }
+
         function drawHover(mouseX, mouseY) {
             clearHover();
             if (rollbackMode && isDragging) return;
@@ -748,6 +764,7 @@
                     hCtx.strokeStyle = currentColor === '#ffffff' ? '#000000' : '#ffffff';
                     hCtx.lineWidth = 1 / scale;
                     hCtx.strokeRect(mouseX, mouseY, 1, 1);
+                    hCtx.globalAlpha = 1.0;
                 }
             }
         }
@@ -969,9 +986,7 @@
             e.preventDefault();
             const zoomAmount = e.deltaY < 0 ? 0.3 : -0.3;
             zoomInOut(zoomAmount, e.clientX, e.clientY);
-            const rect = canvasWrapper.getBoundingClientRect();
-            const x = Math.floor((e.clientX - rect.left) / scale);
-            const y = Math.floor((e.clientY - rect.top) / scale);
+            const { x, y } = getCanvasCoords(e);
             if (!isDragging) { drawHover(x, y); }
         }, { passive: false });
         let isPanning = false;
@@ -982,15 +997,10 @@
         let cooldownActive = false;
         container.addEventListener('mousedown', (e) => {
             if (e.target.closest('#container')) {
-                const rect = canvasWrapper.getBoundingClientRect();
-                const x = Math.floor((e.clientX - rect.left) / scale);
-                const y = Math.floor((e.clientY - rect.top) / scale);
+                const { x, y } = getCanvasCoords(e);
                 if (rollbackMode) {
-                    const rect = canvasWrapper.getBoundingClientRect();
-                    const rx = Math.floor((e.clientX - rect.left) / scale);
-                    const ry = Math.floor((e.clientY - rect.top) / scale);
-                    selectionStart = { x: rx, y: ry };
-                    selectionEnd = { x: rx, y: ry };
+                    selectionStart = { x, y };
+                    selectionEnd = { x, y };
                     updateSelectionUI();
                     isPanning = false;
                     isDragging = true;
@@ -1009,9 +1019,7 @@
             }
         });
         window.addEventListener('mousemove', (e) => {
-            const rect = canvasWrapper.getBoundingClientRect();
-            const x = Math.floor((e.clientX - rect.left) / scale);
-            const y = Math.floor((e.clientY - rect.top) / scale);
+            const { x, y } = getCanvasCoords(e);
             if (isPanning) {
                 hasMoved = true;
                 panX = e.clientX - startPanX;
@@ -1019,9 +1027,6 @@
                 applyTransform();
             } else if (e.target.closest('#container') && e.target.id !== 'minimapWrapper' && !e.target.closest('#minimapWrapper')) {
                 if (isDragging && rollbackMode) {
-                    const rect = canvasWrapper.getBoundingClientRect();
-                    const x = Math.floor((e.clientX - rect.left) / scale);
-                    const y = Math.floor((e.clientY - rect.top) / scale);
                     selectionEnd = { x, y };
                     updateSelectionUI();
                 } else if (isDragging && IS_ADMIN && toggleContinuous.checked) {
