@@ -1267,16 +1267,9 @@
                 const w = x2 - x1 + 1;
                 const h = y2 - y1 + 1;
 
-                // Полупрозрачный темный фон
-                hCtx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                // Полупрозрачный темный фон без рамок
+                hCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
                 hCtx.fillRect(x1, y1, w, h);
-
-                // Яркая рамка
-                hCtx.strokeStyle = '#a6e3a1';
-                hCtx.lineWidth = 2;
-                hCtx.setLineDash([5, 3]);
-                hCtx.strokeRect(x1, y1, w, h);
-                hCtx.setLineDash([]);
             }
         }
 
@@ -1297,19 +1290,31 @@
 
         function previewRollback() {
             if (!originalAreaPixels || !selectionStart || !selectionEnd) return;
+            if (!areaHistoryData || areaHistoryData.length === 0) {
+                // Если истории нет, просто показываем оригинал
+                const x1 = Math.min(selectionStart.x, selectionEnd.x);
+                const y1 = Math.min(selectionStart.y, selectionEnd.y);
+                ctx.putImageData(originalAreaPixels, x1, y1);
+                syncMinimap();
+                return;
+            }
             
             const x1 = Math.min(selectionStart.x, selectionEnd.x);
             const y1 = Math.min(selectionStart.y, selectionEnd.y);
             
+            // 1. Сначала возвращаем текущий вид
             ctx.putImageData(originalAreaPixels, x1, y1);
             
+            // 2. Рассчитываем время
             const minutes = parseInt(document.getElementById('rollbackSlider').value);
             const targetTs = (Date.now() / 1000) - (minutes * 60);
             
-            const toApply = areaHistoryData.filter(h => h.ts > targetTs);
-            toApply.sort((a, b) => b.ts - a.ts);
+            // 3. Отфильтровываем все изменения, которые произошли ПОСЛЕ targetTs
+            // И применяем их "старые" цвета в обратном порядке (от новых к старым)
+            const toRevert = areaHistoryData.filter(h => h.ts > targetTs);
+            toRevert.sort((a, b) => b.ts - a.ts);
             
-            toApply.forEach(h => {
+            toRevert.forEach(h => {
                 ctx.fillStyle = COLOR_PALETTE[h.old];
                 ctx.fillRect(h.x, h.y, 1, 1);
             });
