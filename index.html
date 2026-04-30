@@ -661,11 +661,12 @@
         <div style="font-size: 14px; color: #a6adc8;">Выберите время, к которому нужно вернуть выделенный участок:</div>
         <input type="range" id="rollbackSlider" min="1" max="1440" value="5"
             oninput="document.getElementById('rollbackTimeText').innerText = this.value + ' минут назад'; previewRollback()">
-        <div style="display: flex; justify-content: space-between; font-weight: bold;">
+        <div style="display: flex; justify-content: space-between; font-weight: bold; margin-top: 5px;">
             <span id="rollbackTimeText">5 минут назад</span>
-            <button onclick="applyRollback()"
-                style="background: #a6e3a1; color: #11111b; border: none; padding: 5px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">Применить</button>
+            <span id="rollbackCountText" style="color: #fab387;">0 пикселей</span>
         </div>
+        <button onclick="applyRollback()"
+            style="background: #a6e3a1; color: #11111b; border: none; padding: 8px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%;">Применить откат</button>
     </div>
     <script>
         const canvasWrapper = document.getElementById('canvasWrapper');
@@ -1274,25 +1275,33 @@
                 const h = y2 - y1 + 1;
 
                 // 1. Полупрозрачный темный фон
-                hCtx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                hCtx.globalAlpha = 0.4;
+                hCtx.fillStyle = 'rgba(0, 0, 0, 1.0)';
                 hCtx.fillRect(x1, y1, w, h);
 
                 // 2. Если есть история - рисуем превью поверх серого фона
+                const countText = document.getElementById('rollbackCountText');
                 if (areaHistoryData && areaHistoryData.length > 0) {
                     const minutes = parseInt(document.getElementById('rollbackSlider').value);
                     const nowServer = (Date.now() / 1000) + serverTimeOffset;
                     const targetTs = nowServer - (minutes * 60);
                     
                     const toRevert = areaHistoryData.filter(h => h.ts > targetTs);
-                    // Сортируем от новых к старым, чтобы самый старый цвет был финальным
+                    // Сортируем от новых к старым
                     toRevert.sort((a, b) => b.ts - a.ts);
                     
-                    // Рисуем пиксели из прошлого на hCtx
+                    if (countText) countText.innerText = `${toRevert.length} пикселей`;
+
+                    // Рисуем пиксели из прошлого на hCtx с ПОЛНОЙ непрозрачностью
+                    hCtx.globalAlpha = 1.0;
                     toRevert.forEach(p => {
                         hCtx.fillStyle = COLOR_PALETTE[p.old];
                         hCtx.fillRect(p.x, p.y, 1, 1);
                     });
+                } else {
+                    if (countText) countText.innerText = `0 пикселей`;
                 }
+                hCtx.globalAlpha = 1.0; // Сброс
             }
         }
 
