@@ -482,6 +482,10 @@
             <input type="range" id="brushSizeRange" min="1" max="10" value="1"
                 oninput="updateBrushSizeLabel(this.value)">
         </div>
+
+        <div id="adminTokenGroup" class="admin-only" style="width: 100%; margin-top: 10px;">
+            <button onclick="generateTempToken()" style="width: 100%; background: #fab387; color: #11111b; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer;">⏳ Выдать админку (10м)</button>
+        </div>
         <div class="palette" id="palette">
             <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
             <div class="color-btn" style="background-color: #828282;" data-color="#828282"></div>
@@ -615,6 +619,15 @@
                 statusEl.innerText = '🟢 Активно (В сети)';
                 statusEl.style.color = '#a6e3a1';
 
+                // Проверяем токен в URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const key = urlParams.get('key') || urlParams.get('token');
+                if (key) {
+                    socket.send(JSON.stringify({ type: 'auth', token: key }));
+                    // Очищаем URL от токена, чтобы не "палить" его
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
+
                 // Таймер для поддержания соединения (Ping)
                 if (pingInterval) clearInterval(pingInterval);
                 pingInterval = setInterval(() => {
@@ -655,6 +668,16 @@
                         });
                         showToast("Режим администратора активирован!");
                     }
+                } else if (message.type === 'token_generated') {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('key', message.token);
+                    const fullUrl = url.toString();
+                    
+                    // Копируем в буфер обмена
+                    navigator.clipboard.writeText(fullUrl).then(() => {
+                        showToast("Ссылка скопирована! (10 минут)");
+                        alert("Временная ссылка создана и скопирована:\n" + fullUrl);
+                    });
                 } else if (message.type === 'error') {
                     showToast(message.message);
                 } else if (message.type === 'success') {
@@ -958,6 +981,11 @@
         }, { passive: false });
         container.addEventListener('touchend', (e) => { isDragging = false; isPanning = false; initialPinchDistance = null; });
         function adminClearCanvas() { }
+        function generateTempToken() {
+            if (IS_ADMIN) {
+                socket.send(JSON.stringify({ type: 'generate_token', duration: 600 }));
+            }
+        }
     </script>
 </body>
 
