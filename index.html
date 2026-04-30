@@ -745,10 +745,12 @@
                 statusEl.style.color = '#a6e3a1';
 
                 const urlParams = new URLSearchParams(window.location.search);
-                const key = urlParams.get('key') || urlParams.get('token');
+                const key = urlParams.get('key') || urlParams.get('token') || localStorage.getItem('adminToken');
                 if (key) {
                     socket.send(JSON.stringify({ type: 'auth', token: key }));
-                    window.history.replaceState({}, document.title, window.location.pathname);
+                    if (urlParams.get('key') || urlParams.get('token')) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
                 }
 
                 if (pingInterval) clearInterval(pingInterval);
@@ -786,6 +788,9 @@
                     IS_MASTER = message.is_master;
 
                     if (IS_ADMIN) {
+                        if (message.token) {
+                            localStorage.setItem('adminToken', message.token);
+                        }
                         document.querySelectorAll('.admin-only').forEach(el => {
                             el.classList.add('show-admin');
                             el.style.setProperty('display', 'flex', 'important');
@@ -814,6 +819,7 @@
                             el.style.setProperty('display', 'none', 'important');
                         });
                         if (selectedPixel) cancelSelection();
+                        localStorage.removeItem('adminToken');
                         showToast("Режим администратора отключен");
                     }
                 } else if (message.type === 'token_generated') {
