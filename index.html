@@ -1273,23 +1273,25 @@
                 const w = x2 - x1 + 1;
                 const h = y2 - y1 + 1;
 
-                // 1. Затемняем ВСЁ полотно вокруг
-                hCtx.globalAlpha = 0.6;
+                // 1. Рисуем темный фон поверх всего
+                hCtx.globalAlpha = 0.7;
                 hCtx.fillStyle = '#000000';
                 hCtx.fillRect(0, 0, 500, 500);
 
-                // 2. Вырезаем "окно" для выбранной области
+                // 2. Вырезаем отверстие для нашей области
                 hCtx.globalCompositeOperation = 'destination-out';
                 hCtx.fillRect(x1, y1, w, h);
                 hCtx.globalCompositeOperation = 'source-over';
+                
+                // 3. Возвращаем полную непрозрачность для отрисовки пикселей
                 hCtx.globalAlpha = 1.0;
 
-                // 3. Если у нас есть сохраненные пиксели области - рисуем их в окне
+                // 4. Заполняем отверстие текущими пикселями
                 if (originalAreaPixels) {
                     hCtx.putImageData(originalAreaPixels, x1, y1);
                 }
 
-                // 4. Если есть история - "отматываем" пиксели в этом окне
+                // 5. Накладываем историю (откатываем назад)
                 if (areaHistoryData && areaHistoryData.length > 0) {
                     const minutes = parseInt(document.getElementById('rollbackSlider').value);
                     const nowServer = (Date.now() / 1000) + serverTimeOffset;
@@ -1302,10 +1304,15 @@
                         hCtx.fillStyle = COLOR_PALETTE[p.old];
                         hCtx.fillRect(p.x, p.y, 1, 1);
                     });
+                    
+                    // Показываем статус в консоли/тосте для отладки пользователем
+                    if (toRevert.length > 0) {
+                        // showToast(`Превью: ${toRevert.length} изменений`);
+                    }
                 }
                 
-                // 5. Рисуем тонкую белую рамку для четкости
-                hCtx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                // 6. Тонкая рамка
+                hCtx.strokeStyle = 'white';
                 hCtx.lineWidth = 1;
                 hCtx.strokeRect(x1 - 0.5, y1 - 0.5, w + 1, h + 1);
             }
