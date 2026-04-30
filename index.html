@@ -441,52 +441,7 @@
                 top: 10px;
                 left: 10px;
                 bottom: auto;
-            .selection-overlay {
-            position: absolute;
-            border: 2px dashed #f38ba8;
-            background: rgba(243, 139, 168, 0.2);
-            pointer-events: none;
-            display: none;
-            z-index: 10;
-        }
-
-        .rollback-panel {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1e1e2e;
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid #313244;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            z-index: 300;
-            display: none;
-            flex-direction: column;
-            gap: 10px;
-            width: 90%;
-            max-width: 400px;
-        }
-
-        .rollback-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-        }
-
-        #rollbackSlider {
-            width: 100%;
-            accent-color: #f38ba8;
-        }
-
-        .master-only {
-            display: none !important;
-        }
-
-        .show-master {
-            display: flex !important;
-        }
+            }
         }
     </style>
 </head>
@@ -496,7 +451,6 @@
         <div class="canvas-wrapper" id="canvasWrapper">
             <canvas id="pixelCanvas" width="500" height="500"></canvas>
             <canvas id="hoverCanvas" width="500" height="500"></canvas>
-            <div id="selectionOverlay" class="selection-overlay"></div>
         </div>
         <div class="minimap-wrapper" id="minimapWrapper">
             <canvas id="minimapCanvas" width="150" height="150"
@@ -534,11 +488,6 @@
                 style="width: 100%; background: #fab387; color: #11111b; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer;">⏳
                 Выдать админку (10м)</button>
         </div>
-
-        <div class="master-only" style="width: 100%; margin-top: 10px;">
-            <button id="rollbackModeBtn" onclick="toggleRollbackMode()"
-                style="width: 100%; background: #f38ba8; color: #11111b; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">⏪ Откат участка</button>
-        </div>
         <div class="palette" id="palette">
             <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
             <div class="color-btn" style="background-color: #828282;" data-color="#828282"></div>
@@ -572,19 +521,6 @@
         <div class="status" id="status">Подключение к серверу...</div>
     </div>
     <div class="toast" id="toast">Ошибка</div>
-
-    <div id="rollbackPanel" class="rollback-panel">
-        <div class="rollback-header">
-            <span>Откат во времени</span>
-            <button onclick="cancelRollback()" style="background:none; border:none; color:#f38ba8; cursor:pointer; font-size:20px;">✖</button>
-        </div>
-        <div style="font-size: 14px; color: #a6adc8;">Выберите время, к которому нужно вернуть выделенный участок:</div>
-        <input type="range" id="rollbackSlider" min="1" max="120" value="5">
-        <div style="display: flex; justify-content: space-between; font-weight: bold;">
-            <span id="rollbackTimeText">5 минут назад</span>
-            <button onclick="applyRollback()" style="background: #a6e3a1; color: #11111b; border: none; padding: 5px 15px; border-radius: 5px; font-weight: bold; cursor: pointer;">Применить</button>
-        </div>
-    </div>
     <script>
         const canvasWrapper = document.getElementById('canvasWrapper');
         const canvas = document.getElementById('pixelCanvas');
@@ -607,13 +543,10 @@
         const cursorCoords = document.getElementById('cursorCoords');
         const zoomVal = document.getElementById('zoomVal');
         let currentColor = '#000000';
+        let cooldownActive = false;
         let cooldownTime = 0;
         let selectedPixel = null;
         let IS_ADMIN = false;
-        let IS_MASTER = false;
-        let rollbackMode = false;
-        let selectionStart = null;
-        let selectionEnd = null;
         let brushSize = 1;
         const toggleNoCooldown = document.getElementById('toggleNoCooldown');
         const toggleContinuous = document.getElementById('toggleContinuous');
@@ -728,34 +661,20 @@
                     });
                 } else if (message.type === 'admin_status') {
                     IS_ADMIN = message.value;
-                    IS_MASTER = message.is_master;
-                    
+                    const isMaster = message.is_master;
                     if (IS_ADMIN) {
                         document.querySelectorAll('.admin-only').forEach(el => {
                             el.classList.add('show-admin');
                             el.style.setProperty('display', 'flex', 'important');
                         });
-                        
                         const tokenGroup = document.getElementById('adminTokenGroup');
                         if (tokenGroup) {
-                            tokenGroup.style.setProperty('display', IS_MASTER ? 'flex' : 'none', 'important');
+                            tokenGroup.style.setProperty('display', isMaster ? 'flex' : 'none', 'important');
                         }
-                        
-                        if (IS_MASTER) {
-                            document.querySelectorAll('.master-only').forEach(el => {
-                                el.classList.add('show-master');
-                                el.style.setProperty('display', 'flex', 'important');
-                            });
-                        }
-                        
                         showToast("Режим администратора активирован!");
                     } else {
                         document.querySelectorAll('.admin-only').forEach(el => {
                             el.classList.remove('show-admin');
-                            el.style.setProperty('display', 'none', 'important');
-                        });
-                        document.querySelectorAll('.master-only').forEach(el => {
-                            el.classList.remove('show-master');
                             el.style.setProperty('display', 'none', 'important');
                         });
                         if (selectedPixel) cancelSelection();
@@ -901,18 +820,7 @@
                 hasMoved = false;
                 startPanX = e.clientX - panX;
                 startPanY = e.clientY - panY;
-                
-                if (rollbackMode) {
-                    const rect = canvasWrapper.getBoundingClientRect();
-                    const x = Math.floor((e.clientX - rect.left) / scale);
-                    const y = Math.floor((e.clientY - rect.top) / scale);
-                    selectionStart = { x, y };
-                    selectionEnd = { x, y };
-                    updateSelectionUI();
-                    isPanning = false;
-                } else {
-                    clearHover();
-                }
+                clearHover();
             }
         });
         window.addEventListener('mousemove', (e) => {
@@ -925,14 +833,7 @@
                 panY = e.clientY - startPanY;
                 applyTransform();
             } else if (e.target.closest('#container') && e.target.id !== 'minimapWrapper' && !e.target.closest('#minimapWrapper')) {
-                if (isDragging && rollbackMode) {
-                    const x = Math.floor((e.clientX - rect.left) / scale);
-                    const y = Math.floor((e.clientY - rect.top) / scale);
-                    selectionEnd = { x, y };
-                    updateSelectionUI();
-                } else {
-                    drawHover(x, y);
-                }
+                drawHover(x, y);
             }
             if (!isPanning || hasMoved) {
                 if (x >= 0 && x < 500 && y >= 0 && y < 500) {
@@ -948,9 +849,6 @@
         container.addEventListener('mouseleave', () => { clearHover(); });
         window.addEventListener('mouseup', (e) => {
             isPanning = false;
-            if (isDragging && rollbackMode && selectionStart && selectionEnd) {
-                document.getElementById('rollbackPanel').style.display = 'flex';
-            }
             isDragging = false;
             const rect = canvasWrapper.getBoundingClientRect();
             const x = Math.floor((e.clientX - rect.left) / scale);
@@ -1099,65 +997,6 @@
                 socket.send(JSON.stringify({ type: 'generate_token', duration: 600 }));
             }
         }
-
-        // --- ROLLBACK LOGIC ---
-        function toggleRollbackMode() {
-            rollbackMode = !rollbackMode;
-            const btn = document.getElementById('rollbackModeBtn');
-            btn.style.background = rollbackMode ? '#a6e3a1' : '#f38ba8';
-            btn.innerText = rollbackMode ? '✅ Выделите область' : '⏪ Откат участка';
-            if (!rollbackMode) cancelRollback();
-        }
-
-        function updateSelectionUI() {
-            const overlay = document.getElementById('selectionOverlay');
-            if (!selectionStart || !selectionEnd) {
-                overlay.style.display = 'none';
-                return;
-            }
-            const x1 = Math.min(selectionStart.x, selectionEnd.x);
-            const y1 = Math.min(selectionStart.y, selectionEnd.y);
-            const x2 = Math.max(selectionStart.x, selectionEnd.x);
-            const y2 = Math.max(selectionStart.y, selectionEnd.y);
-            
-            overlay.style.left = x1 + 'px';
-            overlay.style.top = y1 + 'px';
-            overlay.style.width = (x2 - x1 + 1) + 'px';
-            overlay.style.height = (y2 - y1 + 1) + 'px';
-            overlay.style.display = 'block';
-        }
-
-        function cancelRollback() {
-            selectionStart = null;
-            selectionEnd = null;
-            updateSelectionUI();
-            document.getElementById('rollbackPanel').style.display = 'none';
-        }
-
-        function applyRollback() {
-            if (!selectionStart || !selectionEnd) return;
-            const x1 = Math.min(selectionStart.x, selectionEnd.x);
-            const y1 = Math.min(selectionStart.y, selectionEnd.y);
-            const x2 = Math.max(selectionStart.x, selectionEnd.x);
-            const y2 = Math.max(selectionStart.y, selectionEnd.y);
-            
-            const minutes = parseInt(document.getElementById('rollbackSlider').value);
-            const targetTs = (Date.now() / 1000) - (minutes * 60);
-            
-            socket.send(JSON.stringify({
-                type: 'rollback',
-                x1, y1, x2, y2,
-                timestamp: targetTs
-            }));
-            
-            showToast("Запрос на откат отправлен...");
-            cancelRollback();
-            toggleRollbackMode();
-        }
-
-        document.getElementById('rollbackSlider').oninput = function() {
-            document.getElementById('rollbackTimeText').innerText = this.value + " мин. назад";
-        };
     </script>
 </body>
 
