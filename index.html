@@ -538,7 +538,8 @@
             }
         }
 
-        #pixelCanvas, #hoverCanvas {
+        #pixelCanvas,
+        #hoverCanvas {
             z-index: 1;
         }
 
@@ -697,6 +698,7 @@
         let selectionEnd = null;
         let areaHistoryData = [];
         let originalAreaPixels = null;
+        let serverTimeOffset = 0;
         let brushSize = 1;
         const toggleNoCooldown = document.getElementById('toggleNoCooldown');
         const toggleContinuous = document.getElementById('toggleContinuous');
@@ -810,6 +812,9 @@
             socket.onmessage = (event) => {
                 const message = JSON.parse(event.data);
                 if (message.type === 'init') {
+                    if (message.server_time) {
+                        serverTimeOffset = message.server_time - (Date.now() / 1000);
+                    }
                     const data = message.data;
                     for (let y = 0; y < data.length; y++) {
                         for (let x = 0; x < data[y].length; x++) {
@@ -872,7 +877,7 @@
                 } else if (message.type === 'area_history') {
                     areaHistoryData = message.history;
                     showToast("История получена. Двигайте ползунок!");
-                    previewRollback(); // Сразу показываем превью для текущего значения слайдера
+                    previewRollback();
                 } else if (message.type === 'token_generated') {
                     const url = new URL(window.location.href);
                     url.searchParams.set('key', message.token);
@@ -1061,10 +1066,10 @@
                 const y2 = Math.max(selectionStart.y, selectionEnd.y);
                 const w = x2 - x1 + 1;
                 const h = y2 - y1 + 1;
-                
-                // Сначала сохраняем оригинал, потом запрашиваем историю
+
+
                 originalAreaPixels = ctx.getImageData(x1, y1, w, h);
-                
+
                 socket.send(JSON.stringify({
                     type: 'get_area_history',
                     x1, y1, x2, y2
@@ -1258,7 +1263,7 @@
 
         function updateSelectionUI() {
             if (!rollbackMode) return;
-            
+
             if (selectionStart && selectionEnd) {
                 const x1 = Math.min(selectionStart.x, selectionEnd.x);
                 const y1 = Math.min(selectionStart.y, selectionEnd.y);
@@ -1267,7 +1272,6 @@
                 const w = x2 - x1 + 1;
                 const h = y2 - y1 + 1;
 
-                // Полупрозрачный темный фон без рамок
                 hCtx.fillStyle = 'rgba(0, 0, 0, 0.3)';
                 hCtx.fillRect(x1, y1, w, h);
             }
@@ -1290,35 +1294,32 @@
 
         function previewRollback() {
             if (!originalAreaPixels || !selectionStart || !selectionEnd) return;
+
+            const x1 = Math.min(selectionStart.x, selectionEnd.x);
+            const y1 = Math.min(selectionStart.y, selectionEnd.y);
+
+            ctx.putImageData(originalAreaPixels, x1, y1);
+
             if (!areaHistoryData || areaHistoryData.length === 0) {
-                // Если истории нет, просто показываем оригинал
-                const x1 = Math.min(selectionStart.x, selectionEnd.x);
-                const y1 = Math.min(selectionStart.y, selectionEnd.y);
-                ctx.putImageData(originalAreaPixels, x1, y1);
                 syncMinimap();
                 return;
             }
-            
-            const x1 = Math.min(selectionStart.x, selectionEnd.x);
-            const y1 = Math.min(selectionStart.y, selectionEnd.y);
-            
-            // 1. Сначала возвращаем текущий вид
-            ctx.putImageData(originalAreaPixels, x1, y1);
-            
-            // 2. Рассчитываем время
+
             const minutes = parseInt(document.getElementById('rollbackSlider').value);
-            const targetTs = (Date.now() / 1000) - (minutes * 60);
-            
-            // 3. Отфильтровываем все изменения, которые произошли ПОСЛЕ targetTs
-            // И применяем их "старые" цвета в обратном порядке (от новых к старым)
+            const nowServer = (Date.now() / 1000) + serverTimeOffset;
+            const targetTs = nowServer - (minutes * 60);
+
             const toRevert = areaHistoryData.filter(h => h.ts > targetTs);
             toRevert.sort((a, b) => b.ts - a.ts);
-            
+
             toRevert.forEach(h => {
                 ctx.fillStyle = COLOR_PALETTE[h.old];
                 ctx.fillRect(h.x, h.y, 1, 1);
             });
-            
+
+            if (toRevert.length > 0) {
+            }
+
             syncMinimap();
         }
 
