@@ -544,7 +544,18 @@
             pointer-events: none;
             display: none;
             z-index: 10000;
-            box-shadow: 0 0 10px rgba(166, 227, 161, 0.5);
+            box-shadow: 0 0 15px rgba(166, 227, 161, 0.6);
+            animation: selection-pulse 1.5s infinite;
+        }
+
+        @keyframes selection-pulse {
+            0% { border-color: #a6e3a1; box-shadow: 0 0 5px rgba(166, 227, 161, 0.4); }
+            50% { border-color: #ffffff; box-shadow: 0 0 20px rgba(166, 227, 161, 0.8); }
+            100% { border-color: #a6e3a1; box-shadow: 0 0 5px rgba(166, 227, 161, 0.4); }
+        }
+
+        #pixelCanvas, #hoverCanvas {
+            z-index: 1;
         }
 
         .rollback-panel {
@@ -857,12 +868,8 @@
                     }
                 } else if (message.type === 'area_history') {
                     areaHistoryData = message.history;
-                    const x1 = Math.min(selectionStart.x, selectionEnd.x);
-                    const y1 = Math.min(selectionStart.y, selectionEnd.y);
-                    const w = Math.abs(selectionEnd.x - selectionStart.x) + 1;
-                    const h = Math.abs(selectionEnd.y - selectionStart.y) + 1;
-                    originalAreaPixels = ctx.getImageData(x1, y1, w, h);
                     showToast("История получена. Двигайте ползунок!");
+                    previewRollback(); // Сразу показываем превью для текущего значения слайдера
                 } else if (message.type === 'token_generated') {
                     const url = new URL(window.location.href);
                     url.searchParams.set('key', message.token);
@@ -1061,7 +1068,12 @@
                 const y1 = Math.min(selectionStart.y, selectionEnd.y);
                 const x2 = Math.max(selectionStart.x, selectionEnd.x);
                 const y2 = Math.max(selectionStart.y, selectionEnd.y);
-
+                const w = x2 - x1 + 1;
+                const h = y2 - y1 + 1;
+                
+                // Сначала сохраняем оригинал, потом запрашиваем историю
+                originalAreaPixels = ctx.getImageData(x1, y1, w, h);
+                
                 socket.send(JSON.stringify({
                     type: 'get_area_history',
                     x1, y1, x2, y2
@@ -1223,6 +1235,10 @@
                 const y1 = Math.min(selectionStart.y, selectionEnd.y);
                 const x2 = Math.max(selectionStart.x, selectionEnd.x);
                 const y2 = Math.max(selectionStart.y, selectionEnd.y);
+                const w = x2 - x1 + 1;
+                const h = y2 - y1 + 1;
+
+                originalAreaPixels = ctx.getImageData(x1, y1, w, h);
 
                 socket.send(JSON.stringify({
                     type: 'get_area_history',
