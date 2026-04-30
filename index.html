@@ -440,9 +440,14 @@
                 display: flex;
                 flex-direction: column;
                 justify-content: center;
-                min-height: 20px !important;
+                min-height: 15px !important; /* Еще ниже */
+                line-height: 1 !important;
                 border: 1px solid rgba(255, 255, 255, 0.15) !important;
                 border-radius: 4px !important;
+            }
+
+            .info-panel div {
+                margin-bottom: 1px !important;
             }
 
             .admin-brush-group {
@@ -567,9 +572,9 @@
                 </div>
 
                 <div class="info-panel">
-                    Размер: <span>500x500</span><br>
-                    Курсор: <span id="cursorCoords">0, 0</span>
-                    <div class="zoom-level">Зум: <span id="zoomVal">100</span>%</div>
+                    <div>Размер: <span>500x500</span></div>
+                    <div>Курсор: <span id="cursorCoords">0, 0</span></div>
+                    <div>Зум: <span id="zoomVal">100</span>%</div>
                 </div>
 
                 <div id="paintToggle" class="admin-toggle-wrapper admin-only">
