@@ -181,19 +181,23 @@
             flex-direction: column;
             gap: 10px;
             width: 100%;
+            margin-top: 10px;
             margin-bottom: 20px;
+            background: #1e1e2e;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #313244;
         }
 
         .confirm-btn {
             background: #a6e3a1;
             color: #11111b;
             border: none;
-            padding: 14px 20px;
+            padding: 12px 20px;
             border-radius: 8px;
             cursor: pointer;
             font-weight: bold;
             font-size: 16px;
-            animation: pulse-green 1.5s infinite;
         }
 
         .cancel-btn {
@@ -435,61 +439,50 @@
                 flex: 1;
             }
 
-            .minimap-wrapper {
-                width: 90px;
-                height: 90px;
-                top: 10px;
-                left: 10px;
-                bottom: auto;
-            }
-
             .sidebar {
-                padding: 8px !important;
+                padding: 5px !important;
                 gap: 5px !important;
                 height: auto !important;
-                max-height: 40vh !important;
+                max-height: 35vh !important;
                 overflow-y: auto !important;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                z-index: 100;
+                background: #1e1e2e;
+                border-top: 1px solid #313244;
+                box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
             }
-
-            .sidebar h1 {
-                display: none;
+            .sidebar h1 { display: none; }
+            .palette { gap: 4px !important; margin-bottom: 5px !important; }
+            .color-btn { width: 24px !important; height: 24px !important; }
+            .info-panel { font-size: 10px !important; margin-bottom: 0 !important; }
+            .admin-toggle-wrapper { font-size: 10px !important; }
+            .cooldown-text { font-size: 14px !important; margin-bottom: 5px !important; }
+            .rollback-panel { bottom: 5px !important; padding: 8px !important; }
+            .confirm-wrapper {
+                position: fixed;
+                bottom: 36vh;
+                left: 50%;
+                transform: translateX(-50%);
+                flex-direction: row;
+                width: 90%;
+                max-width: 350px;
+                background: rgba(30, 30, 46, 0.95);
+                z-index: 500;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             }
-
-            .palette {
-                gap: 4px !important;
-                margin-bottom: 10px;
-            }
-
-            .color-btn {
-                width: 22px !important;
-                height: 22px !important;
-            }
-
-            .info-panel {
-                font-size: 11px !important;
-            }
-
-            .admin-toggle-wrapper {
-                font-size: 11px !important;
-            }
-
-            .cooldown-text {
-                font-size: 14px !important;
-            }
-
-            .rollback-panel {
-                bottom: 5px !important;
-                padding: 8px !important;
-            }
+            .confirm-btn, .cancel-btn { flex: 1; padding: 10px; font-size: 14px; }
         }
 
         .selection-overlay {
             position: absolute;
-            border: 2px dashed #f38ba8;
-            background: rgba(243, 139, 168, 0.2);
+            border: 3px dashed #f38ba8;
+            background: rgba(243, 139, 168, 0.3);
             pointer-events: none;
             display: none;
-            z-index: 10;
+            z-index: 1000;
         }
 
         .rollback-panel {
@@ -588,10 +581,6 @@
             <div class="color-btn" style="background-color: #ffb6c1;" data-color="#ffb6c1"></div>
             <div class="color-btn" style="background-color: #8b4513;" data-color="#8b4513"></div>
             <div class="color-btn" style="background-color: #d2b48c;" data-color="#d2b48c"></div>
-        </div>
-        <div class="controls">
-            <button class="zoom-btn" onclick="zoomInOut(-1)">-</button>
-            <button class="zoom-btn" onclick="zoomInOut(1)">+</button>
         </div>
         <div class="cooldown-text" id="cooldownText">Готов к битве</div>
         <div id="confirmWrapper" class="confirm-wrapper" style="display:none;">
@@ -721,7 +710,6 @@
                 const key = urlParams.get('key') || urlParams.get('token');
                 if (key) {
                     socket.send(JSON.stringify({ type: 'auth', token: key }));
-                    // Очищаем URL от токена, чтобы не "палить" его
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
 
@@ -795,7 +783,6 @@
                     url.searchParams.set('key', message.token);
                     const fullUrl = url.toString();
 
-                    // Копируем в буфер обмена
                     navigator.clipboard.writeText(fullUrl).then(() => {
                         showToast("Ссылка скопирована! (10 минут)");
                         alert("Временная ссылка создана и скопирована:\n" + fullUrl);
@@ -914,29 +901,18 @@
         let startPanX = 0;
         let startPanY = 0;
         let hasMoved = false;
+        let cooldownActive = false;
         container.addEventListener('mousedown', (e) => {
             if (e.target.closest('#container')) {
                 const rect = canvasWrapper.getBoundingClientRect();
                 const x = Math.floor((e.clientX - rect.left) / scale);
                 const y = Math.floor((e.clientY - rect.top) / scale);
-                if (IS_ADMIN && toggleContinuous.checked && x >= 0 && x < 500 && y >= 0 && y < 500) {
-                    isPanning = false;
-                    isDragging = true;
-                    placePixelDirectly(x, y);
-                } else {
-                    isPanning = true;
-                    isDragging = false;
-                }
-                hasMoved = false;
-                startPanX = e.clientX - panX;
-                startPanY = e.clientY - panY;
-                
                 if (rollbackMode) {
                     const rect = canvasWrapper.getBoundingClientRect();
-                    const x = Math.floor((e.clientX - rect.left) / scale);
-                    const y = Math.floor((e.clientY - rect.top) / scale);
-                    selectionStart = { x, y };
-                    selectionEnd = { x, y };
+                    const rx = Math.floor((e.clientX - rect.left) / scale);
+                    const ry = Math.floor((e.clientY - rect.top) / scale);
+                    selectionStart = { x: rx, y: ry };
+                    selectionEnd = { x: rx, y: ry };
                     updateSelectionUI();
                     isPanning = false;
                     isDragging = true;
@@ -947,6 +923,9 @@
                 } else {
                     isPanning = true;
                     isDragging = false;
+                    startPanX = e.clientX - panX;
+                    startPanY = e.clientY - panY;
+                    hasMoved = false;
                     clearHover();
                 }
             }
@@ -1002,7 +981,7 @@
             if (e.target.closest('#container')) { drawHover(x, y); }
         });
         canvasWrapper.addEventListener('click', (e) => {
-            if (hasMoved) return;
+            if (hasMoved || rollbackMode) return;
             if (cooldownActive) { showToast("Кулдаун еще не прошел!"); return; }
             const rect = canvasWrapper.getBoundingClientRect();
             const x = Math.floor((e.clientX - rect.left) / scale);
@@ -1018,7 +997,7 @@
                 selectedPixel = { x, y };
                 drawHover(x, y);
                 document.getElementById('confirmWrapper').style.display = 'flex';
-                document.getElementById('cooldownText').style.display = 'none';
+                // Убираем текст кулдауна только если нужно, но лучше просто поверх
             }
         });
         function sendPixel() {
