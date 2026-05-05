@@ -1388,7 +1388,7 @@
                 const msg = JSON.parse(event.data);
                 if (msg.type === 'bindings_list') {
                     socket.removeEventListener('message', handler);
-                    renderBindingsList(msg.bindings, msg.passwords);
+                    renderBindingsList(msg.users);
                 }
             };
             socket.addEventListener('message', handler);
@@ -1398,26 +1398,26 @@
             document.getElementById('bindingsOverlay').style.display = 'none';
         }
 
-        function renderBindingsList(bindings, passwords) {
+        function renderBindingsList(users) {
             const list = document.getElementById('bindingsList');
-            const entries = Object.entries(bindings);
+            const entries = Object.entries(users);
 
             if (entries.length === 0) {
-                list.innerHTML = '<div style="text-align:center; padding:20px; color:#6c7086;">Нет привязок</div>';
+                list.innerHTML = '<div style="text-align:center; padding:20px; color:#6c7086;">Нет пользователей</div>';
                 return;
             }
 
-            list.innerHTML = entries.map(([rid, username]) => `
-                <div class="binding-item" data-original-id="${rid}" data-original-username="${username}">
-                    <div class="binding-row">
-                        <label>ID:</label>
-                        <input type="text" class="binding-id-input" value="${rid}">
-                    </div>
+            list.innerHTML = entries.map(([username, info]) => `
+                <div class="binding-item" data-original-id="${info.id}" data-original-username="${username}">
                     <div class="binding-row">
                         <label>Ник:</label>
                         <input type="text" class="binding-name-input" value="${username}">
                     </div>
-                    <div class="binding-pin-info">PIN: ${passwords[rid] || 'нет'}</div>
+                    <div class="binding-row">
+                        <label>ID:</label>
+                        <input type="text" class="binding-id-input" value="${info.id}" placeholder="не привязан">
+                    </div>
+                    <div class="binding-pin-info">PIN: ${info.has_pin} | Пикселей: ${info.pixels}</div>
                     <div class="binding-actions">
                         <button class="binding-save" onclick="saveBinding(this)">💾 Сохранить</button>
                         <button class="binding-delete" onclick="deleteBinding(this)">🗑 Удалить</button>
@@ -1433,8 +1433,8 @@
             const newId = item.querySelector('.binding-id-input').value.trim();
             const newUsername = item.querySelector('.binding-name-input').value.trim();
 
-            if (!newId || !newUsername) {
-                showToast('Заполните все поля');
+            if (!newUsername) {
+                showToast('Введите никнейм');
                 return;
             }
 
