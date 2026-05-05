@@ -568,6 +568,142 @@
         .show-master {
             display: flex !important;
         }
+
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .auth-modal {
+            background: #1e1e2e;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid #313244;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+
+        .auth-modal h2 {
+            margin-top: 0;
+            color: #cdd6f4;
+        }
+
+        .auth-modal p {
+            color: #a6adc8;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #313244;
+            background: #11111b;
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: #a6e3a1;
+            color: #11111b;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .auth-btn:active {
+            transform: scale(0.98);
+        }
+
+        .auth-error {
+            color: #f38ba8;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        #pixelTooltip {
+            position: fixed;
+            background: rgba(17, 17, 27, 0.9);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+            border: 1px solid #313244;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+            transition: opacity 0.15s, transform 0.15s;
+            transform: translate(5px, 5px);
+        }
+
+        .stats-panel {
+            width: 100%;
+            margin-top: 20px;
+            background: #1e1e2e;
+            border-radius: 8px;
+            border: 1px solid #313244;
+            overflow: hidden;
+        }
+
+        .stats-header {
+            background: #313244;
+            padding: 8px;
+            font-weight: bold;
+            font-size: 13px;
+            text-align: center;
+            color: #fab387;
+        }
+
+        .stats-list {
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .stats-item:last-child {
+            border-bottom: none;
+        }
+
+        .stats-name {
+            color: #cdd6f4;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 120px;
+        }
+
+        .stats-count {
+            color: #a6e3a1;
+            font-weight: bold;
+        }
     </style>
 </head>
 
@@ -643,6 +779,15 @@
                 <div class="color-btn" style="background-color: #d2b48c;" data-color="#d2b48c"></div>
             </div>
             <div class="cooldown-text" id="cooldownText">Готов к битве</div>
+
+            <div id="statsPanel" class="stats-panel">
+                <div class="stats-header">🏆 Топ игроков</div>
+                <div id="statsList" class="stats-list">
+                    <div style="text-align:center; padding:10px; color:#6c7086; font-size:11px;">Загрузка статистики...
+                    </div>
+                </div>
+            </div>
+
             <div class="status" id="status">Подключение к серверу...</div>
         </div>
         <div id="confirmWrapper" class="confirm-wrapper" style="display:none;">
@@ -651,6 +796,21 @@
         </div>
     </div>
     <div class="toast" id="toast">Ошибка</div>
+
+    <div id="pixelTooltip"></div>
+
+    <div id="authOverlay" class="auth-overlay" style="display: none;">
+        <div class="auth-modal">
+            <h2>👋 Привет!</h2>
+            <p>Чтобы ставить пиксели, авторизуйся через ReManga профиль.</p>
+            <input type="text" id="authInput" class="auth-input" placeholder="Ссылка на профиль или ID">
+            <button class="auth-btn" onclick="authenticateReManga()">Войти</button>
+            <div id="authError" class="auth-error">Некорректная ссылка</div>
+            <div style="margin-top: 15px; font-size: 11px; color: #6c7086;">
+                Пример: https://remanga.org/user/12345/about<br>или просто ID: 12345
+            </div>
+        </div>
+    </div>
 
     <div id="rollbackPanel" class="rollback-panel">
         <div class="rollback-header">
@@ -665,7 +825,8 @@
             <span id="rollbackTimeText" style="color: #a6e3a1;">5 минут назад</span>
         </div>
         <button onclick="applyRollback()"
-            style="background: #a6e3a1; color: #11111b; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px;">Применить изменения</button>
+            style="background: #a6e3a1; color: #11111b; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px;">Применить
+            изменения</button>
     </div>
     <script>
         const canvasWrapper = document.getElementById('canvasWrapper');
@@ -700,6 +861,76 @@
         let originalAreaPixels = null;
         let serverTimeOffset = 0;
         let brushSize = 1;
+
+        const _0x4f21 = "d3NzOi8vcGF0cmluYS11bmx1c3R5LXZpbmNlLm5ncm9rLWZyZWUuZGV2L3dz";
+        const wsUrl = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+            ? `ws://${location.host}/ws`
+            : atob(_0x4f21);
+        const apiBaseUrl = wsUrl.replace(/^wss:/, 'https:').replace(/^ws:/, 'http:').replace(/\/ws$/, '');
+
+        let remangaUser = JSON.parse(localStorage.getItem('remangaUser'));
+        let pixelOwners = new Uint16Array(500 * 500);
+        let allUsernames = [];
+        const authOverlay = document.getElementById('authOverlay');
+        const authInput = document.getElementById('authInput');
+        const authError = document.getElementById('authError');
+        const statsList = document.getElementById('statsList');
+        const pixelTooltip = document.getElementById('pixelTooltip');
+
+        function checkAuth() {
+            if (!remangaUser && !IS_ADMIN) {
+                authOverlay.style.display = 'flex';
+            } else {
+                authOverlay.style.display = 'none';
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ type: 'auth_remanga', user: remangaUser }));
+                }
+            }
+        }
+
+        async function authenticateReManga() {
+            let input = authInput.value.trim();
+            if (!input) return;
+
+            let userId = input;
+            const urlMatch = input.match(/user\/(\d+)/);
+            if (urlMatch) userId = urlMatch[1];
+
+            if (!/^\d+$/.test(userId)) {
+                authError.innerText = "Некорректный ID или ссылка. Пример: 12345";
+                authError.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiBaseUrl}/api/remanga/${userId}`);
+                if (!response.ok) throw new Error();
+                const json = await response.json();
+                if (json.error || !json.id) throw new Error(json.error || "User not found");
+                const userData = { id: json.id, username: json.username };
+                remangaUser = userData;
+                localStorage.setItem('remangaUser', JSON.stringify(userData));
+                authError.style.display = 'none';
+                checkAuth();
+            } catch (e) {
+                authError.innerText = "Пользователь не найден или ошибка API";
+                authError.style.display = 'block';
+            }
+        }
+
+        authInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') authenticateReManga();
+        });
+
+        function updateStatsUI(stats) {
+            if (!stats) return;
+            statsList.innerHTML = Object.entries(stats).map(([name, count]) => `
+                <div class="stats-item">
+                    <span class="stats-name">${name}</span>
+                    <span class="stats-count">${count}</span>
+                </div>
+            `).join('');
+        }
         const toggleNoCooldown = document.getElementById('toggleNoCooldown');
         const toggleContinuous = document.getElementById('toggleContinuous');
         const brushSizeVal = document.getElementById('brushSizeVal');
@@ -770,10 +1001,6 @@
                 }
             }
         }
-        const _0x4f21 = "d3NzOi8vcGF0cmluYS11bmx1c3R5LXZpbmNlLm5ncm9rLWZyZWUuZGV2L3dz";
-        const wsUrl = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
-            ? `ws://${location.host}/ws`
-            : atob(_0x4f21);
         let socket;
         let reconnectTimeout;
         let pingInterval;
@@ -793,6 +1020,10 @@
                 statusEl.innerText = '🟢 Активно (В сети)';
                 statusEl.style.color = '#a6e3a1';
 
+                if (remangaUser) {
+                    socket.send(JSON.stringify({ type: 'auth_remanga', user: remangaUser }));
+                }
+
                 const urlParams = new URLSearchParams(window.location.search);
                 const key = urlParams.get('key') || urlParams.get('token') || localStorage.getItem('adminToken');
                 if (key) {
@@ -810,38 +1041,54 @@
                 }, 30000);
             };
             socket.onmessage = (event) => {
-                const message = JSON.parse(event.data);
-                if (message.type === 'init') {
-                    if (message.server_time) {
-                        serverTimeOffset = message.server_time - (Date.now() / 1000);
-                    }
-                    const data = message.data;
-                    for (let y = 0; y < data.length; y++) {
-                        for (let x = 0; x < data[y].length; x++) {
-                            ctx.fillStyle = data[y][x];
+                const data = JSON.parse(event.data);
+                if (data.type === 'init') {
+                    const canvasData = data.data;
+                    for (let y = 0; y < 500; y++) {
+                        for (let x = 0; x < 500; x++) {
+                            ctx.fillStyle = canvasData[y][x];
                             ctx.fillRect(x, y, 1, 1);
                         }
                     }
+                    if (data.owners) {
+                        pixelOwners.set(data.owners);
+                    }
+                    if (data.usernames) {
+                        allUsernames = data.usernames;
+                    }
+                    if (data.stats) {
+                        updateStatsUI(data.stats);
+                    }
+                    serverTimeOffset = Date.now() - (data.server_time * 1000);
                     syncMinimap();
-                } else if (message.type === 'update') {
-                    ctx.fillStyle = message.color;
-                    ctx.fillRect(message.x, message.y, 1, 1);
-                    mCtx.fillStyle = message.color;
-                    mCtx.fillRect(Math.floor(message.x * 0.3), Math.floor(message.y * 0.3), 1, 1);
-                } else if (message.type === 'batch') {
-                    message.pixels.forEach(p => {
+                    checkAuth();
+                } else if (data.type === 'update') {
+                    ctx.fillStyle = data.color;
+                    ctx.fillRect(data.x, data.y, 1, 1);
+                    if (data.uidx !== undefined) {
+                        pixelOwners[data.y * 500 + data.x] = data.uidx;
+                    }
+                    if (data.usernames) allUsernames = data.usernames;
+                    if (data.stats) updateStatsUI(data.stats);
+                    syncMinimap();
+                } else if (data.type === 'batch') {
+                    data.pixels.forEach(p => {
                         ctx.fillStyle = p.color;
                         ctx.fillRect(p.x, p.y, 1, 1);
-                        mCtx.fillStyle = p.color;
-                        mCtx.fillRect(Math.floor(p.x * 0.3), Math.floor(p.y * 0.3), 1, 1);
+                        if (p.uidx !== undefined) {
+                            pixelOwners[p.y * 500 + p.x] = p.uidx;
+                        }
                     });
-                } else if (message.type === 'admin_status') {
-                    IS_ADMIN = message.value;
-                    IS_MASTER = message.is_master;
+                    if (data.usernames) allUsernames = data.usernames;
+                    if (data.stats) updateStatsUI(data.stats);
+                    syncMinimap();
+                } else if (data.type === 'admin_status') {
+                    IS_ADMIN = data.value;
+                    IS_MASTER = data.is_master;
 
                     if (IS_ADMIN) {
-                        if (message.token) {
-                            localStorage.setItem('adminToken', message.token);
+                        if (data.token) {
+                            localStorage.setItem('adminToken', data.token);
                         }
                         document.querySelectorAll('.admin-only').forEach(el => {
                             el.classList.add('show-admin');
@@ -874,22 +1121,22 @@
                         localStorage.removeItem('adminToken');
                         showToast("Режим администратора отключен");
                     }
-                } else if (message.type === 'area_history') {
-                    areaHistoryData = message.history;
+                } else if (data.type === 'area_history') {
+                    areaHistoryData = data.history;
                     showToast("История получена. Двигайте ползунок!");
                     previewRollback();
-                } else if (message.type === 'token_generated') {
+                } else if (data.type === 'token_generated') {
                     const url = new URL(window.location.href);
-                    url.searchParams.set('key', message.token);
+                    url.searchParams.set('key', data.token);
                     const fullUrl = url.toString();
 
                     navigator.clipboard.writeText(fullUrl).then(() => {
                         showToast("Ссылка скопирована! (10 минут)");
                         alert("Временная ссылка создана и скопирована:\n" + fullUrl);
                     });
-                } else if (message.type === 'error') {
-                    showToast(message.message);
-                } else if (message.type === 'success') {
+                } else if (data.type === 'error') {
+                    showToast(data.message);
+                } else if (data.type === 'success') {
                     startCooldown(7);
                 }
             };
@@ -908,6 +1155,7 @@
         }
 
         connectSocket();
+        checkAuth();
 
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'visible') {
@@ -1023,40 +1271,44 @@
                 }
             }
         });
-        window.addEventListener('mousemove', (e) => {
+        container.addEventListener('mousemove', (e) => {
             const { x, y } = getCanvasCoords(e);
+            if (x >= 0 && x < 500 && y >= 0 && y < 500) {
+                cursorCoords.innerText = `${x}, ${y}`;
+                const uidx = pixelOwners[y * 500 + x];
+                if (uidx > 0 && allUsernames[uidx - 1]) {
+                    pixelTooltip.innerText = allUsernames[uidx - 1];
+                    pixelTooltip.style.left = (e.clientX + 10) + 'px';
+                    pixelTooltip.style.top = (e.clientY + 10) + 'px';
+                    pixelTooltip.style.display = 'block';
+                } else {
+                    pixelTooltip.style.display = 'none';
+                }
+            } else {
+                pixelTooltip.style.display = 'none';
+            }
+
             if (isPanning) {
                 hasMoved = true;
                 panX = e.clientX - startPanX;
                 panY = e.clientY - startPanY;
                 applyTransform();
-            } else if (e.target.closest('#container') && e.target.id !== 'minimapWrapper' && !e.target.closest('#minimapWrapper')) {
-                if (isDragging && rollbackMode) {
-                    selectionEnd = { x, y };
-                    updateSelectionUI();
-                } else if (isDragging && IS_ADMIN && toggleContinuous.checked) {
-                    const rect = canvasWrapper.getBoundingClientRect();
-                    const x = Math.floor((e.clientX - rect.left) / scale);
-                    const y = Math.floor((e.clientY - rect.top) / scale);
-                    if (x >= 0 && x < 500 && y >= 0 && y < 500) {
-                        placePixelDirectly(x, y);
-                    }
-                } else {
-                    drawHover(x, y);
-                }
-            }
-            if (!isPanning || hasMoved) {
-                if (x >= 0 && x < 500 && y >= 0 && y < 500) {
-                    cursorCoords.innerText = `${x}, ${y}`;
-                }
-            }
-            if (!isPanning && isDragging && IS_ADMIN && toggleContinuous.checked) {
+            } else if (!isDragging) {
+                drawHover(x, y);
+            } else if (isDragging && rollbackMode) {
+                selectionEnd = { x, y };
+                updateSelectionUI();
+            } else if (isDragging && IS_ADMIN && toggleContinuous.checked) {
                 if (x >= 0 && x < 500 && y >= 0 && y < 500) {
                     placePixelDirectly(x, y);
                 }
             }
         });
-        container.addEventListener('mouseleave', () => { clearHover(); });
+
+        container.addEventListener('mouseleave', () => {
+            clearHover();
+            pixelTooltip.style.display = 'none';
+        });
         window.addEventListener('mouseup', (e) => {
             isPanning = false;
             if (isDragging && rollbackMode && selectionStart && selectionEnd) {
@@ -1273,45 +1525,37 @@
                 const w = x2 - x1 + 1;
                 const h = y2 - y1 + 1;
 
-                // 1. Рисуем темный фон поверх всего
                 hCtx.globalAlpha = 0.7;
                 hCtx.fillStyle = '#000000';
                 hCtx.fillRect(0, 0, 500, 500);
 
-                // 2. Вырезаем отверстие для нашей области
                 hCtx.globalCompositeOperation = 'destination-out';
                 hCtx.fillRect(x1, y1, w, h);
                 hCtx.globalCompositeOperation = 'source-over';
-                
-                // 3. Возвращаем полную непрозрачность для отрисовки пикселей
+
                 hCtx.globalAlpha = 1.0;
 
-                // 4. Заполняем отверстие текущими пикселями
                 if (originalAreaPixels) {
                     hCtx.putImageData(originalAreaPixels, x1, y1);
                 }
 
-                // 5. Накладываем историю (откатываем назад)
                 if (areaHistoryData && areaHistoryData.length > 0) {
                     const minutes = parseInt(document.getElementById('rollbackSlider').value);
                     const nowServer = (Date.now() / 1000) + serverTimeOffset;
                     const targetTs = nowServer - (minutes * 60);
-                    
+
                     const toRevert = areaHistoryData.filter(h => h.ts > targetTs);
                     toRevert.sort((a, b) => b.ts - a.ts);
-                    
+
                     toRevert.forEach(p => {
                         hCtx.fillStyle = COLOR_PALETTE[p.old];
                         hCtx.fillRect(p.x, p.y, 1, 1);
                     });
-                    
-                    // Показываем статус в консоли/тосте для отладки пользователем
+
                     if (toRevert.length > 0) {
-                        // showToast(`Превью: ${toRevert.length} изменений`);
                     }
                 }
-                
-                // 6. Тонкая рамка
+
                 hCtx.strokeStyle = 'white';
                 hCtx.lineWidth = 1;
                 hCtx.strokeRect(x1 - 0.5, y1 - 0.5, w + 1, h + 1);
