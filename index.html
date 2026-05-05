@@ -1731,6 +1731,25 @@
                             socket.send(JSON.stringify({ type: 'auth_remanga', user: remangaUser }));
                         }
                     }
+                } else if (data.type === 'force_reauth_self') {
+                    if (remangaUser) {
+                        const oldId = String(remangaUser.id);
+                        remangaUser.id = data.new_id || remangaUser.id;
+                        remangaUser.username = data.new_username || remangaUser.username;
+                        localStorage.setItem('remangaUser', JSON.stringify(remangaUser));
+                        if (oldId !== String(data.new_id)) {
+                            localStorage.removeItem('deviceKey_' + oldId);
+                        }
+                        localStorage.setItem('deviceKey_' + remangaUser.id, 'verified');
+                        console.log('[AUTH] Server corrected our identity:', remangaUser);
+                    }
+                } else if (data.type === 'force_logout') {
+                    if (remangaUser) {
+                        localStorage.removeItem('deviceKey_' + remangaUser.id);
+                    }
+                    remangaUser = null;
+                    localStorage.removeItem('remangaUser');
+                    checkAuth();
                 }
             };
             socket.onerror = () => {
