@@ -388,7 +388,7 @@
             .sidebar {
                 padding: 0 !important;
                 gap: 0 !important;
-                height: auto !important;
+                max-height: 55vh;
                 position: fixed;
                 bottom: 0;
                 left: 0;
@@ -400,6 +400,8 @@
                 box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
                 overflow: visible !important;
                 box-sizing: border-box !important;
+                display: flex;
+                flex-direction: column;
             }
 
             .confirm-wrapper {
@@ -422,7 +424,9 @@
             }
 
             .sidebar-scroll-area {
-                max-height: 45vh;
+                flex: 1;
+                min-height: 0;
+                max-height: none;
                 overflow-y: auto;
                 overflow-x: hidden !important;
                 padding: 6px !important;
@@ -511,25 +515,6 @@
                 padding: 6px !important;
             }
 
-            .confirm-wrapper {
-                position: absolute;
-                bottom: 100%;
-                left: 0;
-                transform: none;
-                flex-direction: row;
-                width: 100%;
-                max-width: none;
-                background: rgba(30, 30, 46, 0.98);
-                z-index: 500;
-                box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
-                margin: 0;
-                padding: 6px !important;
-                border-radius: 0;
-                border-left: none;
-                border-right: none;
-                border-top: 1px solid #313244;
-            }
-
             .confirm-btn,
             .cancel-btn {
                 flex: 1;
@@ -540,6 +525,7 @@
 
             .stats-panel {
                 margin-top: 3px !important;
+                flex-shrink: 0;
             }
 
             .stats-header {
@@ -548,7 +534,7 @@
             }
 
             .stats-list {
-                max-height: 100px;
+                max-height: 120px;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
             }
@@ -725,6 +711,158 @@
             color: #a6e3a1;
             font-weight: bold;
         }
+
+        /* PIN Modal */
+        .pin-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+            backdrop-filter: blur(5px);
+        }
+        .pin-modal {
+            background: #1e1e2e;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 350px;
+            border: 1px solid #313244;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+        .pin-modal h2 { margin-top: 0; color: #cdd6f4; }
+        .pin-modal p { color: #a6adc8; font-size: 14px; margin-bottom: 20px; }
+        .pin-input {
+            width: 120px;
+            padding: 14px;
+            border-radius: 8px;
+            border: 2px solid #45475a;
+            background: #11111b;
+            color: #fff;
+            font-size: 28px;
+            text-align: center;
+            letter-spacing: 8px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .pin-input:focus { border-color: #a6e3a1; outline: none; }
+        .pin-error { color: #f38ba8; font-size: 12px; margin-top: 5px; display: none; }
+        .pin-btn {
+            width: 100%;
+            padding: 12px;
+            background: #a6e3a1;
+            color: #11111b;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s;
+            margin-top: 8px;
+        }
+        .pin-btn:active { transform: scale(0.98); }
+        .pin-btn.secondary {
+            background: #313244;
+            color: #cdd6f4;
+            border: 1px solid #45475a;
+            margin-top: 8px;
+        }
+
+        /* Admin Bindings Panel */
+        .bindings-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1200;
+            backdrop-filter: blur(5px);
+        }
+        .bindings-panel {
+            background: #1e1e2e;
+            padding: 20px;
+            border-radius: 16px;
+            width: 95%;
+            max-width: 500px;
+            max-height: 80vh;
+            border: 1px solid #313244;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            display: flex;
+            flex-direction: column;
+        }
+        .bindings-panel h2 {
+            margin: 0 0 15px 0;
+            color: #cdd6f4;
+            text-align: center;
+            font-size: 18px;
+        }
+        .bindings-list {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .binding-item {
+            background: #313244;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .binding-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .binding-row label {
+            font-size: 11px;
+            color: #a6adc8;
+            min-width: 25px;
+        }
+        .binding-row input {
+            flex: 1;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #45475a;
+            background: #11111b;
+            color: #fff;
+            font-size: 13px;
+        }
+        .binding-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+        .binding-actions button {
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: none;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .binding-save { background: #a6e3a1; color: #11111b; }
+        .binding-delete { background: #f38ba8; color: #11111b; }
+        .binding-pin-info {
+            font-size: 10px;
+            color: #fab387;
+        }
+        .bindings-close {
+            margin-top: 12px;
+            width: 100%;
+            padding: 10px;
+            background: #313244;
+            color: #cdd6f4;
+            border: 1px solid #45475a;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
     </style>
 </head>
 
@@ -778,6 +916,11 @@
                     style="width: 100%; background: #f38ba8; color: #11111b; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">⏪
                     Откат участка</button>
             </div>
+            <div class="master-only" style="width: 100%; margin-top: 5px;">
+                <button onclick="openBindingsPanel()"
+                    style="width: 100%; background: #89b4fa; color: #11111b; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">👥
+                    Управление привязками</button>
+            </div>
             <div class="palette" id="palette">
                 <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
                 <div class="color-btn" style="background-color: #828282;" data-color="#828282"></div>
@@ -830,6 +973,46 @@
             <div style="margin-top: 15px; font-size: 11px; color: #6c7086;">
                 Пример: https://remanga.org/user/12345/about<br>или просто ID: 12345
             </div>
+        </div>
+    </div>
+
+    <div id="pinEnterOverlay" class="pin-overlay" style="display:none;">
+        <div class="pin-modal">
+            <h2>🔒 Введите PIN</h2>
+            <p>Для входа с этого устройства введите ваш PIN-код</p>
+            <input type="tel" id="pinEnterInput" class="pin-input" maxlength="4" placeholder="••••" inputmode="numeric" pattern="[0-9]*">
+            <div id="pinEnterError" class="pin-error">Неверный PIN</div>
+            <button class="pin-btn" onclick="verifyPin()">Войти</button>
+        </div>
+    </div>
+
+    <div id="pinSetupOverlay" class="pin-overlay" style="display:none;">
+        <div class="pin-modal">
+            <h2>🔐 Установите PIN</h2>
+            <p>Придумайте PIN-код (1-4 цифры) для защиты вашего аккаунта.<br>Он понадобится при входе с другого устройства.</p>
+            <input type="tel" id="pinSetupInput" class="pin-input" maxlength="4" placeholder="••••" inputmode="numeric" pattern="[0-9]*">
+            <div id="pinSetupError" class="pin-error"></div>
+            <button class="pin-btn" onclick="setupPin()">Сохранить PIN</button>
+        </div>
+    </div>
+
+    <div id="pinSuggestOverlay" class="pin-overlay" style="display:none;">
+        <div class="pin-modal">
+            <h2>🛡️ Установите PIN</h2>
+            <p>Для защиты аккаунта необходимо установить PIN-код (1-4 цифры).</p>
+            <input type="tel" id="pinSuggestInput" class="pin-input" maxlength="4" placeholder="••••" inputmode="numeric" pattern="[0-9]*">
+            <div id="pinSuggestError" class="pin-error"></div>
+            <button class="pin-btn" onclick="suggestSetPin()">Установить PIN</button>
+        </div>
+    </div>
+
+    <div id="bindingsOverlay" class="bindings-overlay">
+        <div class="bindings-panel">
+            <h2>👥 Управление привязками</h2>
+            <div id="bindingsList" class="bindings-list">
+                <div style="text-align:center; padding:20px; color:#6c7086;">Загрузка...</div>
+            </div>
+            <button class="bindings-close" onclick="closeBindingsPanel()">Закрыть</button>
         </div>
     </div>
 
@@ -928,9 +1111,28 @@
                 authOverlay.style.display = 'none';
                 if (socket && socket.readyState === WebSocket.OPEN) {
                     socket.send(JSON.stringify({ type: 'auth_remanga', user: remangaUser }));
+                    if (remangaUser) {
+                        setTimeout(() => {
+                            if (!socket || socket.readyState !== WebSocket.OPEN) return;
+                            const handler = (event) => {
+                                const msg = JSON.parse(event.data);
+                                if (msg.type === 'pin_status') {
+                                    socket.removeEventListener('message', handler);
+                                    if (!msg.has_pin) {
+                                        document.getElementById('pinSuggestOverlay').style.display = 'flex';
+                                        document.getElementById('pinSuggestInput').value = '';
+                                    }
+                                }
+                            };
+                            socket.addEventListener('message', handler);
+                            socket.send(JSON.stringify({ type: 'check_pin', remanga_id: remangaUser.id }));
+                        }, 1500);
+                    }
                 }
             }
         }
+
+        let pendingAuthUser = null;
 
         async function authenticateReManga() {
             let input = authInput.value.trim();
@@ -969,10 +1171,41 @@
 
                 if (result.error || !result.id) throw new Error(result.error || "User not found");
                 const userData = { id: result.id, username: result.username };
-                remangaUser = userData;
-                localStorage.setItem('remangaUser', JSON.stringify(userData));
+                pendingAuthUser = userData;
                 authError.style.display = 'none';
-                checkAuth();
+
+                const deviceKey = localStorage.getItem('deviceKey_' + userData.id);
+
+                const pinStatus = await new Promise((resolve, reject) => {
+                    const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+                    const handler = (event) => {
+                        const msg = JSON.parse(event.data);
+                        if (msg.type === 'pin_status') {
+                            socket.removeEventListener('message', handler);
+                            clearTimeout(timeout);
+                            resolve(msg);
+                        }
+                    };
+                    socket.addEventListener('message', handler);
+                    socket.send(JSON.stringify({ type: 'check_pin', remanga_id: userData.id }));
+                });
+
+                if (pinStatus.has_pin) {
+                    if (deviceKey) {
+                        finishAuth(userData);
+                    } else {
+                        authOverlay.style.display = 'none';
+                        document.getElementById('pinEnterOverlay').style.display = 'flex';
+                        document.getElementById('pinEnterInput').value = '';
+                        document.getElementById('pinEnterError').style.display = 'none';
+                        document.getElementById('pinEnterInput').focus();
+                    }
+                } else {
+                    authOverlay.style.display = 'none';
+                    document.getElementById('pinSetupOverlay').style.display = 'flex';
+                    document.getElementById('pinSetupInput').value = '';
+                    document.getElementById('pinSetupInput').focus();
+                }
             } catch (e) {
                 authError.innerText = "Пользователь не найден или ошибка API";
                 authError.style.display = 'block';
@@ -983,6 +1216,230 @@
             if (e.key === 'Enter') authenticateReManga();
         });
 
+        function finishAuth(userData) {
+            remangaUser = userData;
+            localStorage.setItem('remangaUser', JSON.stringify(userData));
+            localStorage.setItem('deviceKey_' + userData.id, 'verified');
+            authOverlay.style.display = 'none';
+            checkAuth();
+            pendingAuthUser = null;
+        }
+
+        async function verifyPin() {
+            const pin = document.getElementById('pinEnterInput').value;
+            if (!pin || !pendingAuthUser) return;
+            
+            const result = await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+                const handler = (event) => {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'pin_verified') {
+                        socket.removeEventListener('message', handler);
+                        clearTimeout(timeout);
+                        resolve(msg);
+                    }
+                };
+                socket.addEventListener('message', handler);
+                socket.send(JSON.stringify({ type: 'verify_pin', remanga_id: pendingAuthUser.id, pin: pin }));
+            });
+
+            if (result.success) {
+                document.getElementById('pinEnterOverlay').style.display = 'none';
+                finishAuth(pendingAuthUser);
+            } else {
+                const err = document.getElementById('pinEnterError');
+                err.innerText = result.message || 'Неверный PIN';
+                err.style.display = 'block';
+                document.getElementById('pinEnterInput').value = '';
+                document.getElementById('pinEnterInput').focus();
+            }
+        }
+
+        async function setupPin() {
+            const pin = document.getElementById('pinSetupInput').value;
+            if (!pendingAuthUser) return;
+            
+            if (!pin || !/^\d+$/.test(pin) || pin.length > 4) {
+                const err = document.getElementById('pinSetupError');
+                err.innerText = 'Введите PIN (1-4 цифры)';
+                err.style.display = 'block';
+                return;
+            }
+
+            const result = await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+                const handler = (event) => {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'pin_set_result') {
+                        socket.removeEventListener('message', handler);
+                        clearTimeout(timeout);
+                        resolve(msg);
+                    }
+                };
+                socket.addEventListener('message', handler);
+                socket.send(JSON.stringify({ type: 'set_pin', remanga_id: pendingAuthUser.id, pin: pin }));
+            });
+
+            if (result.success) {
+                showToast('PIN установлен!');
+                document.getElementById('pinSetupOverlay').style.display = 'none';
+                finishAuth(pendingAuthUser);
+            } else {
+                const err = document.getElementById('pinSetupError');
+                err.innerText = result.message || 'Ошибка';
+                err.style.display = 'block';
+            }
+        }
+
+        async function suggestSetPin() {
+            const pin = document.getElementById('pinSuggestInput').value;
+            if (!remangaUser) return;
+
+            if (!pin || !/^\d+$/.test(pin) || pin.length > 4) {
+                const err = document.getElementById('pinSuggestError');
+                err.innerText = 'Введите PIN (1-4 цифры)';
+                err.style.display = 'block';
+                return;
+            }
+
+            const result = await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+                const handler = (event) => {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'pin_set_result') {
+                        socket.removeEventListener('message', handler);
+                        clearTimeout(timeout);
+                        resolve(msg);
+                    }
+                };
+                socket.addEventListener('message', handler);
+                socket.send(JSON.stringify({ type: 'set_pin', remanga_id: remangaUser.id, pin: pin }));
+            });
+
+            if (result.success) {
+                showToast('PIN установлен!');
+                document.getElementById('pinSuggestOverlay').style.display = 'none';
+            } else {
+                const err = document.getElementById('pinSuggestError');
+                err.innerText = result.message || 'Ошибка';
+                err.style.display = 'block';
+            }
+        }
+
+        function openBindingsPanel() {
+            if (!IS_MASTER) return;
+            document.getElementById('bindingsOverlay').style.display = 'flex';
+            socket.send(JSON.stringify({ type: 'get_bindings' }));
+            
+            const handler = (event) => {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'bindings_list') {
+                    socket.removeEventListener('message', handler);
+                    renderBindingsList(msg.bindings, msg.passwords);
+                }
+            };
+            socket.addEventListener('message', handler);
+        }
+
+        function closeBindingsPanel() {
+            document.getElementById('bindingsOverlay').style.display = 'none';
+        }
+
+        function renderBindingsList(bindings, passwords) {
+            const list = document.getElementById('bindingsList');
+            const entries = Object.entries(bindings);
+            
+            if (entries.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:20px; color:#6c7086;">Нет привязок</div>';
+                return;
+            }
+
+            list.innerHTML = entries.map(([rid, username]) => `
+                <div class="binding-item" data-original-id="${rid}" data-original-username="${username}">
+                    <div class="binding-row">
+                        <label>ID:</label>
+                        <input type="text" class="binding-id-input" value="${rid}">
+                    </div>
+                    <div class="binding-row">
+                        <label>Ник:</label>
+                        <input type="text" class="binding-name-input" value="${username}">
+                    </div>
+                    <div class="binding-pin-info">PIN: ${passwords[rid] || 'нет'}</div>
+                    <div class="binding-actions">
+                        <button class="binding-save" onclick="saveBinding(this)">💾 Сохранить</button>
+                        <button class="binding-delete" onclick="deleteBinding(this)">🗑 Удалить</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveBinding(btn) {
+            const item = btn.closest('.binding-item');
+            const oldId = item.dataset.originalId;
+            const oldUsername = item.dataset.originalUsername;
+            const newId = item.querySelector('.binding-id-input').value.trim();
+            const newUsername = item.querySelector('.binding-name-input').value.trim();
+
+            if (!newId || !newUsername) {
+                showToast('Заполните все поля');
+                return;
+            }
+
+            socket.send(JSON.stringify({
+                type: 'update_binding',
+                old_id: oldId,
+                new_id: newId,
+                old_username: oldUsername,
+                new_username: newUsername
+            }));
+
+            const handler = (event) => {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'binding_updated') {
+                    socket.removeEventListener('message', handler);
+                    if (msg.success) {
+                        showToast('Привязка обновлена!');
+                        item.dataset.originalId = newId;
+                        item.dataset.originalUsername = newUsername;
+                    }
+                }
+            };
+            socket.addEventListener('message', handler);
+        }
+
+        function deleteBinding(btn) {
+            const item = btn.closest('.binding-item');
+            const rid = item.dataset.originalId;
+            
+            if (!confirm('Удалить привязку для ID ' + rid + '?')) return;
+
+            socket.send(JSON.stringify({ type: 'delete_binding', remanga_id: rid }));
+            
+            const handler = (event) => {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'binding_updated') {
+                    socket.removeEventListener('message', handler);
+                    if (msg.success) {
+                        item.remove();
+                        showToast('Привязка удалена');
+                    }
+                }
+            };
+            socket.addEventListener('message', handler);
+        }
+
+        document.querySelectorAll('.pin-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const overlay = e.target.closest('.pin-overlay');
+                    const btn = overlay.querySelector('.pin-btn');
+                    if (btn) btn.click();
+                }
+            });
+        });
         function updateStatsUI(stats) {
             if (!stats) return;
             statsList.innerHTML = Object.entries(stats).map(([name, count]) => `
@@ -1205,6 +1662,9 @@
                     showToast(data.message);
                 } else if (data.type === 'success') {
                     startCooldown(7);
+                } else if (data.type === 'usernames_update') {
+                    if (data.usernames) allUsernames = data.usernames;
+                    if (data.stats) updateStatsUI(data.stats);
                 }
             };
             socket.onerror = () => {
