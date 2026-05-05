@@ -388,7 +388,7 @@
             .sidebar {
                 padding: 0 !important;
                 gap: 0 !important;
-                max-height: 20vh;
+                max-height: 23vh;
                 position: fixed;
                 bottom: 0;
                 left: 0;
@@ -1718,6 +1718,19 @@
                 } else if (data.type === 'usernames_update') {
                     if (data.usernames) allUsernames = data.usernames;
                     if (data.stats) updateStatsUI(data.stats);
+                } else if (data.type === 'force_reauth') {
+                    if (remangaUser) {
+                        const myId = String(remangaUser.id);
+                        const myName = remangaUser.username;
+                        if (myId === data.old_id || myName === data.old_username) {
+                            remangaUser.id = data.new_id || remangaUser.id;
+                            remangaUser.username = data.new_username || remangaUser.username;
+                            localStorage.setItem('remangaUser', JSON.stringify(remangaUser));
+                            if (data.old_id) localStorage.removeItem('deviceKey_' + data.old_id);
+                            if (data.new_id) localStorage.setItem('deviceKey_' + data.new_id, 'verified');
+                            socket.send(JSON.stringify({ type: 'auth_remanga', user: remangaUser }));
+                        }
+                    }
                 }
             };
             socket.onerror = () => {
