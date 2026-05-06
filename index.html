@@ -691,11 +691,30 @@
 
         .stats-header {
             background: #313244;
+            display: flex;
+            border-bottom: 1px solid #1e1e2e;
+        }
+
+        .stats-tab {
+            flex: 1;
             padding: 8px;
-            font-weight: bold;
-            font-size: 13px;
             text-align: center;
+            cursor: pointer;
+            color: #6c7086;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .stats-tab.active {
             color: #fab387;
+            background: rgba(250, 179, 135, 0.1);
+            border-bottom: 2px solid #fab387;
+        }
+
+        .stats-tab:hover:not(.active) {
+            color: #a6adc8;
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .stats-list {
@@ -1157,7 +1176,10 @@
             <div class="cooldown-text" id="cooldownText">Готов к битве</div>
 
             <div id="statsPanel" class="stats-panel">
-                <div class="stats-header">🏆 Топ игроков</div>
+                <div class="stats-header">
+                    <div id="tabPlayers" class="stats-tab active" onclick="switchStatsTab('players')">🏆 Игроки</div>
+                    <div id="tabGuilds" class="stats-tab" onclick="switchStatsTab('guilds')">🛡️ Гильдии</div>
+                </div>
                 <div id="statsList" class="stats-list">
                     <div style="text-align:center; padding:10px; color:#6c7086; font-size:11px;">Загрузка статистики...
                     </div>
@@ -1711,12 +1733,11 @@
         });
         function updateStatsUI(stats) {
             if (!stats) return;
-            statsList.innerHTML = Object.entries(stats).map(([name, count]) => `
-                <div class="stats-item">
-                    <span class="stats-name">${name}</span>
-                    <span class="stats-count">${count}</span>
-                </div>
-            `).join('');
+            currentStats = stats;
+            if (!currentStats.players && !currentStats.guilds) {
+                currentStats = { players: stats, guilds: {} };
+            }
+            renderStats();
         }
         const toggleNoCooldown = document.getElementById('toggleNoCooldown');
         const toggleContinuous = document.getElementById('toggleContinuous');
@@ -2697,6 +2718,37 @@
         
         function closeOnlinePanel() {
             document.getElementById('onlineOverlay').style.display = 'none';
+        }
+
+        let currentStats = { players: {}, guilds: {} };
+        let currentStatsTab = 'players';
+
+        function switchStatsTab(tab) {
+            currentStatsTab = tab;
+            document.getElementById('tabPlayers').classList.toggle('active', tab === 'players');
+            document.getElementById('tabGuilds').classList.toggle('active', tab === 'guilds');
+            renderStats();
+        }
+
+        function renderStats() {
+            const list = document.getElementById('statsList');
+            list.innerHTML = '';
+            const data = currentStatsTab === 'players' ? currentStats.players : currentStats.guilds;
+            if (!data || Object.keys(data).length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:10px; color:#6c7086; font-size:11px;">Нет данных</div>';
+                return;
+            }
+            const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
+            for (let i = 0; i < entries.length; i++) {
+                const item = document.createElement('div');
+                item.className = 'stats-item';
+                item.innerHTML = `
+                    <div class="stats-rank" style="color:#6c7086; width:25px;">#${i + 1}</div>
+                    <div class="stats-name" style="flex:1;">${entries[i][0]}</div>
+                    <div class="stats-count">${entries[i][1]}</div>
+                `;
+                list.appendChild(item);
+            }
         }
     </script>
 </body>
