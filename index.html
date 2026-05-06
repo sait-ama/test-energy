@@ -1119,6 +1119,12 @@
         let serverTimeOffset = 0;
         let brushSize = 1;
 
+        const COLOR_PALETTE = [
+            "#000000", "#828282", "#ffffff", "#ff0000", "#ff4500", "#ff8800",
+            "#ffd700", "#ffff00", "#00ff00", "#006400", "#00ffff", "#0000ff",
+            "#00008b", "#8a2be2", "#ff00ff", "#ffb6c1", "#8b4513", "#d2b48c"
+        ];
+
         let remangaUser = JSON.parse(localStorage.getItem('remangaUser'));
         let pixelOwners = new Uint16Array(500 * 500);
         let allUsernames = [];
@@ -2154,29 +2160,7 @@
                 hCtx.globalCompositeOperation = 'destination-out';
                 hCtx.fillRect(x1, y1, w, h);
                 hCtx.globalCompositeOperation = 'source-over';
-
                 hCtx.globalAlpha = 1.0;
-
-                if (originalAreaPixels) {
-                    hCtx.putImageData(originalAreaPixels, x1, y1);
-                }
-
-                if (areaHistoryData && areaHistoryData.length > 0) {
-                    const minutes = parseInt(document.getElementById('rollbackSlider').value);
-                    const nowServer = (Date.now() / 1000) + serverTimeOffset;
-                    const targetTs = nowServer - (minutes * 60);
-
-                    const toRevert = areaHistoryData.filter(h => h.ts > targetTs);
-                    toRevert.sort((a, b) => b.ts - a.ts);
-
-                    toRevert.forEach(p => {
-                        hCtx.fillStyle = COLOR_PALETTE[p.old];
-                        hCtx.fillRect(p.x, p.y, 1, 1);
-                    });
-
-                    if (toRevert.length > 0) {
-                    }
-                }
 
                 hCtx.strokeStyle = 'white';
                 hCtx.lineWidth = 1;
@@ -2184,7 +2168,45 @@
             }
         }
 
+        function applyRollbackPreviewToCanvas() {
+            if (!selectionStart || !selectionEnd || !originalAreaPixels) return;
+
+            const x1 = Math.min(selectionStart.x, selectionEnd.x);
+            const y1 = Math.min(selectionStart.y, selectionEnd.y);
+            const x2 = Math.max(selectionStart.x, selectionEnd.x);
+            const y2 = Math.max(selectionStart.y, selectionEnd.y);
+            const w = x2 - x1 + 1;
+            const h = y2 - y1 + 1;
+
+            ctx.putImageData(originalAreaPixels, x1, y1);
+
+            if (areaHistoryData && areaHistoryData.length > 0) {
+                const minutes = parseInt(document.getElementById('rollbackSlider').value);
+                const nowServer = (Date.now() - serverTimeOffset) / 1000;
+                const targetTs = nowServer - (minutes * 60);
+
+                const toRevert = areaHistoryData.filter(h => h.ts > targetTs);
+                toRevert.sort((a, b) => b.ts - a.ts);
+
+                toRevert.forEach(p => {
+                    ctx.fillStyle = COLOR_PALETTE[p.old];
+                    ctx.fillRect(p.x, p.y, 1, 1);
+                });
+            }
+
+            syncMinimap();
+        }
+
+        function restoreOriginalPixels() {
+            if (!selectionStart || !selectionEnd || !originalAreaPixels) return;
+            const x1 = Math.min(selectionStart.x, selectionEnd.x);
+            const y1 = Math.min(selectionStart.y, selectionEnd.y);
+            ctx.putImageData(originalAreaPixels, x1, y1);
+            syncMinimap();
+        }
+
         function cancelRollback() {
+            restoreOriginalPixels();
             selectionStart = null;
             selectionEnd = null;
             areaHistoryData = [];
@@ -2195,6 +2217,7 @@
 
         function previewRollback() {
             updateSelectionUI();
+            applyRollbackPreviewToCanvas();
         }
 
         function applyRollback() {
@@ -2205,7 +2228,7 @@
             const y2 = Math.max(selectionStart.y, selectionEnd.y);
 
             const minutes = parseInt(document.getElementById('rollbackSlider').value);
-            const targetTs = (Date.now() / 1000) - (minutes * 60);
+            const targetTs = ((Date.now() - serverTimeOffset) / 1000) - (minutes * 60);
 
             socket.send(JSON.stringify({
                 type: 'rollback',
@@ -2221,6 +2244,7 @@
 
         document.getElementById('rollbackSlider').oninput = function () {
             document.getElementById('rollbackTimeText').innerText = this.value + " мин. назад";
+            previewRollback();
         };
     </script>
 </body>
