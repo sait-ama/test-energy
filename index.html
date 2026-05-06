@@ -912,6 +912,140 @@
             cursor: pointer;
             font-size: 14px;
         }
+
+        .timelapse-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(8px);
+        }
+
+        .timelapse-container {
+            background: #1e1e2e;
+            border-radius: 16px;
+            border: 1px solid #313244;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            max-width: 95vw;
+            max-height: 95vh;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        }
+
+        .timelapse-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            color: #cdd6f4;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .timelapse-header button {
+            background: none;
+            border: none;
+            color: #f38ba8;
+            cursor: pointer;
+            font-size: 22px;
+        }
+
+        .timelapse-canvas-wrap {
+            border: 2px solid #313244;
+            border-radius: 8px;
+            overflow: hidden;
+            line-height: 0;
+        }
+
+        #timelapseCanvas {
+            width: min(70vw, 70vh);
+            height: min(70vw, 70vh);
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            display: block;
+        }
+
+        .timelapse-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .timelapse-play-btn {
+            background: #cba6f7;
+            color: #11111b;
+            border: none;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        #timelapseSlider {
+            flex: 1;
+            height: 6px;
+            cursor: pointer;
+            accent-color: #cba6f7;
+        }
+
+        .timelapse-speed {
+            background: #313244;
+            color: #cdd6f4;
+            border: 1px solid #45475a;
+            border-radius: 6px;
+            padding: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .timelapse-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 13px;
+            color: #a6adc8;
+        }
+
+        .timelapse-info span {
+            color: #cba6f7;
+            font-weight: bold;
+        }
+
+        .timelapse-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 40px;
+            color: #a6adc8;
+            font-size: 16px;
+        }
+
+        .timelapse-loading .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #313244;
+            border-top: 3px solid #cba6f7;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 
@@ -969,6 +1103,11 @@
                 <button onclick="openBindingsPanel()"
                     style="width: 100%; background: #89b4fa; color: #11111b; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">👥
                     Управление привязками</button>
+            </div>
+            <div class="master-only" style="width: 100%; margin-top: 5px;">
+                <button onclick="openTimelapse()"
+                    style="width: 100%; background: #cba6f7; color: #11111b; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">📹
+                    Таймлапс полотна</button>
             </div>
             <div class="palette" id="palette">
                 <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
@@ -1085,6 +1224,44 @@
             style="background: #a6e3a1; color: #11111b; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px;">Применить
             изменения</button>
     </div>
+
+    <div id="timelapseOverlay" class="timelapse-overlay">
+        <div class="timelapse-container">
+            <div class="timelapse-header">
+                <span>📹 Таймлапс полотна</span>
+                <button onclick="closeTimelapse()">✖</button>
+            </div>
+            <div id="timelapseContent">
+                <div class="timelapse-loading" id="timelapseLoading">
+                    <div class="spinner"></div>
+                    <div id="timelapseLoadingText">Загрузка истории...</div>
+                </div>
+            </div>
+            <div id="timelapsePlayer" style="display:none; width:100%; display:none; flex-direction:column; align-items:center; gap:15px;">
+                <div class="timelapse-canvas-wrap">
+                    <canvas id="timelapseCanvas" width="500" height="500"></canvas>
+                </div>
+                <div class="timelapse-controls">
+                    <button class="timelapse-play-btn" id="timelapsePlayBtn" onclick="toggleTimelapsePlay()">▶</button>
+                    <input type="range" id="timelapseSlider" min="0" max="0" value="0" oninput="scrubTimelapse()">
+                    <select class="timelapse-speed" id="timelapseSpeed" onchange="updateTimelapseSpeed()">
+                        <option value="10">1x</option>
+                        <option value="50">5x</option>
+                        <option value="100" selected>10x</option>
+                        <option value="500">50x</option>
+                        <option value="2000">200x</option>
+                        <option value="5000">500x</option>
+                    </select>
+                </div>
+                <div class="timelapse-info">
+                    <div>📅 <span id="timelapseDate">—</span></div>
+                    <div>🕐 <span id="timelapseTime">—</span></div>
+                    <div>📊 <span id="timelapseProgress">0 / 0</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const canvasWrapper = document.getElementById('canvasWrapper');
         const canvas = document.getElementById('pixelCanvas');
@@ -2246,6 +2423,190 @@
             document.getElementById('rollbackTimeText').innerText = this.value + " мин. назад";
             previewRollback();
         };
+
+        let timelapseEvents = [];
+        let timelapseSnapshots = [];
+        let timelapseIsPlaying = false;
+        let timelapseCurrentIdx = 0;
+        let timelapseSpeed = 100;
+        let timelapseAnimFrame = null;
+        const TL_SNAPSHOT_INTERVAL = 10000;
+
+        function getApiUrl(path) {
+            const httpUrl = wsUrl.replace('wss://', 'https://').replace('ws://', 'http://').replace('/ws', '');
+            return httpUrl + path;
+        }
+
+        async function openTimelapse() {
+            if (!IS_MASTER) return;
+            document.getElementById('timelapseOverlay').style.display = 'flex';
+            document.getElementById('timelapseLoading').style.display = 'flex';
+            document.getElementById('timelapsePlayer').style.display = 'none';
+            document.getElementById('timelapseLoadingText').innerText = 'Загрузка истории...';
+
+            const token = localStorage.getItem('adminToken') || '';
+            try {
+                const resp = await fetch(getApiUrl('/api/history?token=' + encodeURIComponent(token)), {
+                    headers: { 'ngrok-skip-browser-warning': '1' }
+                });
+                const text = await resp.text();
+
+                document.getElementById('timelapseLoadingText').innerText = 'Обработка событий...';
+                await new Promise(r => setTimeout(r, 50));
+
+                timelapseEvents = [];
+                const lines = text.split('\n');
+                for (const line of lines) {
+                    const parts = line.trim().split(',');
+                    if (parts.length >= 5) {
+                        const x = parseInt(parts[0]);
+                        const y = parseInt(parts[1]);
+                        const newIdx = parseInt(parts[3]);
+                        const ts = parseFloat(parts[parts.length - 1]);
+                        if (!isNaN(x) && !isNaN(y) && !isNaN(newIdx) && !isNaN(ts)) {
+                            timelapseEvents.push({ x, y, c: newIdx, ts });
+                        }
+                    }
+                }
+
+                timelapseEvents.sort((a, b) => a.ts - b.ts);
+
+                document.getElementById('timelapseLoadingText').innerText = 'Построение снимков...';
+                await new Promise(r => setTimeout(r, 50));
+
+                buildTimelapseSnapshots();
+
+                const slider = document.getElementById('timelapseSlider');
+                slider.max = timelapseEvents.length;
+                slider.value = 0;
+                timelapseCurrentIdx = 0;
+
+                document.getElementById('timelapseLoading').style.display = 'none';
+                document.getElementById('timelapsePlayer').style.display = 'flex';
+
+                renderTimelapseAtIndex(0);
+                showToast('Загружено ' + timelapseEvents.length + ' событий');
+            } catch (e) {
+                showToast('Ошибка загрузки: ' + e.message);
+                closeTimelapse();
+            }
+        }
+
+        function buildTimelapseSnapshots() {
+            const tlCanvas = document.getElementById('timelapseCanvas');
+            const tlCtx = tlCanvas.getContext('2d');
+            tlCtx.imageSmoothingEnabled = false;
+
+            timelapseSnapshots = [];
+
+            tlCtx.fillStyle = '#ffffff';
+            tlCtx.fillRect(0, 0, 500, 500);
+            timelapseSnapshots.push({ idx: 0, data: tlCtx.getImageData(0, 0, 500, 500) });
+
+            for (let i = 0; i < timelapseEvents.length; i++) {
+                const e = timelapseEvents[i];
+                tlCtx.fillStyle = COLOR_PALETTE[e.c] || '#ffffff';
+                tlCtx.fillRect(e.x, e.y, 1, 1);
+
+                if ((i + 1) % TL_SNAPSHOT_INTERVAL === 0) {
+                    timelapseSnapshots.push({ idx: i + 1, data: tlCtx.getImageData(0, 0, 500, 500) });
+                }
+            }
+
+            tlCtx.fillStyle = '#ffffff';
+            tlCtx.fillRect(0, 0, 500, 500);
+        }
+
+        function renderTimelapseAtIndex(targetIdx) {
+            const tlCanvas = document.getElementById('timelapseCanvas');
+            const tlCtx = tlCanvas.getContext('2d');
+            tlCtx.imageSmoothingEnabled = false;
+
+            let snapshotI = 0;
+            for (let i = timelapseSnapshots.length - 1; i >= 0; i--) {
+                if (timelapseSnapshots[i].idx <= targetIdx) {
+                    snapshotI = i;
+                    break;
+                }
+            }
+
+            const snapshot = timelapseSnapshots[snapshotI];
+            tlCtx.putImageData(snapshot.data, 0, 0);
+
+            for (let i = snapshot.idx; i < targetIdx; i++) {
+                const e = timelapseEvents[i];
+                tlCtx.fillStyle = COLOR_PALETTE[e.c] || '#ffffff';
+                tlCtx.fillRect(e.x, e.y, 1, 1);
+            }
+
+            timelapseCurrentIdx = targetIdx;
+            updateTimelapseUI();
+        }
+
+        function scrubTimelapse() {
+            const idx = parseInt(document.getElementById('timelapseSlider').value);
+            renderTimelapseAtIndex(idx);
+        }
+
+        function toggleTimelapsePlay() {
+            timelapseIsPlaying = !timelapseIsPlaying;
+            document.getElementById('timelapsePlayBtn').innerText = timelapseIsPlaying ? '⏸' : '▶';
+            if (timelapseIsPlaying) {
+                timelapseAnimate();
+            }
+        }
+
+        function timelapseAnimate() {
+            if (!timelapseIsPlaying) return;
+
+            const tlCanvas = document.getElementById('timelapseCanvas');
+            const tlCtx = tlCanvas.getContext('2d');
+            tlCtx.imageSmoothingEnabled = false;
+
+            const endIdx = Math.min(timelapseCurrentIdx + timelapseSpeed, timelapseEvents.length);
+
+            for (let i = timelapseCurrentIdx; i < endIdx; i++) {
+                const e = timelapseEvents[i];
+                tlCtx.fillStyle = COLOR_PALETTE[e.c] || '#ffffff';
+                tlCtx.fillRect(e.x, e.y, 1, 1);
+            }
+
+            timelapseCurrentIdx = endIdx;
+            document.getElementById('timelapseSlider').value = timelapseCurrentIdx;
+            updateTimelapseUI();
+
+            if (timelapseCurrentIdx >= timelapseEvents.length) {
+                timelapseIsPlaying = false;
+                document.getElementById('timelapsePlayBtn').innerText = '▶';
+                return;
+            }
+
+            timelapseAnimFrame = requestAnimationFrame(timelapseAnimate);
+        }
+
+        function updateTimelapseSpeed() {
+            timelapseSpeed = parseInt(document.getElementById('timelapseSpeed').value);
+        }
+
+        function updateTimelapseUI() {
+            if (timelapseEvents.length === 0) return;
+            const idx = Math.min(timelapseCurrentIdx, timelapseEvents.length - 1);
+            const ev = timelapseEvents[idx];
+            if (ev) {
+                const date = new Date(ev.ts * 1000);
+                document.getElementById('timelapseDate').innerText = date.toLocaleDateString('ru-RU');
+                document.getElementById('timelapseTime').innerText = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+            document.getElementById('timelapseProgress').innerText = timelapseCurrentIdx + ' / ' + timelapseEvents.length;
+        }
+
+        function closeTimelapse() {
+            timelapseIsPlaying = false;
+            if (timelapseAnimFrame) cancelAnimationFrame(timelapseAnimFrame);
+            document.getElementById('timelapseOverlay').style.display = 'none';
+            timelapseEvents = [];
+            timelapseSnapshots = [];
+        }
     </script>
 </body>
 
