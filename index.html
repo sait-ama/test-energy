@@ -2426,6 +2426,7 @@
 
         let timelapseEvents = [];
         let timelapseSnapshots = [];
+        let timelapseRealCanvasData = null;
         let timelapseIsPlaying = false;
         let timelapseCurrentIdx = 0;
         let timelapseSpeed = 100;
@@ -2513,6 +2514,8 @@
                 }
             }
 
+            timelapseRealCanvasData = ctx.getImageData(0, 0, 500, 500);
+
             tlCtx.fillStyle = '#ffffff';
             tlCtx.fillRect(0, 0, 500, 500);
         }
@@ -2521,6 +2524,13 @@
             const tlCanvas = document.getElementById('timelapseCanvas');
             const tlCtx = tlCanvas.getContext('2d');
             tlCtx.imageSmoothingEnabled = false;
+
+            if (targetIdx >= timelapseEvents.length && timelapseRealCanvasData) {
+                tlCtx.putImageData(timelapseRealCanvasData, 0, 0);
+                timelapseCurrentIdx = timelapseEvents.length;
+                updateTimelapseUI();
+                return;
+            }
 
             let snapshotI = 0;
             for (let i = timelapseSnapshots.length - 1; i >= 0; i--) {
@@ -2576,6 +2586,9 @@
             updateTimelapseUI();
 
             if (timelapseCurrentIdx >= timelapseEvents.length) {
+                if (timelapseRealCanvasData) {
+                    tlCtx.putImageData(timelapseRealCanvasData, 0, 0);
+                }
                 timelapseIsPlaying = false;
                 document.getElementById('timelapsePlayBtn').innerText = '▶';
                 return;
@@ -2606,6 +2619,7 @@
             document.getElementById('timelapseOverlay').style.display = 'none';
             timelapseEvents = [];
             timelapseSnapshots = [];
+            timelapseRealCanvasData = null;
         }
     </script>
 </body>
