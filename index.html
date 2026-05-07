@@ -2794,8 +2794,11 @@
             if (timelapseEvents.length === 0) return;
             
             const isChecked = document.getElementById('tlRangeToggle').checked;
-            const startIdx = isChecked ? downloadStartIdx : 0;
-            const endIdx = isChecked ? downloadEndIdx : Math.max(0, timelapseEvents.length - 1);
+            let startIdx = isChecked ? downloadStartIdx : 0;
+            let endIdx = isChecked ? downloadEndIdx : Math.max(0, timelapseEvents.length - 1);
+            
+            startIdx = Math.min(Math.max(0, startIdx), timelapseEvents.length - 1);
+            endIdx = Math.min(Math.max(0, endIdx), timelapseEvents.length - 1);
             
             const format = document.getElementById('tlDownFormat').value;
             const speed = document.getElementById('timelapseSpeed').value;
