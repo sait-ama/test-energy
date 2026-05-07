@@ -2623,7 +2623,7 @@
 
         function buildTimelapseSnapshots() {
             const tlCanvas = document.getElementById('timelapseCanvas');
-            const tlCtx = tlCanvas.getContext('2d');
+            const tlCtx = tlCanvas.getContext('2d', { willReadFrequently: true });
             tlCtx.imageSmoothingEnabled = false;
 
             timelapseSnapshots = [];
@@ -2650,7 +2650,7 @@
 
         function renderTimelapseAtIndex(targetIdx) {
             const tlCanvas = document.getElementById('timelapseCanvas');
-            const tlCtx = tlCanvas.getContext('2d');
+            const tlCtx = tlCanvas.getContext('2d', { willReadFrequently: true });
             tlCtx.imageSmoothingEnabled = false;
 
             if (targetIdx >= timelapseEvents.length && timelapseRealCanvasData) {
@@ -2698,7 +2698,7 @@
             if (!timelapseIsPlaying) return;
 
             const tlCanvas = document.getElementById('timelapseCanvas');
-            const tlCtx = tlCanvas.getContext('2d');
+            const tlCtx = tlCanvas.getContext('2d', { willReadFrequently: true });
             tlCtx.imageSmoothingEnabled = false;
 
             const endIdx = Math.min(timelapseCurrentIdx + timelapseSpeed, timelapseEvents.length);
