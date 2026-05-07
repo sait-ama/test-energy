@@ -505,7 +505,7 @@
                 border-radius: 4px !important;
             }
 
-            #adminTokenGroup,
+            #mTokenGroup,
             .master-only {
                 margin-top: 15px !important;
             }
@@ -1125,7 +1125,7 @@
                     oninput="updateBrushSizeLabel(this.value)" style="flex: 1; min-width: 0;">
             </div>
 
-            <div id="adminTokenGroup" class="admin-only" style="width: 100%; margin-top: 10px;">
+            <div id="mTokenGroup" class="admin-only" style="width: 100%; margin-top: 10px;">
                 <button onclick="generateTempToken()"
                     style="width: 100%; background: #fab387; color: #11111b; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer;">⏳
                     Выдать админку (10м)</button>
@@ -1888,7 +1888,7 @@
                 }
 
                 const urlParams = new URLSearchParams(window.location.search);
-                const key = urlParams.get('key') || urlParams.get('token') || localStorage.getItem('adminToken');
+                const key = urlParams.get('key') || urlParams.get('token') || localStorage.getItem(atob('YWRtaW5Ub2tlbg=='));
                 if (key) {
                     socket.send(JSON.stringify({ type: 'auth', token: key }));
                     if (urlParams.get('key') || urlParams.get('token')) {
@@ -1951,14 +1951,14 @@
 
                     if (IS_ADMIN) {
                         if (data.token) {
-                            localStorage.setItem('adminToken', data.token);
+                            localStorage.setItem(atob('YWRtaW5Ub2tlbg=='), data.token);
                         }
                         document.querySelectorAll('.admin-only').forEach(el => {
                             el.classList.add('show-admin');
                             el.style.setProperty('display', 'flex', 'important');
                         });
 
-                        const tokenGroup = document.getElementById('adminTokenGroup');
+                        const tokenGroup = document.getElementById('mTokenGroup');
                         if (tokenGroup) {
                             tokenGroup.style.setProperty('display', IS_MASTER ? 'flex' : 'none', 'important');
                         }
@@ -1981,7 +1981,7 @@
                             el.style.setProperty('display', 'none', 'important');
                         });
                         if (selectedPixel) cancelSelection();
-                        localStorage.removeItem('adminToken');
+                        localStorage.removeItem(atob('YWRtaW5Ub2tlbg=='));
                         showToast("Режим администратора отключен");
                     }
                 } else if (data.type === 'area_history') {
@@ -2565,10 +2565,10 @@
             document.getElementById('timelapsePlayer').style.display = 'none';
             document.getElementById('timelapseLoadingText').innerText = 'Загрузка истории...';
 
-            const token = localStorage.getItem('adminToken') || '';
+            const token = localStorage.getItem(atob('YWRtaW5Ub2tlbg==')) || '';
             try {
                 const resp = await fetch(getApiUrl(atob('L2FwaS9oaXN0b3J5P3Rva2VuPQ==') + encodeURIComponent(token)), {
-                    headers: { 'ngrok-skip-browser-warning': '1' }
+                    headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' }
                 });
                 const text = await resp.text();
 
@@ -2805,17 +2805,33 @@
             const startTs = timelapseEvents[startIdx].ts;
             const endTs = timelapseEvents[endIdx].ts;
 
-            const token = localStorage.getItem('adminToken') || '';
+            const token = localStorage.getItem(atob('YWRtaW5Ub2tlbg==')) || '';
             const url = getApiUrl(atob('L2FwaS9kb3dubG9hZF90aW1lbGFwc2U/c3RhcnRfdHM9') + startTs + atob('JmVuZF90cz0=') + endTs + atob('JmZvcm1hdD0=') + format + atob('JnNwZWVkPQ==') + speed + atob('JnRva2VuPQ==') + encodeURIComponent(token));
 
-            showToast("Генерация файла... загрузка начнется автоматически");
+            showToast("Генерация файла... это может занять минуту");
             
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = format === 'video' ? 'timelapse.mp4' : 'timelapse.gif';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            fetch(url, {
+                headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' }
+            }).then(resp => {
+                if (!resp.ok) throw new Error("Ошибка сервера");
+                const contentType = resp.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    return resp.json().then(err => { throw new Error(err.error || "Ошибка генерации"); });
+                }
+                return resp.blob();
+            }).then(blob => {
+                const blobUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = format === 'video' ? 'timelapse.mp4' : 'timelapse.gif';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(blobUrl);
+                showToast("Скачивание завершено!");
+            }).catch(err => {
+                showToast("Ошибка скачивания: " + err.message);
+            });
         }
 
         async function openOnlinePanel() {
@@ -2823,10 +2839,10 @@
             document.getElementById('onlineOverlay').style.display = 'flex';
             document.getElementById('onlineList').innerHTML = '<div style="text-align:center; padding:20px; color:#6c7086;">Загрузка...</div>';
             
-            const token = localStorage.getItem('adminToken') || '';
+            const token = localStorage.getItem(atob('YWRtaW5Ub2tlbg==')) || '';
             try {
                 const resp = await fetch(getApiUrl(atob('L2FwaS9vbmxpbmU/dG9rZW49') + encodeURIComponent(token)), {
-                    headers: { 'ngrok-skip-browser-warning': '1' }
+                    headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' }
                 });
                 const data = await resp.json();
                 
