@@ -1331,12 +1331,21 @@
                 </div>
                 <div class="timelapse-download" style="margin-top: 10px; width: 100%; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #313244; padding-top: 10px;">
                     <div style="font-weight: bold; font-size: 14px; text-align: center;">Скачать таймлапс</div>
-                    <div style="display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;">
-                        <input type="datetime-local" id="tlDownStart" style="background: #11111b; color: #cdd6f4; border: 1px solid #45475a; padding: 5px; border-radius: 4px;">
-                        <span style="color: #6c7086;">-</span>
-                        <input type="datetime-local" id="tlDownEnd" style="background: #11111b; color: #cdd6f4; border: 1px solid #45475a; padding: 5px; border-radius: 4px;">
+                    <div style="display: flex; flex-direction: column; gap: 5px; width: 100%; padding: 0 10px; box-sizing: border-box;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #6c7086;">
+                            <span>Начало (1)</span>
+                            <span id="tlDownStartLabel">—</span>
+                        </div>
+                        <input type="range" id="tlDownStart" min="0" max="0" value="0" oninput="updateDownloadLabels()" style="cursor: pointer; accent-color: #a6e3a1; height: 6px; width: 100%;">
                     </div>
-                    <div style="display: flex; gap: 10px; justify-content: center;">
+                    <div style="display: flex; flex-direction: column; gap: 5px; width: 100%; padding: 0 10px; box-sizing: border-box;">
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: #6c7086;">
+                            <span>Конец (2)</span>
+                            <span id="tlDownEndLabel">—</span>
+                        </div>
+                        <input type="range" id="tlDownEnd" min="0" max="0" value="0" oninput="updateDownloadLabels()" style="cursor: pointer; accent-color: #f38ba8; height: 6px; width: 100%;">
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: center; margin-top: 5px;">
                         <select id="tlDownFormat" style="background: #11111b; color: #cdd6f4; border: 1px solid #45475a; padding: 5px; border-radius: 4px;">
                             <option value="video">Видео (MP4)</option>
                             <option value="gif">GIF</option>
@@ -2583,6 +2592,14 @@
                 slider.max = timelapseEvents.length;
                 slider.value = 0;
                 timelapseCurrentIdx = 0;
+                
+                const dlStart = document.getElementById('tlDownStart');
+                const dlEnd = document.getElementById('tlDownEnd');
+                dlStart.max = Math.max(0, timelapseEvents.length - 1);
+                dlEnd.max = Math.max(0, timelapseEvents.length - 1);
+                dlStart.value = 0;
+                dlEnd.value = Math.max(0, timelapseEvents.length - 1);
+                updateDownloadLabels();
 
                 document.getElementById('timelapseLoading').style.display = 'none';
                 document.getElementById('timelapsePlayer').style.display = 'flex';
@@ -2724,24 +2741,38 @@
             timelapseRealCanvasData = null;
         }
 
+        function updateDownloadLabels() {
+            if (timelapseEvents.length === 0) return;
+            let sIdx = parseInt(document.getElementById('tlDownStart').value) || 0;
+            let eIdx = parseInt(document.getElementById('tlDownEnd').value) || 0;
+            if (sIdx >= timelapseEvents.length) sIdx = timelapseEvents.length - 1;
+            if (eIdx >= timelapseEvents.length) eIdx = timelapseEvents.length - 1;
+            const sEv = timelapseEvents[sIdx];
+            const eEv = timelapseEvents[eIdx];
+            if (sEv) {
+                const d = new Date(sEv.ts * 1000);
+                document.getElementById('tlDownStartLabel').innerText = d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+            if (eEv) {
+                const d = new Date(eEv.ts * 1000);
+                document.getElementById('tlDownEndLabel').innerText = d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+        }
+
         function downloadTimelapseBtn() {
-            const startVal = document.getElementById('tlDownStart').value;
-            const endVal = document.getElementById('tlDownEnd').value;
+            if (timelapseEvents.length === 0) return;
+            const startIdx = parseInt(document.getElementById('tlDownStart').value) || 0;
+            const endIdx = parseInt(document.getElementById('tlDownEnd').value) || 0;
             const format = document.getElementById('tlDownFormat').value;
             const speed = document.getElementById('timelapseSpeed').value;
 
-            if (!startVal || !endVal) {
-                showToast("Выберите начальное и конечное время");
+            if (startIdx >= endIdx) {
+                showToast("Точка начала должна быть раньше точки конца");
                 return;
             }
 
-            const startTs = new Date(startVal).getTime() / 1000;
-            const endTs = new Date(endVal).getTime() / 1000;
-
-            if (startTs >= endTs) {
-                showToast("Начальное время должно быть меньше конечного");
-                return;
-            }
+            const startTs = timelapseEvents[startIdx].ts;
+            const endTs = timelapseEvents[endIdx].ts;
 
             const token = localStorage.getItem('adminToken') || '';
             const url = getApiUrl(atob('L2FwaS9kb3dubG9hZF90aW1lbGFwc2U/c3RhcnRfdHM9') + startTs + atob('JmVuZF90cz0=') + endTs + atob('JmZvcm1hdD0=') + format + atob('JnNwZWVkPQ==') + speed + atob('JnRva2VuPQ==') + encodeURIComponent(token));
