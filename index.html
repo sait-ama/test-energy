@@ -1349,10 +1349,17 @@
                         </div>
                         <div style="display: flex; gap: 10px; justify-content: center;">
                             <select id="tlDownFormat" style="background: #11111b; color: #cdd6f4; border: 1px solid #45475a; padding: 5px; border-radius: 4px;">
+                                <option value="webp" selected>WebP (Анимация, идеальное качество)</option>
                                 <option value="video">Видео (MP4)</option>
                                 <option value="gif">GIF</option>
                             </select>
-                            <button onclick="downloadTimelapseBtn()" style="background: #a6e3a1; color: #11111b; border: none; padding: 5px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">Скачать</button>
+                            <button onclick="downloadTimelapseBtn()" id="tlDownloadBtn" style="background: #a6e3a1; color: #11111b; border: none; padding: 5px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">Скачать</button>
+                        </div>
+                        <div id="tlDownloadProgress" style="display: none; width: 100%; text-align: center; font-size: 12px; margin-top: 5px;">
+                            <div style="width: 100%; background: #313244; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 5px;">
+                                <div id="tlDownloadProgressBar" style="width: 0%; height: 100%; background: #a6e3a1; transition: width 0.3s;"></div>
+                            </div>
+                            <span id="tlDownloadProgressText" style="color: #cdd6f4;">Инициализация...</span>
                         </div>
                     </div>
                 </div>
@@ -2812,31 +2819,79 @@
             const endTs = timelapseEvents[endIdx].ts;
 
             const token = localStorage.getItem(atob('YWRtaW5Ub2tlbg==')) || '';
-            const url = getApiUrl(atob('L2FwaS9kb3dubG9hZF90aW1lbGFwc2U/c3RhcnRfdHM9') + startTs + atob('JmVuZF90cz0=') + endTs + atob('JmZvcm1hdD0=') + format + atob('JnNwZWVkPQ==') + speed + atob('JnRva2VuPQ==') + encodeURIComponent(token));
+            const startUrl = getApiUrl(atob('L2FwaS90aW1lbGFwc2Vfc3RhcnQ/c3RhcnRfdHM9') + startTs + atob('JmVuZF90cz0=') + endTs + atob('JmZvcm1hdD0=') + format + atob('JnNwZWVkPQ==') + speed + atob('JnRva2VuPQ==') + encodeURIComponent(token));
 
-            showToast("Генерация файла... это может занять минуту");
+            const btn = document.getElementById('tlDownloadBtn');
+            const progressContainer = document.getElementById('tlDownloadProgress');
+            const progressBar = document.getElementById('tlDownloadProgressBar');
+            const progressText = document.getElementById('tlDownloadProgressText');
             
-            fetch(url, {
+            if(btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            }
+            if(progressContainer) progressContainer.style.display = 'block';
+            if(progressBar) progressBar.style.width = '0%';
+            if(progressText) progressText.innerText = 'Запуск задачи...';
+            
+            fetch(startUrl, {
                 headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' }
-            }).then(resp => {
-                if (!resp.ok) throw new Error("Ошибка сервера");
-                const contentType = resp.headers.get("content-type");
-                if (contentType && contentType.indexOf("application/json") !== -1) {
-                    return resp.json().then(err => { throw new Error(err.error || "Ошибка генерации"); });
-                }
-                return resp.blob();
-            }).then(blob => {
-                const blobUrl = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = format === 'video' ? 'timelapse.mp4' : 'timelapse.gif';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                window.URL.revokeObjectURL(blobUrl);
-                showToast("Скачивание завершено!");
+            }).then(resp => resp.json()).then(data => {
+                if (data.error) throw new Error(data.error);
+                const taskId = data.task_id;
+                
+                const pollInterval = setInterval(() => {
+                    const statusUrl = getApiUrl(atob('L2FwaS90aW1lbGFwc2Vfc3RhdHVzP3Rhc2tfaWQ9') + taskId);
+                    fetch(statusUrl, { headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' } })
+                    .then(r => r.json())
+                    .then(statusData => {
+                        if (statusData.error) throw new Error(statusData.error);
+                        
+                        if (statusData.status === 'processing') {
+                            if(progressBar) progressBar.style.width = statusData.progress + '%';
+                            if(progressText) progressText.innerText = 'Генерация: ' + statusData.progress + '%';
+                        } else if (statusData.status === 'done') {
+                            clearInterval(pollInterval);
+                            if(progressBar) progressBar.style.width = '100%';
+                            if(progressText) progressText.innerText = 'Скачивание...';
+                            
+                            const downloadUrl = getApiUrl(atob('L2FwaS90aW1lbGFwc2VfZG93bmxvYWQ/dGFza19pZD0=') + taskId);
+                            fetch(downloadUrl, { headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' } })
+                            .then(r => r.blob())
+                            .then(blob => {
+                                const blobUrl = window.URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = blobUrl;
+                                let ext = format === 'video' ? 'mp4' : format;
+                                a.download = 'timelapse.' + ext;
+                                document.body.appendChild(a);
+                                a.click();
+                                window.URL.revokeObjectURL(blobUrl);
+                                document.body.removeChild(a);
+                                
+                                setTimeout(() => {
+                                    if(btn) {
+                                        btn.disabled = false;
+                                        btn.style.opacity = '1';
+                                    }
+                                    if(progressContainer) progressContainer.style.display = 'none';
+                                }, 1000);
+                            });
+                        } else if (statusData.status === 'error') {
+                            throw new Error(statusData.error);
+                        }
+                    }).catch(err => {
+                        clearInterval(pollInterval);
+                        showToast("Ошибка статуса: " + err.message);
+                        if(btn) { btn.disabled = false; btn.style.opacity = '1'; }
+                        if(progressContainer) progressContainer.style.display = 'none';
+                    });
+                }, 1000);
+                
             }).catch(err => {
-                showToast("Ошибка скачивания: " + err.message);
+                showToast("Ошибка запуска: " + err.message);
+                if(btn) { btn.disabled = false; btn.style.opacity = '1'; }
+                if(progressContainer) progressContainer.style.display = 'none';
             });
         }
 
