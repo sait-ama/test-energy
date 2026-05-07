@@ -1270,10 +1270,20 @@
                 style="background:none; border:none; color:#f38ba8; cursor:pointer; font-size:20px;">✖</button>
         </div>
         <div style="font-size: 14px; color: #a6adc8;">Выберите время, к которому нужно вернуть выделенный участок:</div>
-        <input type="range" id="rollbackSlider" min="1" max="1440" value="5"
-            oninput="document.getElementById('rollbackTimeText').innerText = this.value + ' минут назад'; previewRollback()">
-        <div style="display: flex; justify-content: center; font-weight: bold; margin-top: 5px;">
-            <span id="rollbackTimeText" style="color: #a6e3a1;">5 минут назад</span>
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 12px; color: #6c7086;">Часы (0-24)</label>
+                <input type="number" id="rollbackHours" min="0" max="24" value="0"
+                    oninput="updateRollbackPreview()" style="background: #11111b; border: 1px solid #45475a; color: #fff; padding: 8px; border-radius: 4px; font-size: 14px;">
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 12px; color: #6c7086;">Минуты (0-59)</label>
+                <input type="number" id="rollbackMinutes" min="0" max="59" value="5"
+                    oninput="updateRollbackPreview()" style="background: #11111b; border: 1px solid #45475a; color: #fff; padding: 8px; border-radius: 4px; font-size: 14px;">
+            </div>
+        </div>
+        <div style="display: flex; justify-content: center; font-weight: bold; margin-top: 10px;">
+            <span id="rollbackTimeText" style="color: #a6e3a1;">5 мин. назад</span>
         </div>
         <button onclick="applyRollback()"
             style="background: #a6e3a1; color: #11111b; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px;">Применить
@@ -1300,12 +1310,12 @@
                     <button class="timelapse-play-btn" id="timelapsePlayBtn" onclick="toggleTimelapsePlay()">▶</button>
                     <input type="range" id="timelapseSlider" min="0" max="0" value="0" oninput="scrubTimelapse()">
                     <select class="timelapse-speed" id="timelapseSpeed" onchange="updateTimelapseSpeed()">
-                        <option value="10">1x</option>
-                        <option value="50">5x</option>
-                        <option value="100" selected>10x</option>
-                        <option value="500">50x</option>
-                        <option value="2000">200x</option>
-                        <option value="5000">500x</option>
+                        <option value="1">1x</option>
+                        <option value="5">5x</option>
+                        <option value="10" selected>10x</option>
+                        <option value="50">50x</option>
+                        <option value="100">100x</option>
+                        <option value="500">500x</option>
                     </select>
                 </div>
                 <div class="timelapse-info">
@@ -2416,7 +2426,7 @@
             ctx.putImageData(originalAreaPixels, x1, y1);
 
             if (areaHistoryData && areaHistoryData.length > 0) {
-                const minutes = parseInt(document.getElementById('rollbackSlider').value);
+                const minutes = getRollbackMinutes();
                 const nowServer = (Date.now() - serverTimeOffset) / 1000;
                 const targetTs = nowServer - (minutes * 60);
 
@@ -2462,7 +2472,7 @@
             const x2 = Math.max(selectionStart.x, selectionEnd.x);
             const y2 = Math.max(selectionStart.y, selectionEnd.y);
 
-            const minutes = parseInt(document.getElementById('rollbackSlider').value);
+            const minutes = getRollbackMinutes();
             const targetTs = ((Date.now() - serverTimeOffset) / 1000) - (minutes * 60);
 
             socket.send(JSON.stringify({
@@ -2477,17 +2487,30 @@
             toggleRollbackMode();
         }
 
-        document.getElementById('rollbackSlider').oninput = function () {
-            document.getElementById('rollbackTimeText').innerText = this.value + " мин. назад";
+        function getRollbackMinutes() {
+            let h = parseInt(document.getElementById('rollbackHours').value) || 0;
+            let m = parseInt(document.getElementById('rollbackMinutes').value) || 0;
+            return (h * 60) + m;
+        }
+
+        function updateRollbackPreview() {
+            let h = parseInt(document.getElementById('rollbackHours').value) || 0;
+            let m = parseInt(document.getElementById('rollbackMinutes').value) || 0;
+            if (h < 0) h = 0;
+            if (m < 0) m = 0;
+            let text = [];
+            if (h > 0) text.push(h + " ч.");
+            if (m > 0 || h === 0) text.push(m + " мин.");
+            document.getElementById('rollbackTimeText').innerText = text.join(" ") + " назад";
             previewRollback();
-        };
+        }
 
         let timelapseEvents = [];
         let timelapseSnapshots = [];
         let timelapseRealCanvasData = null;
         let timelapseIsPlaying = false;
         let timelapseCurrentIdx = 0;
-        let timelapseSpeed = 100;
+        let timelapseSpeed = 10;
         let timelapseAnimFrame = null;
         const TL_SNAPSHOT_INTERVAL = 10000;
 
@@ -2742,10 +2765,12 @@
             for (let i = 0; i < entries.length; i++) {
                 const item = document.createElement('div');
                 item.className = 'stats-item';
+                item.style.display = 'flex';
+                item.style.alignItems = 'center';
                 item.innerHTML = `
-                    <div class="stats-rank" style="color:#6c7086; width:25px;">#${i + 1}</div>
-                    <div class="stats-name" style="flex:1;">${entries[i][0]}</div>
-                    <div class="stats-count">${entries[i][1]}</div>
+                    <div class="stats-rank" style="color:#6c7086; width:30px; flex-shrink:0;">#${i + 1}</div>
+                    <div class="stats-name" style="flex:1; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:none;">${entries[i][0]}</div>
+                    <div class="stats-count" style="flex-shrink:0; text-align:right; margin-left:10px;">${entries[i][1]}</div>
                 `;
                 list.appendChild(item);
             }
