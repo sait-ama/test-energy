@@ -1312,13 +1312,9 @@
                 <div class="timelapse-canvas-wrap">
                     <canvas id="timelapseCanvas" width="500" height="500"></canvas>
                 </div>
-                <div class="timelapse-controls" style="position: relative; display: flex; align-items: center; gap: 10px; width: 100%;">
+                <div class="timelapse-controls" style="display: flex; align-items: center; gap: 10px; width: 100%;">
                     <button class="timelapse-play-btn" id="timelapsePlayBtn" onclick="toggleTimelapsePlay()">▶</button>
-                    <div style="position: relative; flex: 1; height: 20px; display: flex; align-items: center;">
-                        <input type="range" id="timelapseSlider" min="0" max="0" value="0" oninput="scrubTimelapse()" style="position: absolute; width: 100%; z-index: 1;">
-                        <input type="range" id="tlDownStart" min="0" max="0" value="0" oninput="updateDownloadLabels()" style="position: absolute; width: 100%; z-index: 2; pointer-events: none; appearance: none; background: transparent; display: none;" class="multi-thumb start-thumb">
-                        <input type="range" id="tlDownEnd" min="0" max="0" value="0" oninput="updateDownloadLabels()" style="position: absolute; width: 100%; z-index: 3; pointer-events: none; appearance: none; background: transparent; display: none;" class="multi-thumb end-thumb">
-                    </div>
+                    <input type="range" id="timelapseSlider" min="0" max="0" value="0" oninput="scrubTimelapse()" style="flex: 1;">
                     <select class="timelapse-speed" id="timelapseSpeed" onchange="updateTimelapseSpeed()">
                         <option value="1">1x</option>
                         <option value="5">5x</option>
@@ -1334,14 +1330,6 @@
                     <div>📊 <span id="timelapseProgress">0 / 0</span></div>
                 </div>
                 <div class="timelapse-download" style="margin-top: 10px; width: 100%; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #313244; padding-top: 10px;">
-                    <style>
-                        .multi-thumb::-webkit-slider-thumb { pointer-events: auto; -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; cursor: pointer; border: 2px solid #11111b; }
-                        .multi-thumb.start-thumb::-webkit-slider-thumb { background: #a6e3a1; }
-                        .multi-thumb.end-thumb::-webkit-slider-thumb { background: #f38ba8; }
-                        .multi-thumb::-moz-range-thumb { pointer-events: auto; width: 14px; height: 14px; border-radius: 50%; cursor: pointer; border: 2px solid #11111b; }
-                        .multi-thumb.start-thumb::-moz-range-thumb { background: #a6e3a1; }
-                        .multi-thumb.end-thumb::-moz-range-thumb { background: #f38ba8; }
-                    </style>
                     <div style="font-weight: bold; font-size: 14px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;">
                         Скачать таймлапс
                         <label style="font-size: 12px; font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer;">
@@ -1349,9 +1337,15 @@
                         </label>
                     </div>
                     <div id="tlDownloadControls" style="display: none; flex-direction: column; gap: 10px;">
-                        <div style="display: flex; gap: 15px; justify-content: center; font-size: 12px; color: #6c7086;">
-                            <span>Начало: <span id="tlDownStartLabel" style="color: #a6e3a1;">—</span></span>
-                            <span>Конец: <span id="tlDownEndLabel" style="color: #f38ba8;">—</span></span>
+                        <div style="display: flex; gap: 15px; justify-content: center; font-size: 12px; color: #cdd6f4;">
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                                <span>Начало: <span id="tlDownStartLabel" style="color: #a6e3a1;">—</span></span>
+                                <button onclick="setDownloadStart()" style="background: #313244; color: #a6e3a1; border: 1px solid #45475a; padding: 2px 10px; border-radius: 4px; cursor: pointer;">Взять текущее</button>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                                <span>Конец: <span id="tlDownEndLabel" style="color: #f38ba8;">—</span></span>
+                                <button onclick="setDownloadEnd()" style="background: #313244; color: #f38ba8; border: 1px solid #45475a; padding: 2px 10px; border-radius: 4px; cursor: pointer;">Взять текущее</button>
+                            </div>
                         </div>
                         <div style="display: flex; gap: 10px; justify-content: center;">
                             <select id="tlDownFormat" style="background: #11111b; color: #cdd6f4; border: 1px solid #45475a; padding: 5px; border-radius: 4px;">
@@ -2550,6 +2544,8 @@
         let timelapseIsPlaying = false;
         let timelapseCurrentIdx = 0;
         let timelapseSpeed = 10;
+        let downloadStartIdx = 0;
+        let downloadEndIdx = 0;
         let timelapseAnimFrame = null;
         const TL_SNAPSHOT_INTERVAL = 10000;
 
@@ -2602,10 +2598,8 @@
                 slider.value = 0;
                 timelapseCurrentIdx = 0;
                 
-                const dlStart = document.getElementById('tlDownStart');
-                const dlEnd = document.getElementById('tlDownEnd');
-                dlStart.max = Math.max(0, timelapseEvents.length - 1);
-                dlEnd.max = Math.max(0, timelapseEvents.length - 1);
+                downloadStartIdx = 0;
+                downloadEndIdx = Math.max(0, timelapseEvents.length - 1);
                 
                 document.getElementById('tlRangeToggle').checked = false;
                 toggleDownloadRange();
@@ -2752,30 +2746,36 @@
 
         function toggleDownloadRange() {
             const isChecked = document.getElementById('tlRangeToggle').checked;
-            const startSlider = document.getElementById('tlDownStart');
-            const endSlider = document.getElementById('tlDownEnd');
             const controls = document.getElementById('tlDownloadControls');
             
             if (isChecked) {
-                startSlider.style.display = 'block';
-                endSlider.style.display = 'block';
                 controls.style.display = 'flex';
-                
-                startSlider.value = timelapseCurrentIdx;
-                endSlider.value = Math.max(0, timelapseEvents.length - 1);
-                
+                downloadStartIdx = timelapseCurrentIdx;
+                downloadEndIdx = Math.max(0, timelapseEvents.length - 1);
                 updateDownloadLabels();
             } else {
-                startSlider.style.display = 'none';
-                endSlider.style.display = 'none';
                 controls.style.display = 'none';
+                downloadStartIdx = 0;
+                downloadEndIdx = Math.max(0, timelapseEvents.length - 1);
             }
+        }
+
+        function setDownloadStart() {
+            downloadStartIdx = timelapseCurrentIdx;
+            updateDownloadLabels();
+            showToast("Точка начала установлена");
+        }
+
+        function setDownloadEnd() {
+            downloadEndIdx = timelapseCurrentIdx;
+            updateDownloadLabels();
+            showToast("Точка конца установлена");
         }
 
         function updateDownloadLabels() {
             if (timelapseEvents.length === 0) return;
-            let sIdx = parseInt(document.getElementById('tlDownStart').value) || 0;
-            let eIdx = parseInt(document.getElementById('tlDownEnd').value) || 0;
+            let sIdx = downloadStartIdx;
+            let eIdx = downloadEndIdx;
             if (sIdx >= timelapseEvents.length) sIdx = timelapseEvents.length - 1;
             if (eIdx >= timelapseEvents.length) eIdx = timelapseEvents.length - 1;
             const sEv = timelapseEvents[sIdx];
@@ -2792,8 +2792,11 @@
 
         function downloadTimelapseBtn() {
             if (timelapseEvents.length === 0) return;
-            const startIdx = parseInt(document.getElementById('tlDownStart').value) || 0;
-            const endIdx = parseInt(document.getElementById('tlDownEnd').value) || 0;
+            
+            const isChecked = document.getElementById('tlRangeToggle').checked;
+            const startIdx = isChecked ? downloadStartIdx : 0;
+            const endIdx = isChecked ? downloadEndIdx : Math.max(0, timelapseEvents.length - 1);
+            
             const format = document.getElementById('tlDownFormat').value;
             const speed = document.getElementById('timelapseSpeed').value;
 
