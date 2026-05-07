@@ -1329,6 +1329,21 @@
                     <div>🕐 <span id="timelapseTime">—</span></div>
                     <div>📊 <span id="timelapseProgress">0 / 0</span></div>
                 </div>
+                <div class="timelapse-download" style="margin-top: 10px; width: 100%; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #313244; padding-top: 10px;">
+                    <div style="font-weight: bold; font-size: 14px; text-align: center;">Скачать таймлапс</div>
+                    <div style="display: flex; gap: 10px; justify-content: center; align-items: center; flex-wrap: wrap;">
+                        <input type="datetime-local" id="tlDownStart" style="background: #11111b; color: #cdd6f4; border: 1px solid #45475a; padding: 5px; border-radius: 4px;">
+                        <span style="color: #6c7086;">-</span>
+                        <input type="datetime-local" id="tlDownEnd" style="background: #11111b; color: #cdd6f4; border: 1px solid #45475a; padding: 5px; border-radius: 4px;">
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <select id="tlDownFormat" style="background: #11111b; color: #cdd6f4; border: 1px solid #45475a; padding: 5px; border-radius: 4px;">
+                            <option value="video">Видео (MP4)</option>
+                            <option value="gif">GIF</option>
+                        </select>
+                        <button onclick="downloadTimelapseBtn()" style="background: #a6e3a1; color: #11111b; border: none; padding: 5px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">Скачать</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1827,7 +1842,7 @@
         }
         const _0x4f21 = "d3NzOi8vcGF0cmluYS11bmx1c3R5LXZpbmNlLm5ncm9rLWZyZWUuZGV2L3dz";
         const wsUrl = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
-            ? `ws://${location.host}/ws`
+            ? atob('d3M6Ly8=') + location.host + atob('L3dz')
             : atob(_0x4f21);
         let socket;
         let reconnectTimeout;
@@ -2521,7 +2536,7 @@
         const TL_SNAPSHOT_INTERVAL = 10000;
 
         function getApiUrl(path) {
-            const httpUrl = wsUrl.replace('wss://', 'https://').replace('ws://', 'http://').replace('/ws', '');
+            const httpUrl = wsUrl.replace(atob('d3NzOi8v'), atob('aHR0cHM6Ly8=')).replace(atob('d3M6Ly8='), atob('aHR0cDovLw==')).replace(atob('L3dz'), '');
             return httpUrl + path;
         }
 
@@ -2534,7 +2549,7 @@
 
             const token = localStorage.getItem('adminToken') || '';
             try {
-                const resp = await fetch(getApiUrl('/api/history?token=' + encodeURIComponent(token)), {
+                const resp = await fetch(getApiUrl(atob('L2FwaS9oaXN0b3J5P3Rva2VuPQ==') + encodeURIComponent(token)), {
                     headers: { 'ngrok-skip-browser-warning': '1' }
                 });
                 const text = await resp.text();
@@ -2709,6 +2724,38 @@
             timelapseRealCanvasData = null;
         }
 
+        function downloadTimelapseBtn() {
+            const startVal = document.getElementById('tlDownStart').value;
+            const endVal = document.getElementById('tlDownEnd').value;
+            const format = document.getElementById('tlDownFormat').value;
+            const speed = document.getElementById('timelapseSpeed').value;
+
+            if (!startVal || !endVal) {
+                showToast("Выберите начальное и конечное время");
+                return;
+            }
+
+            const startTs = new Date(startVal).getTime() / 1000;
+            const endTs = new Date(endVal).getTime() / 1000;
+
+            if (startTs >= endTs) {
+                showToast("Начальное время должно быть меньше конечного");
+                return;
+            }
+
+            const token = localStorage.getItem('adminToken') || '';
+            const url = getApiUrl(atob('L2FwaS9kb3dubG9hZF90aW1lbGFwc2U/c3RhcnRfdHM9') + startTs + atob('JmVuZF90cz0=') + endTs + atob('JmZvcm1hdD0=') + format + atob('JnNwZWVkPQ==') + speed + atob('JnRva2VuPQ==') + encodeURIComponent(token));
+
+            showToast("Генерация файла... загрузка начнется автоматически");
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = format === 'video' ? 'timelapse.mp4' : 'timelapse.gif';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+
         async function openOnlinePanel() {
             if (!IS_MASTER) return;
             document.getElementById('onlineOverlay').style.display = 'flex';
@@ -2716,7 +2763,7 @@
             
             const token = localStorage.getItem('adminToken') || '';
             try {
-                const resp = await fetch(getApiUrl('/api/online?token=' + encodeURIComponent(token)), {
+                const resp = await fetch(getApiUrl(atob('L2FwaS9vbmxpbmU/dG9rZW49') + encodeURIComponent(token)), {
                     headers: { 'ngrok-skip-browser-warning': '1' }
                 });
                 const data = await resp.json();
