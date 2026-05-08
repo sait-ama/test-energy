@@ -1152,26 +1152,53 @@
                     Онлайн пользователи</button>
             </div>
             <div class="palette" id="palette">
+                <!-- Grays -->
                 <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
+                <div class="color-btn" style="background-color: #323232;" data-color="#323232"></div>
+                <div class="color-btn" style="background-color: #646464;" data-color="#646464"></div>
                 <div class="color-btn" style="background-color: #828282;" data-color="#828282"></div>
-                <div class="color-btn" style="background-color: #ffffff; border: 1px solid #cdd6f4;"
-                    data-color="#ffffff">
-                </div>
-                <div class="color-btn" style="background-color: #ff0000;" data-color="#ff0000"></div>
-                <div class="color-btn" style="background-color: #ff4500;" data-color="#ff4500"></div>
-                <div class="color-btn" style="background-color: #ff8800;" data-color="#ff8800"></div>
-                <div class="color-btn" style="background-color: #ffd700;" data-color="#ffd700"></div>
-                <div class="color-btn" style="background-color: #ffff00;" data-color="#ffff00"></div>
-                <div class="color-btn" style="background-color: #00ff00;" data-color="#00ff00"></div>
-                <div class="color-btn" style="background-color: #006400;" data-color="#006400"></div>
-                <div class="color-btn" style="background-color: #00ffff;" data-color="#00ffff"></div>
-                <div class="color-btn" style="background-color: #0000ff;" data-color="#0000ff"></div>
-                <div class="color-btn" style="background-color: #00008b;" data-color="#00008b"></div>
-                <div class="color-btn" style="background-color: #8a2be2;" data-color="#8a2be2"></div>
-                <div class="color-btn" style="background-color: #ff00ff;" data-color="#ff00ff"></div>
-                <div class="color-btn" style="background-color: #ffb6c1;" data-color="#ffb6c1"></div>
+                <div class="color-btn" style="background-color: #ffffff; border: 1px solid #cdd6f4;" data-color="#ffffff"></div>
+                
+                <!-- Browns -->
                 <div class="color-btn" style="background-color: #8b4513;" data-color="#8b4513"></div>
                 <div class="color-btn" style="background-color: #d2b48c;" data-color="#d2b48c"></div>
+                <div class="color-btn" style="background-color: #f5deb3;" data-color="#f5deb3"></div>
+                
+                <!-- Reds/Pinks -->
+                <div class="color-btn" style="background-color: #ff0000;" data-color="#ff0000"></div>
+                <div class="color-btn" style="background-color: #dc6464;" data-color="#dc6464"></div>
+                <div class="color-btn" style="background-color: #ff6347;" data-color="#ff6347"></div>
+                <div class="color-btn" style="background-color: #ffb6c1;" data-color="#ffb6c1"></div>
+                <div class="color-btn" style="background-color: #ffc0cb;" data-color="#ffc0cb"></div>
+                <div class="color-btn" style="background-color: #cc9999;" data-color="#cc9999"></div>
+                
+                <!-- Oranges -->
+                <div class="color-btn" style="background-color: #ff4500;" data-color="#ff4500"></div>
+                <div class="color-btn" style="background-color: #ff8c00;" data-color="#ff8c00"></div>
+                <div class="color-btn" style="background-color: #ff8800;" data-color="#ff8800"></div>
+                <div class="color-btn" style="background-color: #ffa500;" data-color="#ffa500"></div>
+                
+                <!-- Yellows -->
+                <div class="color-btn" style="background-color: #ffd700;" data-color="#ffd700"></div>
+                <div class="color-btn" style="background-color: #ffff00;" data-color="#ffff00"></div>
+                <div class="color-btn" style="background-color: #ffffe0;" data-color="#ffffe0"></div>
+                
+                <!-- Greens -->
+                <div class="color-btn" style="background-color: #006400;" data-color="#006400"></div>
+                <div class="color-btn" style="background-color: #00ff00;" data-color="#00ff00"></div>
+                
+                <!-- Blues/Cyans -->
+                <div class="color-btn" style="background-color: #00ffff;" data-color="#00ffff"></div>
+                <div class="color-btn" style="background-color: #0000cd;" data-color="#0000cd"></div>
+                <div class="color-btn" style="background-color: #0000ff;" data-color="#0000ff"></div>
+                <div class="color-btn" style="background-color: #00008b;" data-color="#00008b"></div>
+                <div class="color-btn" style="background-color: #000080;" data-color="#000080"></div>
+                
+                <!-- Purples -->
+                <div class="color-btn" style="background-color: #4b0082;" data-color="#4b0082"></div>
+                <div class="color-btn" style="background-color: #8a2be2;" data-color="#8a2be2"></div>
+                <div class="color-btn" style="background-color: #9966cc;" data-color="#9966cc"></div>
+                <div class="color-btn" style="background-color: #ff00ff;" data-color="#ff00ff"></div>
             </div>
             <div class="cooldown-text" id="cooldownText">Готов к битве</div>
 
@@ -1179,6 +1206,7 @@
                 <div class="stats-header">
                     <div id="tabPlayers" class="stats-tab active" onclick="switchStatsTab('players')">🏆 Игроки</div>
                     <div id="tabGuilds" class="stats-tab" onclick="switchStatsTab('guilds')">🛡️ Гильдии</div>
+                    <div id="tabConstellations" class="stats-tab" onclick="switchStatsTab('constellations')">✨ Созвездия</div>
                 </div>
                 <div id="statsList" class="stats-list">
                     <div style="text-align:center; padding:10px; color:#6c7086; font-size:11px;">Загрузка статистики...
@@ -1199,12 +1227,23 @@
     <div id="authOverlay" class="auth-overlay" style="display: none;">
         <div class="auth-modal">
             <h2>👋 Привет!</h2>
-            <p>Чтобы ставить пиксели, авторизуйся через ReManga профиль.</p>
-            <input type="text" id="authInput" class="auth-input" placeholder="Ссылка на профиль или ID">
-            <button class="auth-btn" onclick="authenticateReManga()">Войти</button>
+            <p style="margin-bottom: 20px;">Чтобы ставить пиксели, выберите платформу для авторизации:</p>
+            
+            <div class="auth-platforms" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+                <button id="btnRemanga" class="auth-platform-btn active" onclick="selectPlatform('remanga')" style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; padding: 10px; background: #313244; color: #cdd6f4; border: 2px solid #89b4fa; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: inherit; font-family: inherit;">
+                    <img src="remanga.png" style="height: 1.2em; border-radius: 4px;"> ReManga
+                </button>
+                <button id="btnAstra" class="auth-platform-btn" onclick="selectPlatform('astra')" style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; padding: 10px; background: #313244; color: #cdd6f4; border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: inherit; font-family: inherit;">
+                    <img src="Astramanga.png" style="height: 1.2em; border-radius: 4px; background: transparent;"> AstraManga
+                </button>
+            </div>
+
+            <input type="text" id="authInput" class="auth-input" placeholder="Ссылка на профиль или ID ReManga">
+            <button class="auth-btn" onclick="authenticateSelected()">Войти</button>
             <div id="authError" class="auth-error">Некорректная ссылка</div>
-            <div style="margin-top: 15px; font-size: 11px; color: #6c7086;">
-                Пример: https://remanga.org/user/12345/about<br>или просто ID: 12345
+            <div id="authHint" style="margin-top: 15px; font-size: 11px; color: #6c7086;">
+                Пример: https://remanga.org/user/12345/about<br>
+                Или просто ID: 12345
             </div>
         </div>
     </div>
@@ -1404,12 +1443,24 @@
         const COLOR_PALETTE = [
             "#000000", "#828282", "#ffffff", "#ff0000", "#ff4500", "#ff8800",
             "#ffd700", "#ffff00", "#00ff00", "#006400", "#00ffff", "#0000ff",
-            "#00008b", "#8a2be2", "#ff00ff", "#ffb6c1", "#8b4513", "#d2b48c"
+            "#00008b", "#8a2be2", "#ff00ff", "#ffb6c1", "#8b4513", "#d2b48c",
+            "#4b0082", "#9966cc", "#000080", "#0000cd", "#ffa500", "#ff8c00",
+            "#ff6347", "#f5deb3", "#ffffe0", "#323232", "#646464", "#ffc0cb",
+            "#cc9999", "#dc6464"
         ];
 
         let remangaUser = JSON.parse(localStorage.getItem('remangaUser'));
         let pixelOwners = new Uint16Array(500 * 500);
         let allUsernames = [];
+        let userIcons = {};
+        function getUserIconHtml(username) {
+            const p = userIcons[username];
+            if (p === 'remanga') return '<img src="remanga.png" style="width:12px;height:12px;vertical-align:middle;border-radius:2px;margin-right:4px;">';
+            if (p === 'astra') return '<img src="astra.png" style="width:12px;height:12px;vertical-align:middle;border-radius:2px;margin-right:4px;background:transparent;">';
+            if (p === 'nova') return '<img src="nova.png" style="width:12px;height:12px;vertical-align:middle;border-radius:2px;margin-right:4px;background:transparent;">';
+            if (username !== 'Admin') return '<img src="remanga.png" style="width:12px;height:12px;vertical-align:middle;border-radius:2px;margin-right:4px;">';
+            return '';
+        }
         const authOverlay = document.getElementById('authOverlay');
         const authInput = document.getElementById('authInput');
         const authError = document.getElementById('authError');
@@ -1431,7 +1482,8 @@
             const uidx = pixelOwners[y * 500 + x];
             if (uidx > 0 && allUsernames[uidx - 1]) {
                 tooltipPixel = { x, y };
-                pixelTooltip.innerText = allUsernames[uidx - 1];
+                const username = allUsernames[uidx - 1];
+                pixelTooltip.innerHTML = getUserIconHtml(username) + username;
                 pixelTooltip.style.display = 'block';
                 updateTooltipPosition();
                 if (tooltipTimeout) clearTimeout(tooltipTimeout);
@@ -1475,81 +1527,143 @@
 
         let pendingAuthUser = null;
 
-        async function authenticateReManga() {
+        let selectedAuthPlatform = 'remanga';
+
+        function selectPlatform(platform) {
+            selectedAuthPlatform = platform;
+            const btnR = document.getElementById('btnRemanga');
+            const btnA = document.getElementById('btnAstra');
+            const input = document.getElementById('authInput');
+            const hint = document.getElementById('authHint');
+
+            if (platform === 'remanga') {
+                btnR.style.borderColor = '#89b4fa';
+                btnA.style.borderColor = 'transparent';
+                input.placeholder = 'Ссылка на профиль или ID ReManga';
+                hint.innerHTML = 'Пример: https://remanga.org/user/12345/about<br>Или просто ID: 12345';
+            } else {
+                btnA.style.borderColor = '#89b4fa';
+                btnR.style.borderColor = 'transparent';
+                input.placeholder = 'Ссылка на профиль AstraManga';
+                hint.innerHTML = 'Пример: https://astramanga.org/users/Saitama<br>Или просто юзернейм: Saitama';
+            }
+        }
+
+        async function authenticateSelected() {
             let input = authInput.value.trim();
             if (!input) return;
 
-            let userId = input;
-            const urlMatch = input.match(/user\/(\d+)/);
-            if (urlMatch) userId = urlMatch[1];
+            if (selectedAuthPlatform === 'astra' || input.includes('astramanga.org')) {
+                let username = input;
+                const urlMatch = input.match(/users\/([^\/]+)/);
+                if (urlMatch) username = urlMatch[1];
+                
+                try {
+                    if (!socket || socket.readyState !== WebSocket.OPEN) {
+                        authError.innerText = "Нет подключения к серверу. Подождите...";
+                        authError.style.display = 'block';
+                        return;
+                    }
 
-            if (!/^\d+$/.test(userId)) {
-                authError.innerText = "Некорректный ID или ссылка. Пример: 12345";
-                authError.style.display = 'block';
-                return;
-            }
+                    const result = await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+                        const handler = (event) => {
+                            const msg = JSON.parse(event.data);
+                            if (msg.type === 'astramanga_result') {
+                                socket.removeEventListener('message', handler);
+                                clearTimeout(timeout);
+                                resolve(msg);
+                            }
+                        };
+                        socket.addEventListener('message', handler);
+                        socket.send(JSON.stringify({ type: 'lookup_astramanga', username: username }));
+                    });
 
-            try {
-                if (!socket || socket.readyState !== WebSocket.OPEN) {
-                    authError.innerText = "Нет подключения к серверу. Подождите...";
+                    if (result.error || !result.id) throw new Error(result.error || "User not found");
+                    const userData = { id: result.id, username: result.username, platform: result.platform };
+                    pendingAuthUser = userData;
+                    authError.style.display = 'none';
+                    checkPinAndFinishAuth(userData);
+                } catch (e) {
+                    authError.innerText = "Пользователь не найден или ошибка API";
+                    authError.style.display = 'block';
+                }
+            } else {
+                let userId = input;
+                const urlMatch = input.match(/user\/(\d+)/);
+                if (urlMatch) userId = urlMatch[1];
+
+                if (!/^\d+$/.test(userId)) {
+                    authError.innerText = "Некорректный ID или ссылка. Пример: 12345";
                     authError.style.display = 'block';
                     return;
                 }
 
-                const result = await new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
-                    const handler = (event) => {
-                        const msg = JSON.parse(event.data);
-                        if (msg.type === 'remanga_result') {
-                            socket.removeEventListener('message', handler);
-                            clearTimeout(timeout);
-                            resolve(msg);
-                        }
-                    };
-                    socket.addEventListener('message', handler);
-                    socket.send(JSON.stringify({ type: 'lookup_remanga', user_id: userId }));
-                });
-
-                if (result.error || !result.id) throw new Error(result.error || "User not found");
-                const userData = { id: result.id, username: result.username };
-                pendingAuthUser = userData;
-                authError.style.display = 'none';
-
-                const deviceKey = localStorage.getItem('deviceKey_' + userData.id);
-
-                const pinStatus = await new Promise((resolve, reject) => {
-                    const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
-                    const handler = (event) => {
-                        const msg = JSON.parse(event.data);
-                        if (msg.type === 'pin_status') {
-                            socket.removeEventListener('message', handler);
-                            clearTimeout(timeout);
-                            resolve(msg);
-                        }
-                    };
-                    socket.addEventListener('message', handler);
-                    socket.send(JSON.stringify({ type: 'check_pin', remanga_id: userData.id }));
-                });
-
-                if (pinStatus.has_pin) {
-                    if (deviceKey) {
-                        finishAuth(userData);
-                    } else {
-                        authOverlay.style.display = 'none';
-                        document.getElementById('pinEnterOverlay').style.display = 'flex';
-                        document.getElementById('pinEnterInput').value = '';
-                        document.getElementById('pinEnterError').style.display = 'none';
-                        document.getElementById('pinEnterInput').focus();
+                try {
+                    if (!socket || socket.readyState !== WebSocket.OPEN) {
+                        authError.innerText = "Нет подключения к серверу. Подождите...";
+                        authError.style.display = 'block';
+                        return;
                     }
+
+                    const result = await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+                        const handler = (event) => {
+                            const msg = JSON.parse(event.data);
+                            if (msg.type === 'remanga_result') {
+                                socket.removeEventListener('message', handler);
+                                clearTimeout(timeout);
+                                resolve(msg);
+                            }
+                        };
+                        socket.addEventListener('message', handler);
+                        socket.send(JSON.stringify({ type: 'lookup_remanga', user_id: userId }));
+                    });
+
+                    if (result.error || !result.id) throw new Error(result.error || "User not found");
+                    const userData = { id: result.id, username: result.username, platform: result.platform };
+                    pendingAuthUser = userData;
+                    authError.style.display = 'none';
+                    checkPinAndFinishAuth(userData);
+                } catch (e) {
+                    authError.innerText = "Пользователь не найден или ошибка API";
+                    authError.style.display = 'block';
+                }
+            }
+        }
+
+        async function checkPinAndFinishAuth(userData) {
+            const deviceKey = localStorage.getItem('deviceKey_' + userData.id);
+
+            const pinStatus = await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+                const handler = (event) => {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'pin_status') {
+                        socket.removeEventListener('message', handler);
+                        clearTimeout(timeout);
+                        resolve(msg);
+                    }
+                };
+                socket.addEventListener('message', handler);
+                socket.send(JSON.stringify({ type: 'check_pin', remanga_id: userData.id }));
+            });
+
+            if (pinStatus.has_pin) {
+                if (deviceKey) {
+                    finishAuth(userData);
                 } else {
                     authOverlay.style.display = 'none';
-                    document.getElementById('pinSetupOverlay').style.display = 'flex';
-                    document.getElementById('pinSetupInput').value = '';
-                    document.getElementById('pinSetupInput').focus();
+                    document.getElementById('pinEnterOverlay').style.display = 'flex';
+                    document.getElementById('pinEnterInput').value = '';
+                    document.getElementById('pinEnterError').style.display = 'none';
+                    document.getElementById('pinEnterInput').focus();
                 }
-            } catch (e) {
-                authError.innerText = "Пользователь не найден или ошибка API";
-                authError.style.display = 'block';
+            } else {
+                authOverlay.style.display = 'none';
+                document.getElementById('pinSetupOverlay').style.display = 'flex';
+                document.getElementById('pinSetupInput').value = '';
+                document.getElementById('pinSetupInput').focus();
             }
         }
 
@@ -1784,8 +1898,8 @@
         function updateStatsUI(stats) {
             if (!stats) return;
             currentStats = stats;
-            if (!currentStats.players && !currentStats.guilds) {
-                currentStats = { players: stats, guilds: {} };
+            if (!currentStats.players && !currentStats.guilds && !currentStats.constellations) {
+                currentStats = { players: stats, guilds: {}, constellations: {} };
             }
             renderStats();
         }
@@ -1920,6 +2034,9 @@
                     if (data.usernames) {
                         allUsernames = data.usernames;
                     }
+                    if (data.user_icons) {
+                        userIcons = data.user_icons;
+                    }
                     if (data.stats) {
                         updateStatsUI(data.stats);
                     }
@@ -1933,6 +2050,7 @@
                         pixelOwners[data.y * 500 + data.x] = data.uidx;
                     }
                     if (data.usernames) allUsernames = data.usernames;
+                    if (data.user_icons) userIcons = data.user_icons;
                     if (data.stats) updateStatsUI(data.stats);
                     syncMinimap();
                 } else if (data.type === 'batch') {
@@ -1944,6 +2062,7 @@
                         }
                     });
                     if (data.usernames) allUsernames = data.usernames;
+                    if (data.user_icons) userIcons = data.user_icons;
                     if (data.stats) updateStatsUI(data.stats);
                     syncMinimap();
                 } else if (data.type === 'admin_status') {
@@ -2004,6 +2123,7 @@
                     startCooldown(7);
                 } else if (data.type === 'usernames_update') {
                     if (data.usernames) allUsernames = data.usernames;
+                    if (data.user_icons) userIcons = data.user_icons;
                     if (data.stats) updateStatsUI(data.stats);
                 } else if (data.type === 'force_reauth') {
                     if (remangaUser) {
@@ -2183,7 +2303,8 @@
                 const uidx = pixelOwners[y * 500 + x];
                 if (uidx > 0 && allUsernames[uidx - 1]) {
                     tooltipPixel = { x, y };
-                    pixelTooltip.innerText = allUsernames[uidx - 1];
+                    const username = allUsernames[uidx - 1];
+                    pixelTooltip.innerHTML = getUserIconHtml(username) + username;
                     updateTooltipPosition();
                     pixelTooltip.style.display = 'block';
                 } else {
@@ -2935,20 +3056,25 @@
             document.getElementById('onlineOverlay').style.display = 'none';
         }
 
-        let currentStats = { players: {}, guilds: {} };
+        let currentStats = { players: {}, guilds: {}, constellations: {} };
         let currentStatsTab = 'players';
 
         function switchStatsTab(tab) {
             currentStatsTab = tab;
             document.getElementById('tabPlayers').classList.toggle('active', tab === 'players');
             document.getElementById('tabGuilds').classList.toggle('active', tab === 'guilds');
+            document.getElementById('tabConstellations').classList.toggle('active', tab === 'constellations');
             renderStats();
         }
 
         function renderStats() {
             const list = document.getElementById('statsList');
             list.innerHTML = '';
-            const data = currentStatsTab === 'players' ? currentStats.players : currentStats.guilds;
+            let data = {};
+            if (currentStatsTab === 'players') data = currentStats.players || {};
+            else if (currentStatsTab === 'guilds') data = currentStats.guilds || {};
+            else if (currentStatsTab === 'constellations') data = currentStats.constellations || {};
+
             if (!data || Object.keys(data).length === 0) {
                 list.innerHTML = '<div style="text-align:center; padding:10px; color:#6c7086; font-size:11px;">Нет данных</div>';
                 return;
@@ -2959,9 +3085,15 @@
                 item.className = 'stats-item';
                 item.style.display = 'flex';
                 item.style.alignItems = 'center';
+                
+                let iconHtml = '';
+                if (currentStatsTab === 'players') {
+                    iconHtml = getUserIconHtml(entries[i][0]);
+                }
+                
                 item.innerHTML = `
                     <div class="stats-rank" style="color:#6c7086; width:30px; flex-shrink:0;">#${i + 1}</div>
-                    <div class="stats-name" style="flex:1; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:none;">${entries[i][0]}</div>
+                    <div class="stats-name" style="flex:1; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:none;">${iconHtml}${entries[i][0]}</div>
                     <div class="stats-count" style="flex-shrink:0; text-align:right; margin-left:10px;">${entries[i][1]}</div>
                 `;
                 list.appendChild(item);
