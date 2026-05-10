@@ -551,7 +551,7 @@
             }
 
             .stats-list {
-                max-height: 200px;
+                max-height: 120px;
                 overflow-y: auto;
                 -webkit-overflow-scrolling: touch;
             }
@@ -718,7 +718,7 @@
         }
 
         .stats-list {
-            max-height: 400px;
+            max-height: 200px;
             overflow-y: auto;
             padding: 5px;
         }
@@ -1080,7 +1080,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
@@ -1156,13 +1158,14 @@
                 <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
                 <div class="color-btn" style="background-color: #646464;" data-color="#646464"></div>
                 <div class="color-btn" style="background-color: #828282;" data-color="#828282"></div>
-                <div class="color-btn" style="background-color: #ffffff; border: 1px solid #cdd6f4;" data-color="#ffffff"></div>
-                
+                <div class="color-btn" style="background-color: #ffffff; border: 1px solid #cdd6f4;"
+                    data-color="#ffffff"></div>
+
                 <!-- Browns -->
                 <div class="color-btn" style="background-color: #8b4513;" data-color="#8b4513"></div>
                 <div class="color-btn" style="background-color: #d2b48c;" data-color="#d2b48c"></div>
                 <div class="color-btn" style="background-color: #f5deb3;" data-color="#f5deb3"></div>
-                
+
                 <!-- Reds/Pinks -->
                 <div class="color-btn" style="background-color: #ff0000;" data-color="#ff0000"></div>
                 <div class="color-btn" style="background-color: #dc6464;" data-color="#dc6464"></div>
@@ -1170,28 +1173,28 @@
                 <div class="color-btn" style="background-color: #ffb6c1;" data-color="#ffb6c1"></div>
                 <div class="color-btn" style="background-color: #ffc0cb;" data-color="#ffc0cb"></div>
                 <div class="color-btn" style="background-color: #cc9999;" data-color="#cc9999"></div>
-                
+
                 <!-- Oranges -->
                 <div class="color-btn" style="background-color: #ff4500;" data-color="#ff4500"></div>
                 <div class="color-btn" style="background-color: #ff8c00;" data-color="#ff8c00"></div>
                 <div class="color-btn" style="background-color: #ff8800;" data-color="#ff8800"></div>
                 <div class="color-btn" style="background-color: #ffa500;" data-color="#ffa500"></div>
-                
+
                 <!-- Yellows -->
                 <div class="color-btn" style="background-color: #ffd700;" data-color="#ffd700"></div>
                 <div class="color-btn" style="background-color: #ffff00;" data-color="#ffff00"></div>
-                
+
                 <!-- Greens -->
                 <div class="color-btn" style="background-color: #006400;" data-color="#006400"></div>
                 <div class="color-btn" style="background-color: #00ff00;" data-color="#00ff00"></div>
-                
+
                 <!-- Blues/Cyans -->
                 <div class="color-btn" style="background-color: #00ffff;" data-color="#00ffff"></div>
                 <div class="color-btn" style="background-color: #0000cd;" data-color="#0000cd"></div>
                 <div class="color-btn" style="background-color: #0000ff;" data-color="#0000ff"></div>
                 <div class="color-btn" style="background-color: #00008b;" data-color="#00008b"></div>
                 <div class="color-btn" style="background-color: #000080;" data-color="#000080"></div>
-                
+
                 <!-- Purples -->
                 <div class="color-btn" style="background-color: #4b0082;" data-color="#4b0082"></div>
                 <div class="color-btn" style="background-color: #8a2be2;" data-color="#8a2be2"></div>
@@ -1204,7 +1207,8 @@
                 <div class="stats-header">
                     <div id="tabPlayers" class="stats-tab active" onclick="switchStatsTab('players')">🏆 Игроки</div>
                     <div id="tabGuilds" class="stats-tab" onclick="switchStatsTab('guilds')">🛡️ Гильдии</div>
-                    <div id="tabConstellations" class="stats-tab" onclick="switchStatsTab('constellations')">✨ Созвездия</div>
+                    <div id="tabConstellations" class="stats-tab" onclick="switchStatsTab('constellations')">✨ Созвездия
+                    </div>
                 </div>
                 <div id="statsList" class="stats-list">
                     <div style="text-align:center; padding:10px; color:#6c7086; font-size:11px;">Загрузка статистики...
@@ -1226,13 +1230,16 @@
         <div class="auth-modal">
             <h2>👋 Привет!</h2>
             <p style="margin-bottom: 20px;">Чтобы ставить пиксели, выберите платформу для авторизации:</p>
-            
+
             <div class="auth-platforms" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
-                <button id="btnRemanga" class="auth-platform-btn active" onclick="selectPlatform('remanga')" style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; padding: 10px; background: #313244; color: #cdd6f4; border: 2px solid #89b4fa; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: inherit; font-family: inherit;">
+                <button id="btnRemanga" class="auth-platform-btn active" onclick="selectPlatform('remanga')"
+                    style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; padding: 10px; background: #313244; color: #cdd6f4; border: 2px solid #89b4fa; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: inherit; font-family: inherit;">
                     <img src="remanga.png" style="height: 1.2em; border-radius: 4px;"> ReManga
                 </button>
-                <button id="btnAstra" class="auth-platform-btn" onclick="selectPlatform('astra')" style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; padding: 10px; background: #313244; color: #cdd6f4; border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: inherit; font-family: inherit;">
-                    <img src="Astramanga.png" style="height: 1.2em; border-radius: 4px; background: transparent;"> AstraManga
+                <button id="btnAstra" class="auth-platform-btn" onclick="selectPlatform('astra')"
+                    style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; padding: 10px; background: #313244; color: #cdd6f4; border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: inherit; font-family: inherit;">
+                    <img src="Astramanga.png" style="height: 1.2em; border-radius: 4px; background: transparent;">
+                    AstraManga
                 </button>
             </div>
 
@@ -1314,7 +1321,8 @@
                     <span id="rollbackHoursVal">0</span>
                 </div>
                 <input type="range" id="rollbackHours" min="0" max="24" value="0"
-                    oninput="document.getElementById('rollbackHoursVal').innerText = this.value; updateRollbackPreview()" style="cursor: pointer; accent-color: #a6e3a1; height: 6px;">
+                    oninput="document.getElementById('rollbackHoursVal').innerText = this.value; updateRollbackPreview()"
+                    style="cursor: pointer; accent-color: #a6e3a1; height: 6px;">
             </div>
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <div style="display: flex; justify-content: space-between; font-size: 12px; color: #6c7086;">
@@ -1322,7 +1330,8 @@
                     <span id="rollbackMinutesVal">5</span>
                 </div>
                 <input type="range" id="rollbackMinutes" min="0" max="59" value="5"
-                    oninput="document.getElementById('rollbackMinutesVal').innerText = this.value; updateRollbackPreview()" style="cursor: pointer; accent-color: #a6e3a1; height: 6px;">
+                    oninput="document.getElementById('rollbackMinutesVal').innerText = this.value; updateRollbackPreview()"
+                    style="cursor: pointer; accent-color: #a6e3a1; height: 6px;">
             </div>
         </div>
         <div style="display: flex; justify-content: center; font-weight: bold; margin-top: 10px;">
@@ -1345,13 +1354,15 @@
                     <div id="timelapseLoadingText">Загрузка истории...</div>
                 </div>
             </div>
-            <div id="timelapsePlayer" style="display:none; width:100%; display:none; flex-direction:column; align-items:center; gap:15px;">
+            <div id="timelapsePlayer"
+                style="display:none; width:100%; display:none; flex-direction:column; align-items:center; gap:15px;">
                 <div class="timelapse-canvas-wrap">
                     <canvas id="timelapseCanvas" width="500" height="500"></canvas>
                 </div>
                 <div class="timelapse-controls" style="display: flex; align-items: center; gap: 10px; width: 100%;">
                     <button class="timelapse-play-btn" id="timelapsePlayBtn" onclick="toggleTimelapsePlay()">▶</button>
-                    <input type="range" id="timelapseSlider" min="0" max="0" value="0" oninput="scrubTimelapse()" style="flex: 1;">
+                    <input type="range" id="timelapseSlider" min="0" max="0" value="0" oninput="scrubTimelapse()"
+                        style="flex: 1;">
                     <select class="timelapse-speed" id="timelapseSpeed" onchange="updateTimelapseSpeed()">
                         <option value="1">1x</option>
                         <option value="5">5x</option>
@@ -1366,35 +1377,48 @@
                     <div>🕐 <span id="timelapseTime">—</span></div>
                     <div>📊 <span id="timelapseProgress">0 / 0</span></div>
                 </div>
-                <div class="timelapse-download" style="margin-top: 10px; width: 100%; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #313244; padding-top: 10px;">
-                    <div style="font-weight: bold; font-size: 14px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <div class="timelapse-download"
+                    style="margin-top: 10px; width: 100%; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #313244; padding-top: 10px;">
+                    <div
+                        style="font-weight: bold; font-size: 14px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;">
                         Скачать таймлапс
-                        <label style="font-size: 12px; font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                        <label
+                            style="font-size: 12px; font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer;">
                             <input type="checkbox" id="tlRangeToggle" onchange="toggleDownloadRange()"> Выбрать период
                         </label>
                     </div>
                     <div id="tlDownloadControls" style="display: none; flex-direction: column; gap: 10px;">
-                        <div style="display: flex; gap: 15px; justify-content: center; font-size: 12px; color: #cdd6f4;">
+                        <div
+                            style="display: flex; gap: 15px; justify-content: center; font-size: 12px; color: #cdd6f4;">
                             <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
                                 <span>Начало: <span id="tlDownStartLabel" style="color: #a6e3a1;">—</span></span>
-                                <button onclick="setDownloadStart()" style="background: #313244; color: #a6e3a1; border: 1px solid #45475a; padding: 2px 10px; border-radius: 4px; cursor: pointer;">Взять текущее</button>
+                                <button onclick="setDownloadStart()"
+                                    style="background: #313244; color: #a6e3a1; border: 1px solid #45475a; padding: 2px 10px; border-radius: 4px; cursor: pointer;">Взять
+                                    текущее</button>
                             </div>
                             <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
                                 <span>Конец: <span id="tlDownEndLabel" style="color: #f38ba8;">—</span></span>
-                                <button onclick="setDownloadEnd()" style="background: #313244; color: #f38ba8; border: 1px solid #45475a; padding: 2px 10px; border-radius: 4px; cursor: pointer;">Взять текущее</button>
+                                <button onclick="setDownloadEnd()"
+                                    style="background: #313244; color: #f38ba8; border: 1px solid #45475a; padding: 2px 10px; border-radius: 4px; cursor: pointer;">Взять
+                                    текущее</button>
                             </div>
                         </div>
                         <div style="display: flex; gap: 10px; justify-content: center;">
-                            <select id="tlDownFormat" style="background: #11111b; color: #cdd6f4; border: 1px solid #45475a; padding: 5px; border-radius: 4px;">
+                            <select id="tlDownFormat"
+                                style="background: #11111b; color: #cdd6f4; border: 1px solid #45475a; padding: 5px; border-radius: 4px;">
                                 <option value="webp" selected>WebP (Анимация, идеальное качество)</option>
                                 <option value="video">Видео (MP4)</option>
                                 <option value="gif">GIF</option>
                             </select>
-                            <button onclick="downloadTimelapseBtn()" id="tlDownloadBtn" style="background: #a6e3a1; color: #11111b; border: none; padding: 5px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">Скачать</button>
+                            <button onclick="downloadTimelapseBtn()" id="tlDownloadBtn"
+                                style="background: #a6e3a1; color: #11111b; border: none; padding: 5px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">Скачать</button>
                         </div>
-                        <div id="tlDownloadProgress" style="display: none; width: 100%; text-align: center; font-size: 12px; margin-top: 5px;">
-                            <div style="width: 100%; background: #313244; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 5px;">
-                                <div id="tlDownloadProgressBar" style="width: 0%; height: 100%; background: #a6e3a1; transition: width 0.3s;"></div>
+                        <div id="tlDownloadProgress"
+                            style="display: none; width: 100%; text-align: center; font-size: 12px; margin-top: 5px;">
+                            <div
+                                style="width: 100%; background: #313244; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 5px;">
+                                <div id="tlDownloadProgressBar"
+                                    style="width: 0%; height: 100%; background: #a6e3a1; transition: width 0.3s;"></div>
                             </div>
                             <span id="tlDownloadProgressText" style="color: #cdd6f4;">Инициализация...</span>
                         </div>
@@ -1555,7 +1579,7 @@
                 let username = input;
                 const urlMatch = input.match(/users\/([^\/]+)/);
                 if (urlMatch) username = urlMatch[1];
-                
+
                 try {
                     if (!socket || socket.readyState !== WebSocket.OPEN) {
                         authError.innerText = "Нет подключения к серверу. Подождите...";
@@ -2723,10 +2747,10 @@
                 slider.max = timelapseEvents.length;
                 slider.value = 0;
                 timelapseCurrentIdx = 0;
-                
+
                 downloadStartIdx = 0;
                 downloadEndIdx = Math.max(0, timelapseEvents.length - 1);
-                
+
                 document.getElementById('tlRangeToggle').checked = false;
                 toggleDownloadRange();
 
@@ -2873,7 +2897,7 @@
         function toggleDownloadRange() {
             const isChecked = document.getElementById('tlRangeToggle').checked;
             const controls = document.getElementById('tlDownloadControls');
-            
+
             if (isChecked) {
                 controls.style.display = 'flex';
                 downloadStartIdx = timelapseCurrentIdx;
@@ -2918,14 +2942,14 @@
 
         function downloadTimelapseBtn() {
             if (timelapseEvents.length === 0) return;
-            
+
             const isChecked = document.getElementById('tlRangeToggle').checked;
             let startIdx = isChecked ? downloadStartIdx : 0;
             let endIdx = isChecked ? downloadEndIdx : Math.max(0, timelapseEvents.length - 1);
-            
+
             startIdx = Math.min(Math.max(0, startIdx), timelapseEvents.length - 1);
             endIdx = Math.min(Math.max(0, endIdx), timelapseEvents.length - 1);
-            
+
             const format = document.getElementById('tlDownFormat').value;
             const speed = document.getElementById('timelapseSpeed').value;
 
@@ -2944,73 +2968,73 @@
             const progressContainer = document.getElementById('tlDownloadProgress');
             const progressBar = document.getElementById('tlDownloadProgressBar');
             const progressText = document.getElementById('tlDownloadProgressText');
-            
-            if(btn) {
+
+            if (btn) {
                 btn.disabled = true;
                 btn.style.opacity = '0.5';
             }
-            if(progressContainer) progressContainer.style.display = 'block';
-            if(progressBar) progressBar.style.width = '0%';
-            if(progressText) progressText.innerText = 'Запуск задачи...';
-            
+            if (progressContainer) progressContainer.style.display = 'block';
+            if (progressBar) progressBar.style.width = '0%';
+            if (progressText) progressText.innerText = 'Запуск задачи...';
+
             fetch(startUrl, {
                 headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' }
             }).then(resp => resp.json()).then(data => {
                 if (data.error) throw new Error(data.error);
                 const taskId = data.task_id;
-                
+
                 const pollInterval = setInterval(() => {
                     const statusUrl = getApiUrl(atob('L2FwaS90aW1lbGFwc2Vfc3RhdHVzP3Rhc2tfaWQ9') + taskId);
                     fetch(statusUrl, { headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' } })
-                    .then(r => r.json())
-                    .then(statusData => {
-                        if (statusData.error) throw new Error(statusData.error);
-                        
-                        if (statusData.status === 'processing') {
-                            if(progressBar) progressBar.style.width = statusData.progress + '%';
-                            if(progressText) progressText.innerText = 'Генерация: ' + statusData.progress + '%';
-                        } else if (statusData.status === 'done') {
+                        .then(r => r.json())
+                        .then(statusData => {
+                            if (statusData.error) throw new Error(statusData.error);
+
+                            if (statusData.status === 'processing') {
+                                if (progressBar) progressBar.style.width = statusData.progress + '%';
+                                if (progressText) progressText.innerText = 'Генерация: ' + statusData.progress + '%';
+                            } else if (statusData.status === 'done') {
+                                clearInterval(pollInterval);
+                                if (progressBar) progressBar.style.width = '100%';
+                                if (progressText) progressText.innerText = 'Скачивание...';
+
+                                const downloadUrl = getApiUrl(atob('L2FwaS90aW1lbGFwc2VfZG93bmxvYWQ/dGFza19pZD0=') + taskId);
+                                fetch(downloadUrl, { headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' } })
+                                    .then(r => r.blob())
+                                    .then(blob => {
+                                        const blobUrl = window.URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = blobUrl;
+                                        let ext = format === 'video' ? 'mp4' : format;
+                                        a.download = 'timelapse.' + ext;
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        window.URL.revokeObjectURL(blobUrl);
+                                        document.body.removeChild(a);
+
+                                        setTimeout(() => {
+                                            if (btn) {
+                                                btn.disabled = false;
+                                                btn.style.opacity = '1';
+                                            }
+                                            if (progressContainer) progressContainer.style.display = 'none';
+                                        }, 1000);
+                                    });
+                            } else if (statusData.status === 'error') {
+                                throw new Error(statusData.error);
+                            }
+                        }).catch(err => {
                             clearInterval(pollInterval);
-                            if(progressBar) progressBar.style.width = '100%';
-                            if(progressText) progressText.innerText = 'Скачивание...';
-                            
-                            const downloadUrl = getApiUrl(atob('L2FwaS90aW1lbGFwc2VfZG93bmxvYWQ/dGFza19pZD0=') + taskId);
-                            fetch(downloadUrl, { headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' } })
-                            .then(r => r.blob())
-                            .then(blob => {
-                                const blobUrl = window.URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = blobUrl;
-                                let ext = format === 'video' ? 'mp4' : format;
-                                a.download = 'timelapse.' + ext;
-                                document.body.appendChild(a);
-                                a.click();
-                                window.URL.revokeObjectURL(blobUrl);
-                                document.body.removeChild(a);
-                                
-                                setTimeout(() => {
-                                    if(btn) {
-                                        btn.disabled = false;
-                                        btn.style.opacity = '1';
-                                    }
-                                    if(progressContainer) progressContainer.style.display = 'none';
-                                }, 1000);
-                            });
-                        } else if (statusData.status === 'error') {
-                            throw new Error(statusData.error);
-                        }
-                    }).catch(err => {
-                        clearInterval(pollInterval);
-                        showToast("Ошибка статуса: " + err.message);
-                        if(btn) { btn.disabled = false; btn.style.opacity = '1'; }
-                        if(progressContainer) progressContainer.style.display = 'none';
-                    });
+                            showToast("Ошибка статуса: " + err.message);
+                            if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+                            if (progressContainer) progressContainer.style.display = 'none';
+                        });
                 }, 1000);
-                
+
             }).catch(err => {
                 showToast("Ошибка запуска: " + err.message);
-                if(btn) { btn.disabled = false; btn.style.opacity = '1'; }
-                if(progressContainer) progressContainer.style.display = 'none';
+                if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+                if (progressContainer) progressContainer.style.display = 'none';
             });
         }
 
@@ -3018,16 +3042,16 @@
             if (!IS_MASTER) return;
             document.getElementById('onlineOverlay').style.display = 'flex';
             document.getElementById('onlineList').innerHTML = '<div style="text-align:center; padding:20px; color:#6c7086;">Загрузка...</div>';
-            
+
             const token = localStorage.getItem(atob('YWRtaW5Ub2tlbg==')) || '';
             try {
                 const resp = await fetch(getApiUrl(atob('L2FwaS9vbmxpbmU/dG9rZW49') + encodeURIComponent(token)), {
                     headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' }
                 });
                 const data = await resp.json();
-                
+
                 if (data.error) throw new Error(data.error);
-                
+
                 let html = '';
                 if (!data.users || data.users.length === 0) {
                     html = '<div style="text-align:center; padding:20px; color:#6c7086;">Никого нет онлайн.</div>';
@@ -3049,7 +3073,7 @@
                 document.getElementById('onlineList').innerHTML = `<div style="text-align:center; padding:20px; color:#f38ba8;">Ошибка: ${e.message}</div>`;
             }
         }
-        
+
         function closeOnlinePanel() {
             document.getElementById('onlineOverlay').style.display = 'none';
         }
@@ -3083,12 +3107,12 @@
                 item.className = 'stats-item';
                 item.style.display = 'flex';
                 item.style.alignItems = 'center';
-                
+
                 let iconHtml = '';
                 if (currentStatsTab === 'players') {
                     iconHtml = getUserIconHtml(entries[i][0]);
                 }
-                
+
                 item.innerHTML = `
                     <div class="stats-rank" style="color:#6c7086; width:30px; flex-shrink:0;">#${i + 1}</div>
                     <div class="stats-name" style="flex:1; text-align:left; white-space:normal; word-break:break-word; overflow-wrap:anywhere; min-width:0;">${iconHtml}${entries[i][0]}</div>
