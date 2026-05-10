@@ -737,10 +737,10 @@
 
         .stats-name {
             color: #cdd6f4;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 120px;
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            min-width: 0;
         }
 
         .stats-count {
@@ -3091,7 +3091,7 @@
                 
                 item.innerHTML = `
                     <div class="stats-rank" style="color:#6c7086; width:30px; flex-shrink:0;">#${i + 1}</div>
-                    <div class="stats-name" style="flex:1; text-align:left; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:none;">${iconHtml}${entries[i][0]}</div>
+                    <div class="stats-name" style="flex:1; text-align:left; white-space:normal; word-break:break-word; overflow-wrap:anywhere; min-width:0;">${iconHtml}${entries[i][0]}</div>
                     <div class="stats-count" style="flex-shrink:0; text-align:right; margin-left:10px;">${entries[i][1]}</div>
                 `;
                 list.appendChild(item);
