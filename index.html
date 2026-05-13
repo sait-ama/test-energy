@@ -64,6 +64,7 @@
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
             image-rendering: pixelated;
+            z-index: 1;
         }
 
         #highlightCanvas {
@@ -72,6 +73,8 @@
             left: 0;
             pointer-events: none;
             image-rendering: pixelated;
+            z-index: 2;
+            display: none;
         }
 
         #hoverCanvas {
@@ -80,6 +83,7 @@
             left: 0;
             pointer-events: none;
             image-rendering: pixelated;
+            z-index: 3;
         }
 
         .sidebar {
@@ -1593,28 +1597,34 @@
 
                 if (!name) {
                     hiCtx.clearRect(0, 0, 500, 500);
+                    highlightCanvas.style.display = 'none';
                     return;
                 }
 
-                hiCtx.fillStyle = '#ffffff';
-                hiCtx.fillRect(0, 0, 500, 500);
+                highlightCanvas.style.display = 'block';
+                const imgData = hiCtx.createImageData(500, 500);
+                const data = imgData.data;
 
                 for (let i = 0; i < 500 * 500; i++) {
                     const uidx = pixelOwners[i];
+                    let matches = false;
                     if (uidx > 0 && allUsernames[uidx - 1]) {
                         const uname = allUsernames[uidx - 1];
-                        let matches = false;
                         if (type === 'players' && uname === name) matches = true;
                         else if (type === 'guilds' && currentStats.user_guilds_map && currentStats.user_guilds_map[uname] === name) matches = true;
                         else if (type === 'constellations' && currentStats.user_constellations_map && currentStats.user_constellations_map[uname] && currentStats.user_constellations_map[uname].includes(name)) matches = true;
-                        
-                        if (matches) {
-                            const x = i % 500;
-                            const y = Math.floor(i / 500);
-                            hiCtx.clearRect(x, y, 1, 1);
-                        }
+                    }
+                    
+                    if (!matches) {
+                        data[i * 4] = 255;
+                        data[i * 4 + 1] = 255;
+                        data[i * 4 + 2] = 255;
+                        data[i * 4 + 3] = 240; // High opacity white
+                    } else {
+                        data[i * 4 + 3] = 0; // Fully transparent hole
                     }
                 }
+                hiCtx.putImageData(imgData, 0, 0);
             } catch (err) {
                 console.error("Ошибка подсветки:", err);
             }
