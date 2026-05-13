@@ -48,6 +48,7 @@
         }
 
         #pixelCanvas,
+        #highlightCanvas,
         #hoverCanvas {
             width: 100%;
             height: 100%;
@@ -62,6 +63,14 @@
             image-rendering: -moz-crisp-edges;
             image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
+            image-rendering: pixelated;
+        }
+
+        #highlightCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
             image-rendering: pixelated;
         }
 
@@ -729,6 +738,11 @@
             font-size: 12px;
             padding: 4px 8px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+        }
+        
+        .stats-item:hover {
+            background: rgba(255, 255, 255, 0.05);
         }
 
         .stats-item:last-child {
@@ -1084,6 +1098,35 @@
                 transform: rotate(360deg);
             }
         }
+        
+        .ticker-wrapper {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(17, 17, 27, 0.9);
+            color: #a6e3a1;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 8px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            z-index: 100;
+            border-top: 2px solid #313244;
+            display: flex;
+            align-items: center;
+        }
+
+        .ticker-content {
+            display: inline-block;
+            white-space: nowrap;
+            animation: ticker linear infinite;
+        }
+
+        @keyframes ticker {
+            0% { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
     </style>
 </head>
 
@@ -1091,6 +1134,7 @@
     <div class="canvas-container" id="container">
         <div class="canvas-wrapper" id="canvasWrapper">
             <canvas id="pixelCanvas" width="500" height="500"></canvas>
+            <canvas id="highlightCanvas" width="500" height="500"></canvas>
             <canvas id="hoverCanvas" width="500" height="500"></canvas>
         </div>
         <div class="minimap-wrapper" id="minimapWrapper">
@@ -1100,6 +1144,9 @@
         </div>
         <div id="onlineBadge" class="online-badge">👤 1</div>
         <div id="pixelTooltip"></div>
+        <div class="ticker-wrapper" id="tickerWrapper">
+            <div class="ticker-content" id="tickerContent"></div>
+        </div>
     </div>
     <div class="sidebar">
         <div class="sidebar-scroll-area">
@@ -1435,6 +1482,9 @@
         ctx.imageSmoothingEnabled = false;
         ctx.webkitImageSmoothingEnabled = false;
         ctx.mozImageSmoothingEnabled = false;
+        const highlightCanvas = document.getElementById('highlightCanvas');
+        const hiCtx = highlightCanvas.getContext('2d');
+        hiCtx.imageSmoothingEnabled = false;
         const hoverCanvas = document.getElementById('hoverCanvas');
         const hCtx = hoverCanvas.getContext('2d');
         hCtx.imageSmoothingEnabled = false;
@@ -1490,6 +1540,88 @@
         const pixelTooltip = document.getElementById('pixelTooltip');
         let tooltipPixel = null;
         let tooltipTimeout = null;
+
+        const tickerContent = document.getElementById('tickerContent');
+        let tickerQueue = [];
+        let isTickerRunning = false;
+
+        function addTickerEvents(events) {
+            if (!events || events.length === 0) return;
+            tickerQueue.push(...events);
+            if (!isTickerRunning) playNextTicker();
+        }
+
+        function playNextTicker() {
+            if (tickerQueue.length === 0) {
+                isTickerRunning = false;
+                tickerContent.style.animation = 'none';
+                tickerContent.innerText = '';
+                return;
+            }
+            isTickerRunning = true;
+            const text = tickerQueue.join('  •  ');
+            tickerQueue = [];
+            
+            tickerContent.innerText = text;
+            tickerContent.style.animation = 'none';
+            void tickerContent.offsetWidth; // Force reflow
+            
+            const duration = (tickerContent.offsetWidth + window.innerWidth) / 100;
+            tickerContent.style.animation = `ticker ${duration}s linear`;
+            
+            tickerContent.onanimationend = () => {
+                playNextTicker();
+            };
+        }
+
+        let highlightSticky = false;
+        let highlightCurrent = { type: null, name: null };
+
+        function applyHighlight(type, name, isClick = false) {
+            if (isClick) {
+                if (highlightSticky && highlightCurrent.type === type && highlightCurrent.name === name) {
+                    highlightSticky = false;
+                    name = null;
+                } else {
+                    highlightSticky = true;
+                }
+            } else {
+                if (highlightSticky) return;
+            }
+
+            highlightCurrent = { type, name };
+
+            if (!name) {
+                hiCtx.clearRect(0, 0, 500, 500);
+                return;
+            }
+
+            const imgData = ctx.getImageData(0, 0, 500, 500);
+            const data = imgData.data;
+
+            for (let i = 0; i < 500 * 500; i++) {
+                const uidx = pixelOwners[i];
+                let matches = false;
+                if (uidx > 0 && allUsernames[uidx - 1]) {
+                    const uname = allUsernames[uidx - 1];
+                    if (type === 'players') {
+                        if (uname === name) matches = true;
+                    } else if (type === 'guilds') {
+                        if (currentStats.user_guilds_map && currentStats.user_guilds_map[uname] === name) matches = true;
+                    } else if (type === 'constellations') {
+                        if (currentStats.user_constellations_map && currentStats.user_constellations_map[uname] && currentStats.user_constellations_map[uname].includes(name)) matches = true;
+                    }
+                }
+                
+                if (!matches) {
+                    data[i * 4] = 255;
+                    data[i * 4 + 1] = 255;
+                    data[i * 4 + 2] = 255;
+                    data[i * 4 + 3] = 255;
+                }
+            }
+            hiCtx.putImageData(imgData, 0, 0);
+        }
 
         function updateTooltipPosition() {
             if (!tooltipPixel) return;
@@ -2074,6 +2206,8 @@
                     if (data.usernames) allUsernames = data.usernames;
                     if (data.user_icons) userIcons = data.user_icons;
                     if (data.stats) updateStatsUI(data.stats);
+                    if (data.ticker_events) addTickerEvents(data.ticker_events);
+                    if (highlightCurrent.name) applyHighlight(highlightCurrent.type, highlightCurrent.name);
                     syncMinimap();
                 } else if (data.type === 'batch') {
                     data.pixels.forEach(p => {
@@ -2086,6 +2220,8 @@
                     if (data.usernames) allUsernames = data.usernames;
                     if (data.user_icons) userIcons = data.user_icons;
                     if (data.stats) updateStatsUI(data.stats);
+                    if (data.ticker_events) addTickerEvents(data.ticker_events);
+                    if (highlightCurrent.name) applyHighlight(highlightCurrent.type, highlightCurrent.name);
                     syncMinimap();
                 } else if (data.type === 'admin_status') {
                     IS_ADMIN = data.value;
@@ -3113,11 +3249,18 @@
                     iconHtml = getUserIconHtml(entries[i][0]);
                 }
 
+                item.style.cursor = 'pointer';
                 item.innerHTML = `
                     <div class="stats-rank" style="color:#6c7086; width:30px; flex-shrink:0;">#${i + 1}</div>
                     <div class="stats-name" style="flex:1; text-align:left; white-space:normal; word-break:break-word; overflow-wrap:anywhere; min-width:0;">${iconHtml}${entries[i][0]}</div>
                     <div class="stats-count" style="flex-shrink:0; text-align:right; margin-left:10px;">${entries[i][1]}</div>
                 `;
+                
+                const name = entries[i][0];
+                item.addEventListener('mouseenter', () => applyHighlight(currentStatsTab, name));
+                item.addEventListener('mouseleave', () => applyHighlight(null, null));
+                item.addEventListener('click', () => applyHighlight(currentStatsTab, name, true));
+                
                 list.appendChild(item);
             }
         }
