@@ -24,6 +24,14 @@
             width: 100vw;
         }
 
+        .main-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
         .canvas-container {
             flex: 1;
             background-color: #11111b;
@@ -1100,10 +1108,6 @@
         }
         
         .ticker-wrapper {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
             background: rgba(17, 17, 27, 0.9);
             color: #a6e3a1;
             font-size: 14px;
@@ -1115,6 +1119,8 @@
             border-top: 2px solid #313244;
             display: flex;
             align-items: center;
+            height: 35px;
+            flex-shrink: 0;
         }
 
         .ticker-content {
@@ -1131,19 +1137,21 @@
 </head>
 
 <body>
-    <div class="canvas-container" id="container">
-        <div class="canvas-wrapper" id="canvasWrapper">
-            <canvas id="pixelCanvas" width="500" height="500"></canvas>
-            <canvas id="highlightCanvas" width="500" height="500"></canvas>
-            <canvas id="hoverCanvas" width="500" height="500"></canvas>
+    <div class="main-column">
+        <div class="canvas-container" id="container">
+            <div class="canvas-wrapper" id="canvasWrapper">
+                <canvas id="pixelCanvas" width="500" height="500"></canvas>
+                <canvas id="highlightCanvas" width="500" height="500"></canvas>
+                <canvas id="hoverCanvas" width="500" height="500"></canvas>
+            </div>
+            <div class="minimap-wrapper" id="minimapWrapper">
+                <canvas id="minimapCanvas" width="150" height="150"
+                    style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;"></canvas>
+                <div class="minimap-viewport" id="minimapViewport"></div>
+            </div>
+            <div id="onlineBadge" class="online-badge">👤 1</div>
+            <div id="pixelTooltip"></div>
         </div>
-        <div class="minimap-wrapper" id="minimapWrapper">
-            <canvas id="minimapCanvas" width="150" height="150"
-                style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;"></canvas>
-            <div class="minimap-viewport" id="minimapViewport"></div>
-        </div>
-        <div id="onlineBadge" class="online-badge">👤 1</div>
-        <div id="pixelTooltip"></div>
         <div class="ticker-wrapper" id="tickerWrapper">
             <div class="ticker-content" id="tickerContent"></div>
         </div>
@@ -1578,49 +1586,54 @@
         let highlightCurrent = { type: null, name: null };
 
         function applyHighlight(type, name, isClick = false) {
-            if (isClick) {
-                if (highlightSticky && highlightCurrent.type === type && highlightCurrent.name === name) {
-                    highlightSticky = false;
-                    name = null;
+            try {
+                if (isClick) {
+                    if (highlightSticky && highlightCurrent.type === type && highlightCurrent.name === name) {
+                        highlightSticky = false;
+                        name = null;
+                    } else {
+                        highlightSticky = true;
+                    }
                 } else {
-                    highlightSticky = true;
+                    if (highlightSticky) return;
                 }
-            } else {
-                if (highlightSticky) return;
-            }
 
-            highlightCurrent = { type, name };
+                highlightCurrent = { type, name };
 
-            if (!name) {
-                hiCtx.clearRect(0, 0, 500, 500);
-                return;
-            }
+                if (!name) {
+                    hiCtx.clearRect(0, 0, 500, 500);
+                    return;
+                }
 
-            const imgData = ctx.getImageData(0, 0, 500, 500);
-            const data = imgData.data;
+                const imgData = ctx.getImageData(0, 0, 500, 500);
+                const data = imgData.data;
 
-            for (let i = 0; i < 500 * 500; i++) {
-                const uidx = pixelOwners[i];
-                let matches = false;
-                if (uidx > 0 && allUsernames[uidx - 1]) {
-                    const uname = allUsernames[uidx - 1];
-                    if (type === 'players') {
-                        if (uname === name) matches = true;
-                    } else if (type === 'guilds') {
-                        if (currentStats.user_guilds_map && currentStats.user_guilds_map[uname] === name) matches = true;
-                    } else if (type === 'constellations') {
-                        if (currentStats.user_constellations_map && currentStats.user_constellations_map[uname] && currentStats.user_constellations_map[uname].includes(name)) matches = true;
+                for (let i = 0; i < 500 * 500; i++) {
+                    const uidx = pixelOwners[i];
+                    let matches = false;
+                    if (uidx > 0 && allUsernames[uidx - 1]) {
+                        const uname = allUsernames[uidx - 1];
+                        if (type === 'players') {
+                            if (uname === name) matches = true;
+                        } else if (type === 'guilds') {
+                            if (currentStats.user_guilds_map && currentStats.user_guilds_map[uname] === name) matches = true;
+                        } else if (type === 'constellations') {
+                            if (currentStats.user_constellations_map && currentStats.user_constellations_map[uname] && currentStats.user_constellations_map[uname].includes(name)) matches = true;
+                        }
+                    }
+                    
+                    if (!matches) {
+                        data[i * 4] = 255;
+                        data[i * 4 + 1] = 255;
+                        data[i * 4 + 2] = 255;
+                        data[i * 4 + 3] = 255;
                     }
                 }
-                
-                if (!matches) {
-                    data[i * 4] = 255;
-                    data[i * 4 + 1] = 255;
-                    data[i * 4 + 2] = 255;
-                    data[i * 4 + 3] = 255;
-                }
+                hiCtx.putImageData(imgData, 0, 0);
+            } catch (err) {
+                console.error("Ошибка подсветки:", err);
+                if (typeof showToast === 'function') showToast("Ошибка подсветки: " + err.message);
             }
-            hiCtx.putImageData(imgData, 0, 0);
         }
 
         function updateTooltipPosition() {
