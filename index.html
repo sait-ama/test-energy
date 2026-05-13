@@ -24,14 +24,6 @@
             width: 100vw;
         }
 
-        .main-column {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
-        }
-
         .canvas-container {
             flex: 1;
             background-color: #11111b;
@@ -1108,19 +1100,17 @@
         }
         
         .ticker-wrapper {
-            background: rgba(17, 17, 27, 0.9);
+            position: absolute;
+            height: 24px;
+            background: rgba(17, 17, 27, 0.85);
             color: #a6e3a1;
             font-size: 14px;
             font-weight: bold;
-            padding: 8px 0;
-            overflow: hidden;
-            white-space: nowrap;
-            z-index: 100;
-            border-top: 2px solid #313244;
             display: flex;
             align-items: center;
-            height: 35px;
-            flex-shrink: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 100;
         }
 
         .ticker-content {
@@ -1137,21 +1127,19 @@
 </head>
 
 <body>
-    <div class="main-column">
-        <div class="canvas-container" id="container">
-            <div class="canvas-wrapper" id="canvasWrapper">
-                <canvas id="pixelCanvas" width="500" height="500"></canvas>
-                <canvas id="highlightCanvas" width="500" height="500"></canvas>
-                <canvas id="hoverCanvas" width="500" height="500"></canvas>
-            </div>
-            <div class="minimap-wrapper" id="minimapWrapper">
-                <canvas id="minimapCanvas" width="150" height="150"
-                    style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;"></canvas>
-                <div class="minimap-viewport" id="minimapViewport"></div>
-            </div>
-            <div id="onlineBadge" class="online-badge">👤 1</div>
-            <div id="pixelTooltip"></div>
+    <div class="canvas-container" id="container">
+        <div class="canvas-wrapper" id="canvasWrapper">
+            <canvas id="pixelCanvas" width="500" height="500"></canvas>
+            <canvas id="highlightCanvas" width="500" height="500"></canvas>
+            <canvas id="hoverCanvas" width="500" height="500"></canvas>
         </div>
+        <div class="minimap-wrapper" id="minimapWrapper">
+            <canvas id="minimapCanvas" width="150" height="150"
+                style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;"></canvas>
+            <div class="minimap-viewport" id="minimapViewport"></div>
+        </div>
+        <div id="onlineBadge" class="online-badge">👤 1</div>
+        <div id="pixelTooltip"></div>
         <div class="ticker-wrapper" id="tickerWrapper">
             <div class="ticker-content" id="tickerContent"></div>
         </div>
@@ -1585,17 +1573,20 @@
         let highlightSticky = false;
         let highlightCurrent = { type: null, name: null };
 
-        function applyHighlight(type, name, isClick = false) {
+        function applyHighlight(type, name, isClick = false, forceUpdate = false) {
             try {
-                if (isClick) {
-                    if (highlightSticky && highlightCurrent.type === type && highlightCurrent.name === name) {
-                        highlightSticky = false;
-                        name = null;
+                if (!forceUpdate) {
+                    if (isClick) {
+                        if (highlightSticky && highlightCurrent.type === type && highlightCurrent.name === name) {
+                            highlightSticky = false;
+                            name = null;
+                        } else {
+                            highlightSticky = true;
+                        }
                     } else {
-                        highlightSticky = true;
+                        if (highlightSticky && highlightCurrent.name === name) return;
+                        if (highlightSticky && name === null) return;
                     }
-                } else {
-                    if (highlightSticky) return;
                 }
 
                 highlightCurrent = { type, name };
@@ -1605,34 +1596,27 @@
                     return;
                 }
 
-                const imgData = ctx.getImageData(0, 0, 500, 500);
-                const data = imgData.data;
+                hiCtx.fillStyle = '#ffffff';
+                hiCtx.fillRect(0, 0, 500, 500);
 
                 for (let i = 0; i < 500 * 500; i++) {
                     const uidx = pixelOwners[i];
-                    let matches = false;
                     if (uidx > 0 && allUsernames[uidx - 1]) {
                         const uname = allUsernames[uidx - 1];
-                        if (type === 'players') {
-                            if (uname === name) matches = true;
-                        } else if (type === 'guilds') {
-                            if (currentStats.user_guilds_map && currentStats.user_guilds_map[uname] === name) matches = true;
-                        } else if (type === 'constellations') {
-                            if (currentStats.user_constellations_map && currentStats.user_constellations_map[uname] && currentStats.user_constellations_map[uname].includes(name)) matches = true;
+                        let matches = false;
+                        if (type === 'players' && uname === name) matches = true;
+                        else if (type === 'guilds' && currentStats.user_guilds_map && currentStats.user_guilds_map[uname] === name) matches = true;
+                        else if (type === 'constellations' && currentStats.user_constellations_map && currentStats.user_constellations_map[uname] && currentStats.user_constellations_map[uname].includes(name)) matches = true;
+                        
+                        if (matches) {
+                            const x = i % 500;
+                            const y = Math.floor(i / 500);
+                            hiCtx.clearRect(x, y, 1, 1);
                         }
                     }
-                    
-                    if (!matches) {
-                        data[i * 4] = 255;
-                        data[i * 4 + 1] = 255;
-                        data[i * 4 + 2] = 255;
-                        data[i * 4 + 3] = 255;
-                    }
                 }
-                hiCtx.putImageData(imgData, 0, 0);
             } catch (err) {
                 console.error("Ошибка подсветки:", err);
-                if (typeof showToast === 'function') showToast("Ошибка подсветки: " + err.message);
             }
         }
 
@@ -2220,7 +2204,7 @@
                     if (data.user_icons) userIcons = data.user_icons;
                     if (data.stats) updateStatsUI(data.stats);
                     if (data.ticker_events) addTickerEvents(data.ticker_events);
-                    if (highlightCurrent.name) applyHighlight(highlightCurrent.type, highlightCurrent.name);
+                    if (highlightCurrent.name) applyHighlight(highlightCurrent.type, highlightCurrent.name, false, true);
                     syncMinimap();
                 } else if (data.type === 'batch') {
                     data.pixels.forEach(p => {
@@ -2234,7 +2218,7 @@
                     if (data.user_icons) userIcons = data.user_icons;
                     if (data.stats) updateStatsUI(data.stats);
                     if (data.ticker_events) addTickerEvents(data.ticker_events);
-                    if (highlightCurrent.name) applyHighlight(highlightCurrent.type, highlightCurrent.name);
+                    if (highlightCurrent.name) applyHighlight(highlightCurrent.type, highlightCurrent.name, false, true);
                     syncMinimap();
                 } else if (data.type === 'admin_status') {
                     IS_ADMIN = data.value;
@@ -2395,6 +2379,14 @@
             canvasWrapper.style.top = panY + 'px';
             canvasWrapper.style.width = (500 * scale) + 'px';
             canvasWrapper.style.height = (500 * scale) + 'px';
+            
+            const tickerWrapper = document.getElementById('tickerWrapper');
+            if (tickerWrapper) {
+                tickerWrapper.style.left = panX + 'px';
+                tickerWrapper.style.top = (panY + 500 * scale) + 'px';
+                tickerWrapper.style.width = (500 * scale) + 'px';
+            }
+
             const visibleW_pct = (container.clientWidth / scale) / 500 * 100;
             const visibleH_pct = (container.clientHeight / scale) / 500 * 100;
             const startX_pct = (-panX / scale) / 500 * 100;
