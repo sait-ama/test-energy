@@ -306,7 +306,7 @@
             font-size: 11.5px;
             font-weight: bold;
             z-index: 50;
-            pointer-events: none;
+            cursor: pointer;
             border: 1px solid rgba(166, 227, 161, 0.3);
             backdrop-filter: blur(4px);
             text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
@@ -744,7 +744,7 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             transition: background 0.2s;
         }
-        
+
         .stats-item:hover {
             background: rgba(255, 255, 255, 0.05);
         }
@@ -1102,7 +1102,7 @@
                 transform: rotate(360deg);
             }
         }
-        
+
         .ticker-wrapper {
             position: absolute;
             height: 24px;
@@ -1124,8 +1124,13 @@
         }
 
         @keyframes ticker {
-            0% { transform: translateX(100vw); }
-            100% { transform: translateX(-100%); }
+            0% {
+                transform: translateX(100vw);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
         }
     </style>
 </head>
@@ -1142,7 +1147,7 @@
                 style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;"></canvas>
             <div class="minimap-viewport" id="minimapViewport"></div>
         </div>
-        <div id="onlineBadge" class="online-badge">👤 1</div>
+        <div id="onlineBadge" class="online-badge" onclick="openOnlinePanel()">👤 1</div>
         <div id="pixelTooltip"></div>
         <div class="ticker-wrapper" id="tickerWrapper">
             <div class="ticker-content" id="tickerContent"></div>
@@ -1195,54 +1200,36 @@
                     style="width: 100%; background: #cba6f7; color: #11111b; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">📹
                     Таймлапс полотна</button>
             </div>
-            <div class="master-only" style="width: 100%; margin-top: 5px;">
-                <button onclick="openOnlinePanel()"
-                    style="width: 100%; background: #a6e3a1; color: #11111b; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">🟢
-                    Онлайн пользователи</button>
-            </div>
+
             <div class="palette" id="palette">
-                <!-- Grays -->
                 <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
                 <div class="color-btn" style="background-color: #646464;" data-color="#646464"></div>
                 <div class="color-btn" style="background-color: #828282;" data-color="#828282"></div>
                 <div class="color-btn" style="background-color: #ffffff; border: 1px solid #cdd6f4;"
                     data-color="#ffffff"></div>
 
-                <!-- Browns -->
                 <div class="color-btn" style="background-color: #8b4513;" data-color="#8b4513"></div>
                 <div class="color-btn" style="background-color: #d2b48c;" data-color="#d2b48c"></div>
                 <div class="color-btn" style="background-color: #f5deb3;" data-color="#f5deb3"></div>
-
-                <!-- Reds/Pinks -->
                 <div class="color-btn" style="background-color: #ff0000;" data-color="#ff0000"></div>
                 <div class="color-btn" style="background-color: #dc6464;" data-color="#dc6464"></div>
                 <div class="color-btn" style="background-color: #ff6347;" data-color="#ff6347"></div>
                 <div class="color-btn" style="background-color: #ffb6c1;" data-color="#ffb6c1"></div>
                 <div class="color-btn" style="background-color: #ffc0cb;" data-color="#ffc0cb"></div>
                 <div class="color-btn" style="background-color: #cc9999;" data-color="#cc9999"></div>
-
-                <!-- Oranges -->
                 <div class="color-btn" style="background-color: #ff4500;" data-color="#ff4500"></div>
                 <div class="color-btn" style="background-color: #ff8c00;" data-color="#ff8c00"></div>
                 <div class="color-btn" style="background-color: #ff8800;" data-color="#ff8800"></div>
                 <div class="color-btn" style="background-color: #ffa500;" data-color="#ffa500"></div>
-
-                <!-- Yellows -->
                 <div class="color-btn" style="background-color: #ffd700;" data-color="#ffd700"></div>
                 <div class="color-btn" style="background-color: #ffff00;" data-color="#ffff00"></div>
-
-                <!-- Greens -->
                 <div class="color-btn" style="background-color: #006400;" data-color="#006400"></div>
                 <div class="color-btn" style="background-color: #00ff00;" data-color="#00ff00"></div>
-
-                <!-- Blues/Cyans -->
                 <div class="color-btn" style="background-color: #00ffff;" data-color="#00ffff"></div>
                 <div class="color-btn" style="background-color: #0000cd;" data-color="#0000cd"></div>
                 <div class="color-btn" style="background-color: #0000ff;" data-color="#0000ff"></div>
                 <div class="color-btn" style="background-color: #00008b;" data-color="#00008b"></div>
                 <div class="color-btn" style="background-color: #000080;" data-color="#000080"></div>
-
-                <!-- Purples -->
                 <div class="color-btn" style="background-color: #4b0082;" data-color="#4b0082"></div>
                 <div class="color-btn" style="background-color: #8a2be2;" data-color="#8a2be2"></div>
                 <div class="color-btn" style="background-color: #9966cc;" data-color="#9966cc"></div>
@@ -1561,14 +1548,14 @@
             isTickerRunning = true;
             const text = tickerQueue.join('  •  ');
             tickerQueue = [];
-            
+
             tickerContent.innerText = text;
             tickerContent.style.animation = 'none';
-            void tickerContent.offsetWidth; // Force reflow
-            
+            void tickerContent.offsetWidth;
+
             const duration = (tickerContent.offsetWidth + window.innerWidth) / 100;
             tickerContent.style.animation = `ticker ${duration}s linear`;
-            
+
             tickerContent.onanimationend = () => {
                 playNextTicker();
             };
@@ -1614,14 +1601,14 @@
                         else if (type === 'guilds' && currentStats.user_guilds_map && currentStats.user_guilds_map[uname] === name) matches = true;
                         else if (type === 'constellations' && currentStats.user_constellations_map && currentStats.user_constellations_map[uname] && currentStats.user_constellations_map[uname].includes(name)) matches = true;
                     }
-                    
+
                     if (!matches) {
                         data[i * 4] = 255;
                         data[i * 4 + 1] = 255;
                         data[i * 4 + 2] = 255;
-                        data[i * 4 + 3] = 240; // High opacity white
+                        data[i * 4 + 3] = 240;
                     } else {
-                        data[i * 4 + 3] = 0; // Fully transparent hole
+                        data[i * 4 + 3] = 0;
                     }
                 }
                 hiCtx.putImageData(imgData, 0, 0);
@@ -2389,7 +2376,7 @@
             canvasWrapper.style.top = panY + 'px';
             canvasWrapper.style.width = (500 * scale) + 'px';
             canvasWrapper.style.height = (500 * scale) + 'px';
-            
+
             const tickerWrapper = document.getElementById('tickerWrapper');
             if (tickerWrapper) {
                 tickerWrapper.style.left = panX + 'px';
@@ -3190,7 +3177,6 @@
         }
 
         async function openOnlinePanel() {
-            if (!IS_MASTER) return;
             document.getElementById('onlineOverlay').style.display = 'flex';
             document.getElementById('onlineList').innerHTML = '<div style="text-align:center; padding:20px; color:#6c7086;">Загрузка...</div>';
 
@@ -3270,12 +3256,12 @@
                     <div class="stats-name" style="flex:1; text-align:left; white-space:normal; word-break:break-word; overflow-wrap:anywhere; min-width:0;">${iconHtml}${entries[i][0]}</div>
                     <div class="stats-count" style="flex-shrink:0; text-align:right; margin-left:10px;">${entries[i][1]}</div>
                 `;
-                
+
                 const name = entries[i][0];
                 item.addEventListener('mouseenter', () => applyHighlight(currentStatsTab, name));
                 item.addEventListener('mouseleave', () => applyHighlight(null, null));
                 item.addEventListener('click', () => applyHighlight(currentStatsTab, name, true));
-                
+
                 list.appendChild(item);
             }
         }
