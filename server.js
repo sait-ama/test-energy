@@ -4,8 +4,30 @@ import http from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
 import fetch from 'node-fetch';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
 import { initDb, runQuery, getQuery, allQuery } from './db.js';
 import { startGuildScanner, runGuildScan } from './scanner.js';
+
+try {
+  const envPath = path.resolve(process.cwd(), '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf-8');
+    envContent.split(/\r?\n/).forEach(line => {
+      const parts = line.split('=');
+      if (parts.length >= 2) {
+        const key = parts[0].trim();
+        const value = parts.slice(1).join('=').trim().replace(/^['"]|['"]$/g, '');
+        if (key && !key.startsWith('#')) {
+          process.env[key] = value;
+        }
+      }
+    });
+  }
+} catch (e) {
+  console.error(e);
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -99,6 +121,79 @@ io.on('connection', (socket) => {
       await broadcastPlayersList();
     }
   });
+});
+
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+const TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || '';
+
+function verifyTelegramAuth(data, botToken) {
+  if (!botToken) {
+    return true;
+  }
+  const { hash, ...userData } = data;
+  const dataCheckString = Object.keys(userData)
+    .sort()
+    .map(key => `${key}=${userData[key]}`)
+    .join('\n');
+  
+  const secretKey = crypto.createHash('sha256').update(botToken).digest();
+  const calculatedHash = crypto.createHmac('sha256', secretKey)
+    .update(dataCheckString)
+    .digest('hex');
+    
+  return calculatedHash === hash;
+}
+
+app.get('/api/config/telegram', (req, res) => {
+  res.json({ botUsername: TELEGRAM_BOT_USERNAME });
+});
+
+app.post('/api/auth/telegram', async (req, res) => {
+  const userData = req.body;
+  const { id, first_name, username } = userData;
+  
+  if (!id || !first_name) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+  
+  const isValid = verifyTelegramAuth(userData, TELEGRAM_BOT_TOKEN);
+  if (!isValid) {
+    return res.status(401).json({ error: 'Invalid hash signature' });
+  }
+  
+  const tg_id = String(id);
+  
+  try {
+    let user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
+    const isOwner = (username && username.toLowerCase() === 'saitama01010');
+    
+    if (!user) {
+      const isFirst = (await getQuery('SELECT COUNT(*) as count FROM users')).count === 0;
+      const isAdmin = (isFirst || isOwner) ? 1 : 0;
+      
+      await runQuery(
+        'INSERT INTO users (tg_id, tg_username, tg_first_name, is_admin) VALUES (?, ?, ?, ?)',
+        [tg_id, username || '', first_name, isAdmin]
+      );
+      user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
+      
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [user.id, 'registration', 'Регистрация на сайте через Telegram', new Date().toISOString()]
+      );
+    } else {
+      if (isOwner && !user.is_admin) {
+        await runQuery('UPDATE users SET is_admin = 1, tg_username = ?, tg_first_name = ? WHERE id = ?', [username || '', first_name, user.id]);
+      } else {
+        await runQuery('UPDATE users SET tg_username = ?, tg_first_name = ? WHERE id = ?', [username || '', first_name, user.id]);
+      }
+      user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
+    }
+    
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/auth/telegram-demo', async (req, res) => {

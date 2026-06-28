@@ -454,6 +454,22 @@ function initAuth() {
     checkOnboardingStage(null);
   }
 
+  loadTelegramWidget();
+
+  const toggleBtn = document.getElementById('toggle-demo-btn');
+  const demoFields = document.getElementById('demo-auth-fields');
+  if (toggleBtn && demoFields) {
+    toggleBtn.addEventListener('click', () => {
+      if (demoFields.style.display === 'none') {
+        demoFields.style.display = 'flex';
+        toggleBtn.textContent = 'Скрыть демо-режим';
+      } else {
+        demoFields.style.display = 'none';
+        toggleBtn.textContent = 'Войти в демо-режиме (для тестирования)';
+      }
+    });
+  }
+
   document.getElementById('auth-btn').addEventListener('click', async () => {
     const tgId = document.getElementById('tg-id-input').value.trim();
     const username = document.getElementById('tg-username-input').value.trim();
@@ -492,6 +508,53 @@ function initAuth() {
     location.reload();
   });
 }
+
+async function loadTelegramWidget() {
+  try {
+    const res = await fetch('/api/config/telegram');
+    const config = await res.json();
+    if (!config || !config.botUsername) {
+      return;
+    }
+    const container = document.getElementById('telegram-login-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    const script = document.createElement('script');
+    script.async = true;
+    script.src = 'https://telegram.org/js/telegram-widget.js?22';
+    script.setAttribute('data-telegram-login', config.botUsername);
+    script.setAttribute('data-size', 'large');
+    script.setAttribute('data-userpic', 'false');
+    script.setAttribute('data-onauth', 'onTelegramAuth(user)');
+    script.setAttribute('data-request-access', 'write');
+    container.appendChild(script);
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+window.onTelegramAuth = async function (user) {
+  try {
+    const res = await fetch('/api/auth/telegram', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(user)
+    });
+
+    if (!res.ok) {
+      const errData = await res.json();
+      throw new Error(errData.error || 'Ошибка авторизации через Telegram');
+    }
+
+    const data = await res.json();
+    state.user = data.user;
+    localStorage.setItem('ew_event_user', JSON.stringify(data.user));
+    checkOnboardingStage(state.user);
+  } catch (err) {
+    showNotification(err.message, 'error');
+  }
+};
 
 function showWizardStep(stepNumber) {
   const step1 = document.getElementById('creator-step-1');
