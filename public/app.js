@@ -56,6 +56,18 @@ window.fetch = function (url, options) {
   if (typeof url === 'string' && url.startsWith('/api/')) {
     const API_BASE = backendUrl || '';
     url = API_BASE + url;
+
+    if (API_BASE.includes('ngrok')) {
+      options = options || {};
+      options.headers = options.headers || {};
+      if (options.headers instanceof Headers) {
+        options.headers.set('ngrok-skip-browser-warning', 'true');
+      } else if (Array.isArray(options.headers)) {
+        options.headers.push(['ngrok-skip-browser-warning', 'true']);
+      } else {
+        options.headers['ngrok-skip-browser-warning'] = 'true';
+      }
+    }
   }
   return originalFetch(url, options);
 };
@@ -725,11 +737,14 @@ function performSelfMovement(moveData) {
 }
 
 function initSocket() {
-  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
-  const socketUrl = (isLocal && window.location.port !== '3000')
-    ? 'http://localhost:3000'
-    : undefined;
-  state.socket = io(socketUrl);
+  const socketUrl = backendUrl || undefined;
+  const options = {};
+  if (socketUrl && socketUrl.includes('ngrok')) {
+    options.extraHeaders = {
+      "ngrok-skip-browser-warning": "true"
+    };
+  }
+  state.socket = io(socketUrl, options);
   state.socket.emit('authenticate', { userId: state.user.id });
 
   state.socket.on('players_list', (list) => {
