@@ -12,13 +12,53 @@ function formatDateTime(isoString) {
   return new Date(isoString).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) + ' (МСК)';
 }
 
+let backendUrl = '';
+
+async function resolveBackendUrl() {
+  const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  if (isLocalhost && window.location.port === '3000') {
+    backendUrl = '';
+    return;
+  }
+
+  const cached = localStorage.getItem('ew_backend_url');
+  if (cached) {
+    backendUrl = cached;
+  }
+
+  try {
+    const botPageUrl = 'https://t.me/quest_ewbot';
+    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(botPageUrl)}`;
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+    const res = await fetch(proxyUrl, { signal: controller.signal });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const html = await res.text();
+      const match = html.match(/property="og:description"\s+content="(https?:\/\/[^"]+ngrok[^"]+)"/i) 
+                 || html.match(/content="(https?:\/\/[a-z0-9.-]+\.ngrok-free\.app)/i);
+      
+      if (match && match[1]) {
+        const newUrl = match[1].trim();
+        if (newUrl !== backendUrl) {
+          backendUrl = newUrl;
+          localStorage.setItem('ew_backend_url', backendUrl);
+          console.log('Backend URL dynamically resolved from Telegram:', backendUrl);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Не удалось обновить адрес бэкенда через Telegram:', err);
+  }
+}
+
 const originalFetch = window.fetch;
 window.fetch = function (url, options) {
   if (typeof url === 'string' && url.startsWith('/api/')) {
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
-    const API_BASE = (isLocal && window.location.port !== '3000')
-      ? 'http://localhost:3000'
-      : '';
+    const API_BASE = backendUrl || '';
     url = API_BASE + url;
   }
   return originalFetch(url, options);
@@ -428,7 +468,8 @@ function buildBoardPaths() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await resolveBackendUrl();
   initAuth();
   setupUI();
   setupAdminTabs();
