@@ -1,0 +1,1313 @@
+process.env.TZ = 'Europe/Moscow';
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import cors from 'cors';
+import fetch from 'node-fetch';
+import { initDb, runQuery, getQuery, allQuery } from './db.js';
+import { startGuildScanner, runGuildScan } from './scanner.js';
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+
+const onlineUsers = new Map();
+
+async function broadcastPlayersList() {
+  try {
+    const users = await allQuery('SELECT id, tg_username, tg_first_name, remanga_username, remanga_avatar, current_cell, character_data, wins FROM users');
+    const effects = await allQuery('SELECT * FROM active_effects');
+    const now = new Date();
+
+    const expired = effects.filter(e => new Date(e.expires_at) <= now);
+    for (const e of expired) {
+      await runQuery('DELETE FROM active_effects WHERE id = ?', [e.id]);
+    }
+
+    const activeEffects = effects.filter(e => new Date(e.expires_at) > now);
+
+    const playersList = users.map(user => {
+      let parsedChar = null;
+      try {
+        parsedChar = user.character_data ? JSON.parse(user.character_data) : null;
+      } catch (e) {}
+      
+      const userEffects = activeEffects.filter(e => e.target_user_id === user.id);
+
+      return {
+        id: user.id,
+        tg_username: user.tg_username,
+        tg_first_name: user.tg_first_name,
+        remanga_username: user.remanga_username,
+        remanga_avatar: user.remanga_avatar,
+        current_cell: user.current_cell,
+        character_data: parsedChar,
+        isOnline: onlineUsers.has(String(user.id)),
+        effects: userEffects.map(e => ({ type: e.type, name: e.name, expires_at: e.expires_at }))
+      };
+    });
+
+    io.emit('players_list', playersList);
+  } catch (err) {
+  }
+}
+
+async function broadcastCells() {
+  try {
+    const cells = await allQuery('SELECT * FROM cells ORDER BY cell_number ASC');
+    io.emit('cells_update', cells);
+  } catch (err) {
+  }
+}
+
+io.on('connection', (socket) => {
+  let userId = null;
+
+  socket.on('authenticate', async (data) => {
+    if (!data || !data.userId) return;
+    userId = data.userId;
+    socket.join(`user_${userId}`);
+    
+    const user = await getQuery('SELECT id, tg_username, tg_first_name, remanga_username, remanga_avatar, current_cell, character_data FROM users WHERE id = ?', [userId]);
+    if (user) {
+      onlineUsers.set(String(userId), {
+        id: user.id,
+        tg_username: user.tg_username,
+        tg_first_name: user.tg_first_name,
+        remanga_username: user.remanga_username,
+        remanga_avatar: user.remanga_avatar,
+        current_cell: user.current_cell,
+        character_data: user.character_data ? JSON.parse(user.character_data) : null,
+        socketId: socket.id
+      });
+      await broadcastPlayersList();
+    }
+  });
+
+  socket.on('disconnect', async () => {
+    if (userId) {
+      onlineUsers.delete(String(userId));
+      await broadcastPlayersList();
+    }
+  });
+});
+
+app.post('/api/auth/telegram-demo', async (req, res) => {
+  const { tg_id, username, first_name } = req.body;
+  if (!tg_id || !first_name) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  try {
+    let user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
+    const isOwner = (username && username.toLowerCase() === 'saitama01010');
+    
+    if (!user) {
+      const isFirst = (await getQuery('SELECT COUNT(*) as count FROM users')).count === 0;
+      const isAdmin = (isFirst || isOwner) ? 1 : 0;
+
+      await runQuery(
+        'INSERT INTO users (tg_id, tg_username, tg_first_name, is_admin) VALUES (?, ?, ?, ?)',
+        [tg_id, username || '', first_name, isAdmin]
+      );
+      user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
+      
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [user.id, 'registration', 'Регистрация на сайте', new Date().toISOString()]
+      );
+    } else {
+      if (isOwner && !user.is_admin) {
+        await runQuery('UPDATE users SET is_admin = 1, tg_username = ? WHERE id = ?', [username || '', user.id]);
+        user = await getQuery('SELECT * FROM users WHERE id = ?', [user.id]);
+      } else if (username && username !== user.tg_username) {
+        await runQuery('UPDATE users SET tg_username = ? WHERE id = ?', [username, user.id]);
+        user = await getQuery('SELECT * FROM users WHERE id = ?', [user.id]);
+      }
+    }
+
+    res.json({
+      user: {
+        ...user,
+        character_data: user.character_data ? JSON.parse(user.character_data) : null
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/profile/:id', async (req, res) => {
+  try {
+    let user = await getQuery('SELECT * FROM users WHERE id = ?', [req.params.id]);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.tg_username && user.tg_username.toLowerCase() === 'saitama01010' && !user.is_admin) {
+      await runQuery('UPDATE users SET is_admin = 1 WHERE id = ?', [user.id]);
+      user = await getQuery('SELECT * FROM users WHERE id = ?', [user.id]);
+    }
+
+    const inventory = await allQuery('SELECT * FROM inventory WHERE user_id = ?', [user.id]);
+    const activeEffects = await allQuery('SELECT * FROM active_effects WHERE target_user_id = ?', [user.id]);
+    const history = await allQuery('SELECT * FROM history WHERE user_id = ? ORDER BY id DESC LIMIT 50', [user.id]);
+
+    res.json({
+      user: {
+        ...user,
+        character_data: user.character_data ? JSON.parse(user.character_data) : null
+      },
+      inventory,
+      activeEffects,
+      history
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/profile/link-remanga', async (req, res) => {
+  const { userId, remangaUrl } = req.body;
+  if (!userId || !remangaUrl) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  const match = remangaUrl.match(/user\/(\d+)/);
+  if (!match) {
+    return res.status(400).json({ error: 'Неверный формат ссылки. Ссылка должна быть вида https://remanga.org/user/12762/about' });
+  }
+
+  const remUserId = parseInt(match[1]);
+
+  try {
+    const checkDup = await getQuery('SELECT id FROM users WHERE remanga_user_id = ? AND id != ?', [remUserId, userId]);
+    if (checkDup) {
+      return res.status(400).json({ error: 'Этот профиль Remanga уже привязан к другому аккаунту' });
+    }
+
+    const remRes = await fetch(`https://api.remanga.org/api/v2/users/${remUserId}/`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json',
+        'Referer': 'https://remanga.org/'
+      }
+    });
+
+    if (!remRes.ok) {
+      return res.status(400).json({ error: 'Не удалось получить данные профиля из API Remanga' });
+    }
+
+    const remData = await remRes.json();
+    if (!remData || !remData.username) {
+      return res.status(400).json({ error: 'Профиль не найден в Remanga' });
+    }
+
+    const username = remData.username;
+    const avatar = remData.avatar?.high || remData.avatar?.mid || '';
+
+    await runQuery(
+      'UPDATE users SET remanga_user_id = ?, remanga_username = ?, remanga_avatar = ? WHERE id = ?',
+      [remUserId, username, avatar, userId]
+    );
+
+    await runQuery(
+      'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+      [userId, 'link_remanga', `Привязан профиль Remanga: ${username} (ID: ${remUserId})`, new Date().toISOString()]
+    );
+
+    const updatedUser = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    res.json({
+      user: {
+        ...updatedUser,
+        character_data: updatedUser.character_data ? JSON.parse(updatedUser.character_data) : null
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/character/save', async (req, res) => {
+  const { userId, characterData } = req.body;
+  if (!userId || !characterData) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  try {
+    const existingUser = await getQuery('SELECT character_data, is_admin FROM users WHERE id = ?', [userId]);
+    if (existingUser && existingUser.character_data && !existingUser.is_admin) {
+      return res.status(400).json({ error: 'Персонаж уже создан и его нельзя изменить!' });
+    }
+
+    const charString = JSON.stringify(characterData);
+    await runQuery('UPDATE users SET character_data = ? WHERE id = ?', [charString, userId]);
+    
+    await runQuery(
+      'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+      [userId, 'customize', 'Создан 3D-персонаж (изменение заблокировано)', new Date().toISOString()]
+    );
+
+    const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    if (onlineUsers.has(String(userId))) {
+      const cached = onlineUsers.get(String(userId));
+      cached.character_data = characterData;
+    }
+    await broadcastPlayersList();
+
+    res.json({ success: true, user: { ...user, character_data: characterData } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/board/config', async (req, res) => {
+  try {
+    const cells = await allQuery('SELECT * FROM cells ORDER BY cell_number ASC');
+    res.json({ cells });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/board/roll', async (req, res) => {
+  const { userId } = req.body;
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  try {
+    const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    if (user.guild_tax_required && user.guild_tax_required > (user.guild_tax_paid || 0)) {
+      const remaining = user.guild_tax_required - (user.guild_tax_paid || 0);
+      return res.status(400).json({ error: `Вы не можете бросить кубик, пока не оплатите налог гильдии! Осталось внести: ${remaining} молний.` });
+    }
+
+    if (user.current_cell >= 299) {
+      return res.status(400).json({ error: 'Вы уже дошли до финиша!' });
+    }
+
+    const now = new Date();
+
+    const rawEffects = await allQuery('SELECT * FROM active_effects WHERE target_user_id = ?', [user.id]);
+    const activeEffects = [];
+    for (const e of rawEffects) {
+      const expiresAt = new Date(e.expires_at);
+      if (expiresAt <= now) {
+        await runQuery('DELETE FROM active_effects WHERE id = ?', [e.id]);
+      } else {
+        activeEffects.push(e);
+      }
+    }
+
+    const freezeEffect = activeEffects.find(e => e.type === 'freeze');
+    if (freezeEffect) {
+      const minutesLeft = Math.ceil((new Date(freezeEffect.expires_at) - now) / 60000);
+      return res.status(400).json({ error: `Вы заморожены другим игроком! Вы сможете бросить кубик через ${minutesLeft} мин.` });
+    }
+
+    if (user.dice_cooldown_until) {
+      const cooldown = new Date(user.dice_cooldown_until);
+      if (cooldown > now) {
+        const minutesLeft = Math.ceil((cooldown - now) / 60000);
+        return res.status(400).json({ error: `Кубик перезаряжается. Подождите еще ${minutesLeft} мин.` });
+      }
+    }
+
+    let roll = Math.floor(Math.random() * 6) + 1;
+    const baseRoll = roll;
+    let rollModifierText = '';
+
+    const doubleRoll = activeEffects.find(e => e.type === 'double_roll');
+    if (doubleRoll) {
+      roll = roll * 2;
+      rollModifierText = ' (Крылья Ветра x2!)';
+      await runQuery('DELETE FROM active_effects WHERE id = ?', [doubleRoll.id]);
+    }
+
+    const slowness = activeEffects.find(e => e.type === 'slowness');
+    if (slowness) {
+      roll = Math.ceil(roll / 2);
+      rollModifierText += ' (Магические Оковы /2)';
+    }
+
+    let path = [];
+    let startCell = user.current_cell;
+    let endCell = startCell + roll;
+
+    for (let i = startCell + 1; i <= Math.min(endCell, 299); i++) {
+      path.push(i);
+    }
+
+    let win = false;
+    let rewardTriggered = null;
+    let specialEffect = null;
+    let finalCell = endCell;
+
+    if (finalCell >= 299) {
+      finalCell = 299;
+      win = true;
+    } else {
+      const cell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [finalCell]);
+      if (cell) {
+        if (cell.type === 'forward') {
+          const jump = cell.value;
+          const target = Math.min(299, finalCell + jump);
+          for (let i = finalCell + 1; i <= target; i++) {
+            path.push(i);
+          }
+          finalCell = target;
+          specialEffect = { type: 'forward', value: jump };
+          if (finalCell >= 299) {
+            win = true;
+          }
+        } else if (cell.type === 'backward') {
+          const jump = cell.value;
+          const target = Math.max(0, finalCell - jump);
+          for (let i = finalCell - 1; i >= target; i--) {
+            path.push(i);
+          }
+          finalCell = target;
+          specialEffect = { type: 'backward', value: jump };
+        } else if (cell.type === 'obstacle') {
+          specialEffect = { type: 'obstacle', value: cell.value };
+        } else if (cell.type === 'guild_tax') {
+          specialEffect = { type: 'guild_tax', value: cell.value };
+        }
+
+        const actualCell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [finalCell]);
+        if (actualCell && !win && actualCell.reward_type && actualCell.reward_type !== 'none') {
+          if (actualCell.reward_type === 'currency') {
+            rewardTriggered = {
+              type: actualCell.reward_type,
+              name: actualCell.reward_name,
+              detail: actualCell.reward_detail
+            };
+          } else if ((actualCell.reward_type === 'card' || actualCell.reward_type === 'premium') && actualCell.claimed_by_user_id === null) {
+            rewardTriggered = {
+              type: actualCell.reward_type,
+              name: actualCell.reward_name,
+              detail: actualCell.reward_detail,
+              originCell: finalCell
+            };
+          }
+        }
+      }
+    }
+
+    let newBalance = user.balance;
+    let winsCount = user.wins;
+
+    if (win) {
+      winsCount += 1;
+      newBalance += 500;
+      finalCell = 299;
+    } else if (rewardTriggered && rewardTriggered.type === 'currency') {
+      newBalance += parseInt(rewardTriggered.detail) || 0;
+    }
+
+    let cooldownSeconds = 1800;
+    const cooldownRow = await getQuery("SELECT value FROM settings WHERE key = 'dice_cooldown'");
+    if (cooldownRow) {
+      cooldownSeconds = parseInt(cooldownRow.value) || 1800;
+    }
+    if (specialEffect && specialEffect.type === 'obstacle') {
+      cooldownSeconds = specialEffect.value * 60;
+    }
+
+    const nextCooldown = new Date(now.getTime() + cooldownSeconds * 1000).toISOString();
+    
+    let nextRequired = user.guild_tax_required || 0;
+    let nextPaid = user.guild_tax_paid || 0;
+    if (specialEffect && specialEffect.type === 'guild_tax') {
+      nextRequired = specialEffect.value;
+      nextPaid = 0;
+    }
+
+    await runQuery(
+      'UPDATE users SET current_cell = ?, balance = ?, wins = ?, dice_cooldown_until = ?, guild_tax_required = ?, guild_tax_paid = ? WHERE id = ?',
+      [finalCell, newBalance, winsCount, nextCooldown, nextRequired, nextPaid, user.id]
+    );
+
+    let detailMsg = `Выпало: ${roll}${rollModifierText}. Перемещение на ячейку ${finalCell}.`;
+    if (win) {
+      detailMsg += ' Победа! Вы завершили круг и получили 500 монет.';
+    } else {
+      if (specialEffect) {
+        if (specialEffect.type === 'forward') detailMsg += ` Портал переместил вперед на ${specialEffect.value} ячеек.`;
+        if (specialEffect.type === 'backward') detailMsg += ` Ловушка откинула назад на ${specialEffect.value} ячеек.`;
+        if (specialEffect.type === 'obstacle') detailMsg += ` Трясина заблокировала кубик на ${specialEffect.value} мин.`;
+        if (specialEffect.type === 'guild_tax') detailMsg += ` Наложен налог гильдии в размере ${specialEffect.value} молний.`;
+      }
+      if (rewardTriggered) {
+        detailMsg += ` Получена награда: ${rewardTriggered.name} (${rewardTriggered.detail}).`;
+      }
+    }
+
+    await runQuery(
+      'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+      [user.id, 'roll', detailMsg, now.toISOString()]
+    );
+
+    const broadcastData = {
+      userId: user.id,
+      tg_username: user.tg_username,
+      baseRoll,
+      roll,
+      path,
+      startCell,
+      endCell: finalCell,
+      specialEffect,
+      rewardTriggered,
+      win,
+      cooldownUntil: nextCooldown
+    };
+
+    io.emit('player_move', broadcastData);
+
+    if (onlineUsers.has(String(user.id))) {
+      onlineUsers.get(String(user.id)).current_cell = finalCell;
+    }
+    await broadcastPlayersList();
+
+    res.json({
+      baseRoll,
+      roll,
+      path,
+      endCell: finalCell,
+      balance: newBalance,
+      wins: winsCount,
+      cooldownUntil: nextCooldown,
+      specialEffect,
+      rewardTriggered,
+      win
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+async function getShopPrices() {
+  const defaults = {
+    price_shield: 150,
+    price_freeze: 250,
+    price_pusher: 200,
+    price_cure: 100,
+    price_slowness: 180,
+    price_double_roll: 300
+  };
+  try {
+    const rows = await allQuery("SELECT key, value FROM settings WHERE key LIKE 'price_%'");
+    const prices = { ...defaults };
+    rows.forEach(row => {
+      prices[row.key] = parseInt(row.value) || defaults[row.key];
+    });
+    return prices;
+  } catch (err) {
+    return defaults;
+  }
+}
+
+app.get('/api/shop', async (req, res) => {
+  const prices = await getShopPrices();
+  const items = [
+    {
+      id: 'shield',
+      name: 'Энергетический Щит',
+      description: 'Защищает от вредоносных способностей (замораживание, отталкивание) на 12 часов. Действует до первого применения, после сгорает.',
+      cost: prices.price_shield,
+      item_type: 'shield',
+      duration: 43200
+    },
+    {
+      id: 'freeze',
+      name: 'Ледяной Свиток',
+      description: 'Замораживает выбранного игрока на 2 часа (пользователь должен быть онлайн).',
+      cost: prices.price_freeze,
+      item_type: 'freeze',
+      duration: 7200
+    },
+    {
+      id: 'pusher',
+      name: 'Гравитационный Импульс',
+      description: 'Отталкивает выбранного игрока на 3 ячейки назад.',
+      cost: prices.price_pusher,
+      item_type: 'pusher',
+      duration: 0
+    },
+    {
+      id: 'cure',
+      name: 'Очищающее Зелье',
+      description: 'Снимает все действующие негативные эффекты (примененные к вам от других игроков заморозка, замедление).',
+      cost: prices.price_cure,
+      item_type: 'cure',
+      duration: 0
+    },
+    {
+      id: 'slowness',
+      name: 'Магические Оковы',
+      description: 'Замедляет выбранного игрока на 4 часа (выпавшее число делится на 2).',
+      cost: prices.price_slowness,
+      item_type: 'slowness',
+      duration: 14400
+    },
+    {
+      id: 'double_roll',
+      name: 'Крылья Ветра',
+      description: 'Удваивает результат вашего следующего броска кубика (действует 1 час). Действует до первого применения, после сгорает.',
+      cost: prices.price_double_roll,
+      item_type: 'double_roll',
+      duration: 3600
+    }
+  ];
+  res.json({ items });
+});
+
+app.post('/api/casino/spin', async (req, res) => {
+  const { userId, bet, color } = req.body;
+  if (!userId || !bet || !color) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+  const betAmount = parseInt(bet);
+  if (isNaN(betAmount) || betAmount < 1) {
+    return res.status(400).json({ error: 'Некорректная ставка' });
+  }
+  if (!['red', 'black', 'green'].includes(color)) {
+    return res.status(400).json({ error: 'Некорректный цвет' });
+  }
+
+  try {
+    const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
+    if (user.balance < betAmount) {
+      return res.status(400).json({ error: 'Недостаточно монет' });
+    }
+
+    await runQuery('UPDATE users SET balance = balance - ? WHERE id = ?', [betAmount, userId]);
+
+    const rand = Math.random() * 100;
+    let resultColor;
+    if (rand < 2) {
+      resultColor = 'green';
+    } else if (rand < 51) {
+      resultColor = 'red';
+    } else {
+      resultColor = 'black';
+    }
+
+    let winAmount = 0;
+    let multiplier = 0;
+    if (resultColor === color) {
+      if (color === 'green') {
+        multiplier = 50;
+      } else {
+        multiplier = 2;
+      }
+      winAmount = betAmount * multiplier;
+      await runQuery('UPDATE users SET balance = balance + ? WHERE id = ?', [winAmount, userId]);
+    }
+
+    const updatedUser = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+
+    res.json({
+      resultColor,
+      betColor: color,
+      bet: betAmount,
+      won: resultColor === color,
+      winAmount,
+      multiplier,
+      newBalance: updatedUser.balance
+    });
+  } catch (err) {
+    console.error('Casino error:', err);
+    res.status(500).json({ error: 'Ошибка сервера' });
+  }
+});
+
+app.post('/api/shop/buy', async (req, res) => {
+  const { userId, itemId } = req.body;
+  if (!userId || !itemId) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  const prices = await getShopPrices();
+  const items = {
+    shield: { name: 'Энергетический Щит', cost: prices.price_shield, desc: 'Защищает от вредоносных способностей (замораживание, отталкивание) на 12 часов. Действует до первого применения, после сгорает.', type: 'shield', duration: 43200 },
+    freeze: { name: 'Ледяной Свиток', cost: prices.price_freeze, desc: 'Замораживает выбранного игрока на 2 часа (пользователь должен быть онлайн).', type: 'freeze', duration: 7200 },
+    pusher: { name: 'Гравитационный Импульс', cost: prices.price_pusher, desc: 'Отталкивает игрока на 3 ячейки назад', type: 'pusher', duration: 0 },
+    cure: { name: 'Очищающее Зелье', cost: prices.price_cure, desc: 'Снимает все действующие негативные эффекты (примененные к вам от других игроков заморозка, замедление).', type: 'cure', duration: 0 },
+    slowness: { name: 'Магические Оковы', cost: prices.price_slowness, desc: 'Замедляет игрока на 4 часа', type: 'slowness', duration: 14400 },
+    double_roll: { name: 'Крылья Ветра', cost: prices.price_double_roll, desc: 'Удваивает результат вашего следующего броска кубика (действует 1 час). Действует до первого применения, после сгорает.', type: 'double_roll', duration: 3600 }
+  };
+
+  const item = items[itemId];
+  if (!item) {
+    return res.status(400).json({ error: 'Товар не найден' });
+  }
+
+  try {
+    const user = await getQuery('SELECT balance FROM users WHERE id = ?', [userId]);
+    if (!user) {
+      return res.status(404).json({ error: 'Пользователь не найден' });
+    }
+
+    if (user.balance < item.cost) {
+      return res.status(400).json({ error: 'Недостаточно валюты' });
+    }
+
+    const newBalance = user.balance - item.cost;
+    await runQuery('UPDATE users SET balance = ? WHERE id = ?', [newBalance, userId]);
+
+    await runQuery(
+      'INSERT INTO inventory (user_id, item_type, name, description, duration) VALUES (?, ?, ?, ?, ?)',
+      [userId, item.type, item.name, item.desc, item.duration]
+    );
+
+    await runQuery(
+      'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+      [userId, 'buy_item', `Куплен предмет: ${item.name} за ${item.cost} монет`, new Date().toISOString()]
+    );
+
+    res.json({ success: true, balance: newBalance });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/shop/use', async (req, res) => {
+  const { userId, inventoryId, targetUserId } = req.body;
+  if (!userId || !inventoryId) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  try {
+    const item = await getQuery('SELECT * FROM inventory WHERE id = ? AND user_id = ?', [inventoryId, userId]);
+    if (!item) {
+      return res.status(400).json({ error: 'Предмет не найден в вашем инвентаре' });
+    }
+
+    const sourceUser = await getQuery('SELECT tg_username, tg_first_name FROM users WHERE id = ?', [userId]);
+
+    if (item.item_type === 'shield') {
+      const expiresAt = new Date(Date.now() + item.duration * 1000).toISOString();
+      await runQuery(
+        'INSERT INTO active_effects (target_user_id, source_user_id, type, name, expires_at) VALUES (?, ?, ?, ?, ?)',
+        [userId, userId, 'shield', item.name, expiresAt]
+      );
+
+      await runQuery('DELETE FROM inventory WHERE id = ?', [inventoryId]);
+      
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [userId, 'use_item', `Активирован Энергетический Щит на 12 часов`, new Date().toISOString()]
+      );
+
+      await broadcastPlayersList();
+      return res.json({ success: true, message: 'Энергетический Щит успешно активирован!' });
+    }
+
+    if (item.item_type === 'cure') {
+      await runQuery('DELETE FROM active_effects WHERE target_user_id = ? AND type IN ("freeze", "slowness")', [userId]);
+      await runQuery('DELETE FROM inventory WHERE id = ?', [inventoryId]);
+      
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [userId, 'use_item', `Использовано Очищающее Зелье: все негативные эффекты сняты`, new Date().toISOString()]
+      );
+
+      await broadcastPlayersList();
+      return res.json({ success: true, message: 'Все негативные эффекты успешно сняты!' });
+    }
+
+    if (item.item_type === 'double_roll') {
+      const expiresAt = new Date(Date.now() + item.duration * 1000).toISOString();
+      await runQuery(
+        'INSERT INTO active_effects (target_user_id, source_user_id, type, name, expires_at) VALUES (?, ?, ?, ?, ?)',
+        [userId, userId, 'double_roll', item.name, expiresAt]
+      );
+
+      await runQuery('DELETE FROM inventory WHERE id = ?', [inventoryId]);
+      
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [userId, 'use_item', `Активированы Крылья Ветра на 1 час`, new Date().toISOString()]
+      );
+
+      await broadcastPlayersList();
+      return res.json({ success: true, message: 'Крылья Ветра успешно активированы! Следующий бросок будет удвоен.' });
+    }
+
+    if (!targetUserId) {
+      return res.status(400).json({ error: 'Для этого предмета нужно выбрать цель' });
+    }
+
+    if (parseInt(targetUserId) === parseInt(userId)) {
+      return res.status(400).json({ error: 'Вы не можете применить эту способность к себе' });
+    }
+
+    const targetUser = await getQuery('SELECT id, tg_username, tg_first_name, current_cell, balance FROM users WHERE id = ?', [targetUserId]);
+    if (!targetUser) {
+      return res.status(404).json({ error: 'Цель не найдена' });
+    }
+
+    if (targetUser.current_cell >= 299) {
+      return res.status(400).json({ error: 'Игрок уже закончил игру!' });
+    }
+
+    const targetShield = await getQuery('SELECT id FROM active_effects WHERE target_user_id = ? AND type = "shield"', [targetUser.id]);
+    if (targetShield) {
+      await runQuery('DELETE FROM active_effects WHERE id = ?', [targetShield.id]);
+      await runQuery('DELETE FROM inventory WHERE id = ?', [inventoryId]);
+
+      const sourceMsg = `Игрок ${targetUser.tg_first_name || targetUser.tg_username} отразил вашу атаку с помощью Энергетического Щита!`;
+      const targetMsg = `Вы успешно отразили атаку (${item.name}) от ${sourceUser.tg_first_name || sourceUser.tg_username}!`;
+
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [userId, 'use_blocked', `Ваша способность ${item.name} была заблокирована щитом игрока ${targetUser.tg_first_name || targetUser.tg_username}`, new Date().toISOString()]
+      );
+
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [targetUser.id, 'shield_blocked', `Ваш щит заблокировал способность ${item.name} от игрока ${sourceUser.tg_first_name || sourceUser.tg_username}`, new Date().toISOString()]
+      );
+
+      io.to(`user_${targetUser.id}`).emit('effect_notification', { message: targetMsg });
+      return res.json({ success: true, blocked: true, message: sourceMsg });
+    }
+
+    if (item.item_type === 'freeze') {
+      const expiresAt = new Date(Date.now() + item.duration * 1000).toISOString();
+      await runQuery(
+        'INSERT INTO active_effects (target_user_id, source_user_id, type, name, expires_at) VALUES (?, ?, ?, ?, ?)',
+        [targetUser.id, userId, 'freeze', item.name, expiresAt]
+      );
+
+      await runQuery('DELETE FROM inventory WHERE id = ?', [inventoryId]);
+
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [userId, 'use_item', `Заморожен кубик игрока ${targetUser.tg_first_name || targetUser.tg_username} на 2 часа`, new Date().toISOString()]
+      );
+
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [targetUser.id, 'effect_received', `Ваш кубик заморожен игроком ${sourceUser.tg_first_name || sourceUser.tg_username} на 2 часа`, new Date().toISOString()]
+      );
+
+      const targetMsg = `Вы были заморожены игроком ${sourceUser.tg_first_name || sourceUser.tg_username} на 2 часа!`;
+      io.to(`user_${targetUser.id}`).emit('effect_notification', { message: targetMsg });
+
+      await broadcastPlayersList();
+      return res.json({ success: true, message: `Игрок ${targetUser.tg_first_name || targetUser.tg_username} успешно заморожен!` });
+    }
+
+    if (item.item_type === 'slowness') {
+      const expiresAt = new Date(Date.now() + item.duration * 1000).toISOString();
+      await runQuery(
+        'INSERT INTO active_effects (target_user_id, source_user_id, type, name, expires_at) VALUES (?, ?, ?, ?, ?)',
+        [targetUser.id, userId, 'slowness', item.name, expiresAt]
+      );
+
+      await runQuery('DELETE FROM inventory WHERE id = ?', [inventoryId]);
+
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [userId, 'use_item', `Наложен дебафф замедления на игрока ${targetUser.tg_first_name || targetUser.tg_username} на 4 часа`, new Date().toISOString()]
+      );
+
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [targetUser.id, 'effect_received', `Ваш кубик замедлен игроком ${sourceUser.tg_first_name || sourceUser.tg_username} на 4 часа`, new Date().toISOString()]
+      );
+
+      const targetMsg = `Вы были замедлены игроком ${sourceUser.tg_first_name || sourceUser.tg_username} на 4 часа!`;
+      io.to(`user_${targetUser.id}`).emit('effect_notification', { message: targetMsg });
+
+      await broadcastPlayersList();
+      return res.json({ success: true, message: `Игрок ${targetUser.tg_first_name || targetUser.tg_username} успешно замедлен!` });
+    }
+
+    if (item.item_type === 'pusher') {
+      const oldCell = targetUser.current_cell;
+      const newCell = Math.max(0, oldCell - 3);
+
+      await runQuery('UPDATE users SET current_cell = ? WHERE id = ?', [newCell, targetUser.id]);
+      await runQuery('DELETE FROM inventory WHERE id = ?', [inventoryId]);
+
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [userId, 'use_item', `Игрок ${targetUser.tg_first_name || targetUser.tg_username} отброшен на 3 ячейки назад`, new Date().toISOString()]
+      );
+
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [targetUser.id, 'effect_received', `Вы были отброшены назад на 3 ячейки игроком ${sourceUser.tg_first_name || sourceUser.tg_username}`, new Date().toISOString()]
+      );
+
+      const targetMsg = `Игрок ${sourceUser.tg_first_name || sourceUser.tg_username} отбросил вас на 3 ячейки назад!`;
+      io.to(`user_${targetUser.id}`).emit('effect_notification', { message: targetMsg });
+
+      let path = [];
+      for (let i = oldCell - 1; i >= newCell; i--) {
+        path.push(i);
+      }
+
+      io.emit('player_move', {
+        userId: targetUser.id,
+        tg_username: targetUser.tg_username,
+        roll: 0,
+        path,
+        startCell: oldCell,
+        endCell: newCell,
+        specialEffect: { type: 'backward', value: 3 },
+        forced: true
+      });
+
+      if (onlineUsers.has(String(targetUser.id))) {
+        onlineUsers.get(String(targetUser.id)).current_cell = newCell;
+      }
+      await broadcastPlayersList();
+
+      return res.json({ success: true, message: `Игрок ${targetUser.tg_first_name || targetUser.tg_username} отброшен назад!` });
+    }
+
+    res.status(400).json({ error: 'Неизвестный тип предмета' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+async function checkAdmin(req, res, next) {
+  const requesterUserId = req.method === 'GET' ? req.query.requesterUserId : req.body.requesterUserId;
+  if (!requesterUserId) {
+    return res.status(401).json({ error: 'Требуется идентификатор администратора' });
+  }
+  try {
+    const user = await getQuery('SELECT * FROM users WHERE id = ?', [requesterUserId]);
+    if (!user) {
+      return res.status(401).json({ error: 'Пользователь не найден' });
+    }
+    const isOwner = (user.tg_username && user.tg_username.toLowerCase() === 'saitama01010');
+    if (isOwner) {
+      req.requester = user;
+      return next();
+    }
+    if (!user.is_admin) {
+      return res.status(403).json({ error: 'Доступ запрещен. Требуются права администратора.' });
+    }
+    req.requester = user;
+    next();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+app.get('/api/admin/users', checkAdmin, async (req, res) => {
+  try {
+    const users = await allQuery('SELECT * FROM users ORDER BY balance DESC');
+    res.json({ users });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/users/update', checkAdmin, async (req, res) => {
+  const { userId, balance, currentCell, isAdmin, guildTaxRequired, guildTaxPaid } = req.body;
+  try {
+    const requester = req.requester;
+    const isOwner = (requester.tg_username && requester.tg_username.toLowerCase() === 'saitama01010');
+
+    const targetUser = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    if (!targetUser) {
+      return res.status(404).json({ error: 'Целевой игрок не найден' });
+    }
+
+    const targetIsOwner = (targetUser.tg_username && targetUser.tg_username.toLowerCase() === 'saitama01010');
+    let finalIsAdmin = isAdmin;
+    if (targetIsOwner) {
+      finalIsAdmin = 1;
+    }
+
+    if (targetUser.is_admin !== finalIsAdmin) {
+      if (!isOwner) {
+        return res.status(403).json({ error: 'Только главный администратор @saitama01010 может выдавать или забирать права администратора!' });
+      }
+    }
+
+    let nextRequired = parseInt(guildTaxRequired) || 0;
+    let nextPaid = parseInt(guildTaxPaid) || 0;
+    if (nextRequired > 0 && nextPaid >= nextRequired) {
+      nextRequired = 0;
+      nextPaid = 0;
+    }
+
+    await runQuery(
+      'UPDATE users SET balance = ?, current_cell = ?, is_admin = ?, guild_tax_required = ?, guild_tax_paid = ? WHERE id = ?',
+      [balance, currentCell, finalIsAdmin, nextRequired, nextPaid, userId]
+    );
+
+    if (onlineUsers.has(String(userId))) {
+      const cached = onlineUsers.get(String(userId));
+      cached.current_cell = currentCell;
+    }
+    await broadcastPlayersList();
+
+    if (io) {
+      io.to(`user_${userId}`).emit('balance_update', {
+        balance: balance,
+        guild_tax_required: nextRequired,
+        guild_tax_paid: nextPaid
+      });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/settings', checkAdmin, async (req, res) => {
+  try {
+    const settings = await allQuery('SELECT * FROM settings');
+    res.json({ settings });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/settings/update', checkAdmin, async (req, res) => {
+  const { dice_cooldown, price_shield, price_freeze, price_pusher, price_cure, price_slowness, price_double_roll, price_remove_reward } = req.body;
+  try {
+    if (dice_cooldown !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('dice_cooldown', ?)", [String(dice_cooldown)]);
+    }
+    if (price_shield !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_shield', ?)", [String(price_shield)]);
+    }
+    if (price_freeze !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_freeze', ?)", [String(price_freeze)]);
+    }
+    if (price_pusher !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_pusher', ?)", [String(price_pusher)]);
+    }
+    if (price_cure !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_cure', ?)", [String(price_cure)]);
+    }
+    if (price_slowness !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_slowness', ?)", [String(price_slowness)]);
+    }
+    if (price_double_roll !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_double_roll', ?)", [String(price_double_roll)]);
+    }
+    if (price_remove_reward !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_remove_reward', ?)", [String(price_remove_reward)]);
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/cells/update', checkAdmin, async (req, res) => {
+  const { cellNumber, type, value, rewardType, rewardName, rewardDetail } = req.body;
+  try {
+    await runQuery(
+      'UPDATE cells SET type = ?, value = ?, reward_type = ?, reward_name = ?, reward_detail = ? WHERE cell_number = ?',
+      [type, value, rewardType, rewardName, rewardDetail, cellNumber]
+    );
+    await broadcastCells();
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/simulate-donation', async (req, res) => {
+  const { remangaUserId, coinsToAdd } = req.body;
+  if (!remangaUserId || !coinsToAdd) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  const guildDir = 'eternal-watchers-5fdc5a3d';
+  const timestamp = new Date().toISOString();
+
+  try {
+    const prevScan = await getQuery(
+      'SELECT coins_spent FROM guild_scans WHERE guild_dir = ? AND remanga_user_id = ?',
+      [guildDir, remangaUserId]
+    );
+
+    const oldCoins = prevScan ? prevScan.coins_spent : 1000;
+    const newCoins = oldCoins + parseInt(coinsToAdd);
+
+    await runQuery(
+      'INSERT OR REPLACE INTO guild_scans (guild_dir, remanga_user_id, coins_spent, scanned_at) VALUES (?, ?, ?, ?)',
+      [guildDir, remangaUserId, newCoins, timestamp]
+    );
+
+    const user = await getQuery('SELECT id, balance, guild_tax_required, guild_tax_paid FROM users WHERE remanga_user_id = ?', [remangaUserId]);
+    let responseMsg = `Запись в guild_scans обновлена: было ${oldCoins}, стало ${newCoins} молний.`;
+
+    if (user) {
+      const diff = parseInt(coinsToAdd);
+      const newBalance = user.balance + diff;
+      let newPaid = user.guild_tax_paid || 0;
+      let newRequired = user.guild_tax_required || 0;
+      let taxMsg = '';
+
+      if (newRequired > newPaid) {
+        const remaining = newRequired - newPaid;
+        const applied = Math.min(remaining, diff);
+        newPaid += applied;
+        
+        taxMsg = ` (в счет налога внесено: ${applied} молний`;
+        if (newPaid >= newRequired) {
+          newRequired = 0;
+          newPaid = 0;
+          taxMsg += `, налог полностью оплачен!)`;
+        } else {
+          taxMsg += `, осталось внести: ${newRequired - newPaid} молний)`;
+        }
+      }
+
+      await runQuery(
+        'UPDATE users SET balance = ?, guild_tax_required = ?, guild_tax_paid = ? WHERE id = ?',
+        [newBalance, newRequired, newPaid, user.id]
+      );
+
+      const detailText = `[Симуляция] Получено +${diff} монет за вклад в гильдию ${guildDir} (+${diff} молний)${taxMsg}`;
+
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [
+          user.id,
+          'donation',
+          detailText,
+          timestamp
+        ]
+      );
+
+      if (io) {
+        io.to(`user_${user.id}`).emit('balance_update', {
+          balance: newBalance,
+          guild_tax_required: newRequired,
+          guild_tax_paid: newPaid,
+          historyEntry: {
+            action: 'donation',
+            detail: detailText,
+            timestamp
+          }
+        });
+      }
+      responseMsg += ` Пользователю ${user.id} начислен баланс.`;
+    }
+
+    res.json({ success: true, message: responseMsg });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+app.post('/api/admin/fetch-card', checkAdmin, async (req, res) => {
+  const { cardUrl } = req.body;
+  if (!cardUrl) {
+    return res.status(400).json({ error: 'Missing cardUrl' });
+  }
+
+  const match = cardUrl.match(/cards?\/(\d+)/);
+  if (!match) {
+    return res.status(400).json({ error: 'Неверный формат ссылки на карту' });
+  }
+
+  const cardId = match[1];
+  try {
+    const apiRes = await fetch(`https://api.remanga.org/api/inventory/cards/${cardId}/`, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Accept': 'application/json',
+        'Referer': 'https://remanga.org/'
+      }
+    });
+
+    if (!apiRes.ok) {
+      return res.status(400).json({ error: 'Карта не найдена на Remanga' });
+    }
+
+    const data = await apiRes.json();
+    const coverPath = data.cover?.mid || data.cover?.high || '';
+    const fullCover = coverPath.startsWith('http') ? coverPath : `https://api.remanga.org${coverPath}`;
+    
+    res.json({
+      id: data.id,
+      title: data.title?.main_name || '',
+      characterName: data.character?.name || '',
+      cover: fullCover
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+
+app.post('/api/board/claim-reward', async (req, res) => {
+  const { userId, cellNumber, claim } = req.body;
+  if (!userId || cellNumber === undefined) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  try {
+    const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    if (!user) {
+      return res.status(400).json({ error: 'Игрок не найден' });
+    }
+
+    if (user.current_cell !== cellNumber) {
+      return res.status(400).json({ error: 'Вы находитесь на другой ячейке!' });
+    }
+
+    const cell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [cellNumber]);
+    if (!cell) {
+      return res.status(400).json({ error: 'Ячейка не найдена' });
+    }
+
+    if (cell.reward_type !== 'card' && cell.reward_type !== 'premium') {
+      return res.status(400).json({ error: 'На этой ячейке нет ценной награды' });
+    }
+
+    if (cell.claimed_by_user_id !== null) {
+      return res.status(400).json({ error: 'Эта награда уже забрана другим игроком!' });
+    }
+
+    if (claim) {
+      const invCountRow = await getQuery(
+        "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+        [userId]
+      );
+      const count = invCountRow ? invCountRow.count : 0;
+      if (count >= 10) {
+        return res.status(400).json({ error: 'Ваш инвентарь наград заполнен! Максимум можно иметь 10 наград.' });
+      }
+
+      const itemType = cell.reward_type === 'card' ? 'remanga_card' : 'premium_subscription';
+      await runQuery(
+        'INSERT INTO inventory (user_id, item_type, name, description, duration, origin_cell_number) VALUES (?, ?, ?, ?, ?, ?)',
+        [userId, itemType, cell.reward_name, cell.reward_detail, 0, cellNumber]
+      );
+
+      const displayName = user.tg_first_name || user.tg_username || `Игрок ${user.id}`;
+      await runQuery(
+        'UPDATE cells SET claimed_by_user_id = ?, claimed_by_username = ? WHERE cell_number = ?',
+        [userId, displayName, cellNumber]
+      );
+
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [
+          userId,
+          'claim_reward',
+          `Забрана награда с ячейки ${cellNumber}: ${cell.reward_name}`,
+          new Date().toISOString()
+        ]
+      );
+
+      await broadcastPlayersList();
+      await broadcastCells();
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/inventory/remove-reward', async (req, res) => {
+  const { userId, itemId } = req.body;
+  if (!userId || !itemId) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  try {
+    const user = await getQuery('SELECT balance FROM users WHERE id = ?', [userId]);
+    if (!user) {
+      return res.status(400).json({ error: 'Игрок не найден' });
+    }
+
+    const item = await getQuery(
+      "SELECT * FROM inventory WHERE id = ? AND user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+      [itemId, userId]
+    );
+    if (!item) {
+      return res.status(400).json({ error: 'Награда не найдена в вашем инвентаре' });
+    }
+
+    if (item.origin_cell_number === null) {
+      return res.status(400).json({ error: 'Эта награда не связана с ячейкой карты' });
+    }
+
+    let removePrice = 100;
+    const priceRow = await getQuery("SELECT value FROM settings WHERE key = 'price_remove_reward'");
+    if (priceRow) {
+      removePrice = parseInt(priceRow.value) || 100;
+    }
+
+    if (user.balance < removePrice) {
+      return res.status(400).json({ error: `Недостаточно монет для удаления награды. Требуется: ${removePrice} монет.` });
+    }
+
+    const newBalance = user.balance - removePrice;
+    await runQuery('UPDATE users SET balance = ? WHERE id = ?', [newBalance, userId]);
+
+    await runQuery('DELETE FROM inventory WHERE id = ?', [itemId]);
+
+    await runQuery(
+      'UPDATE cells SET claimed_by_user_id = NULL, claimed_by_username = NULL WHERE cell_number = ?',
+      [item.origin_cell_number]
+    );
+
+    await runQuery(
+      'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+      [
+        userId,
+        'remove_reward',
+        `Удалена награда: ${item.name} за ${removePrice} монет (возвращена на ячейку ${item.origin_cell_number})`,
+        new Date().toISOString()
+      ]
+    );
+
+    await broadcastPlayersList();
+    await broadcastCells();
+
+    if (io) {
+      io.to(`user_${userId}`).emit('balance_update', {
+        balance: newBalance
+      });
+    }
+
+    res.json({ success: true, balance: newBalance });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+const PORT = 3000;
+initDb().then(() => {
+  server.listen(PORT, () => {
+    startGuildScanner(io);
+  });
+}).catch(err => {
+  process.exit(1);
+});

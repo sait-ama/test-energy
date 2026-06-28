@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eternal Watchers Event</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+  <div id="auth-screen" class="auth-container">
+    <div class="auth-card">
+      <div class="neon-logo">ETERNAL EVENT</div>
+      <h1>Регистрация и Вход</h1>
+      <p class="subtitle">Присоединяйтесь к международному ивенту гильдии Eternal Watchers</p>
+      
+      <div class="form-group">
+        <label for="tg-id-input">Telegram ID</label>
+        <input type="text" id="tg-id-input" placeholder="Например: 1276299">
+      </div>
+      
+      <div class="form-group">
+        <label for="tg-username-input">Username (@username)</label>
+        <input type="text" id="tg-username-input" placeholder="Например: saitama01010">
+      </div>
+
+      <div class="form-group">
+        <label for="tg-first-name-input">Имя (Никнейм)</label>
+        <input type="text" id="tg-first-name-input" placeholder="Например: Сайтама">
+      </div>
+
+      <button id="auth-btn" class="btn btn-primary btn-glow">Войти через Telegram</button>
+      <div class="info-note">Используется демонстрационный вход. Вы можете ввести любые данные для тестирования мультиплеера.</div>
+    </div>
+  </div>
+
+  <div id="link-remanga-screen" class="auth-container hidden">
+    <div class="auth-card">
+      <div class="neon-logo">REMANGA PROFILE</div>
+      <h1>Привязка Remanga</h1>
+      <p class="subtitle">Шаг 2 из 3: Привяжите ваш профиль Remanga для отслеживания молний</p>
+      <div class="form-group">
+        <label for="remanga-url-input-onboarding">Ссылка на профиль Remanga</label>
+        <input type="text" id="remanga-url-input-onboarding" placeholder="https://remanga.org/user/364625/about">
+      </div>
+      <button id="link-remanga-btn-onboarding" class="btn btn-primary btn-glow btn-block">Привязать и продолжить</button>
+    </div>
+  </div>
+
+  <div id="character-creator-screen" class="auth-container hidden">
+    <div class="modal-content" style="max-width: 900px;">
+      <div class="modal-header">
+        <h2 id="creator-step-title">Создание персонажа (Шаг 1 из 3)</h2>
+      </div>
+      <div class="customizer-layout">
+        <div class="customizer-preview">
+          <div id="creator-canvas-container"></div>
+        </div>
+        <div class="customizer-controls">
+          <div id="creator-step-1" class="creator-step">
+            <h3>Шаг 1: Тело и костюм</h3>
+            <div class="form-group">
+              <label>Цвет кожи</label>
+              <input type="color" id="creator-skin" value="#ffdbac">
+            </div>
+            <div class="form-group">
+              <label>Тип костюма</label>
+              <select id="creator-costume">
+                <option value="normal">Обычный</option>
+                <option value="armor">Рыцарский доспех</option>
+                <option value="robe">Мантия мага</option>
+                <option value="cyber">Кибер-костюм</option>
+                <option value="steampunk">Стимпанк жилет</option>
+                <option value="ninja_suit">Костюм шиноби</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Цвет костюма</label>
+              <input type="color" id="creator-clothes" value="#2a3f5f">
+            </div>
+            <button id="creator-next-1" class="btn btn-primary btn-block btn-glow">Далее</button>
+          </div>
+
+          <div id="creator-step-2" class="creator-step hidden">
+            <h3>Шаг 2: Голова и прическа</h3>
+            <div class="form-group">
+              <label>Стиль прически/аксессуара</label>
+              <select id="creator-hair-style">
+                <option value="none">Лысый</option>
+                <option value="mohawk">Ирокез</option>
+                <option value="crown">Корона</option>
+                <option value="horns">Рога демона</option>
+                <option value="helmet">Шлем воина</option>
+                <option value="cap">Кепка</option>
+                <option value="ninja">Маска ниндзя</option>
+                <option value="wizard">Шляпа волшебника</option>
+                <option value="cat_ears">Кошачьи ушки</option>
+                <option value="hair_long">Длинные волосы</option>
+                <option value="hair_spiky">Взъерошенные волосы</option>
+                <option value="halo">Ангельский нимб</option>
+                <option value="cyber_viser">Кибер-очки</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Цвет прически/аксессуара</label>
+              <input type="color" id="creator-hair-color" value="#e74c3c">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+              <button id="creator-prev-2" class="btn btn-secondary" style="flex: 1;">Назад</button>
+              <button id="creator-next-2" class="btn btn-primary btn-glow" style="flex: 1;">Далее</button>
+            </div>
+          </div>
+
+          <div id="creator-step-3" class="creator-step hidden">
+            <h3>Шаг 3: Снаряжение</h3>
+            <div class="form-group">
+              <label>Оружие</label>
+              <select id="creator-weapon">
+                <option value="none">Без оружия</option>
+                <option value="sword">Энергетический меч</option>
+                <option value="staff">Посох мага</option>
+                <option value="shield">Энергетический щит</option>
+                <option value="axe">Боевой топор</option>
+                <option value="bow">Лук</option>
+                <option value="scythe">Коса смерти</option>
+                <option value="hammer">Молот Тора</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Крылья</label>
+              <select id="creator-wings">
+                <option value="none">Без крыльев</option>
+                <option value="angel">Крылья ангела</option>
+                <option value="demon">Крылья демона</option>
+                <option value="fairy">Крылья феи</option>
+                <option value="butterfly">Крылья бабочки</option>
+                <option value="cyber_wings">Кибер-крылья</option>
+                <option value="bat_wings">Крылья летучей мыши</option>
+              </select>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+              <button id="creator-prev-3" class="btn btn-secondary" style="flex: 1;">Назад</button>
+              <button id="creator-save-btn" class="btn btn-primary btn-glow" style="flex: 1;">Создать персонажа</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-screen" class="app-container hidden">
+    <header class="app-header">
+      <div class="header-brand">
+        <span class="brand-glow">ETERNAL WATCHERS</span>
+      </div>
+      <div class="user-summary">
+        <div class="user-info-group">
+          <div class="user-avatar-container">
+            <img id="user-avatar" class="hidden" src="" alt="">
+            <div id="avatar-fallback" class="avatar-placeholder"></div>
+          </div>
+          <div class="user-meta">
+            <span id="user-display-name" class="font-bold"></span>
+            <span id="user-tg-username" class="text-cyan"></span>
+          </div>
+        </div>
+        <div class="user-stats-group">
+          <div class="header-stat">
+            <span class="label">Монеты:</span>
+            <span id="user-balance" class="value text-gold">0</span>
+          </div>
+          <div class="header-stat" style="display: none;">
+            <span class="label">Победы:</span>
+            <span id="user-wins" class="value text-cyan">0</span>
+          </div>
+        </div>
+        <div class="user-actions-group">
+          <button id="open-profile-btn" class="btn btn-primary btn-sm btn-glow">Мой Профиль</button>
+          <button id="logout-btn" class="btn btn-secondary btn-sm">Выйти</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-grid">
+      <div class="grid-left">
+        <div class="card">
+          <h2>Магазин</h2>
+          <div class="shop-tabs">
+            <button class="shop-tab-btn active" data-tab="buffs">Баффы</button>
+            <button class="shop-tab-btn" data-tab="debuffs">Дебаффы</button>
+            <button class="shop-tab-btn" data-tab="casino">Казик</button>
+          </div>
+          <div id="shop-items-list" class="shop-list"></div>
+          <div id="casino-section" class="hidden">
+            <div class="casino-container">
+              <div class="casino-wheel-wrapper">
+                <div class="casino-pointer"></div>
+                <canvas id="casino-wheel-canvas" width="280" height="280"></canvas>
+              </div>
+              <div class="casino-controls">
+                <div class="casino-bet-group">
+                  <label>Ставка (монеты)</label>
+                  <input type="number" id="casino-bet-amount" min="1" value="10" class="casino-input">
+                </div>
+                <div class="casino-color-group">
+                  <label>Выбери цвет</label>
+                  <div class="casino-colors">
+                    <button class="casino-color-btn casino-red selected" data-color="red">Красный<span class="casino-mult">×2</span></button>
+                    <button class="casino-color-btn casino-black" data-color="black">Чёрный<span class="casino-mult">×2</span></button>
+                    <button class="casino-color-btn casino-green" data-color="green">Зелёный<span class="casino-mult">×50</span></button>
+                  </div>
+                </div>
+                <button id="casino-spin-btn" class="btn btn-primary btn-block btn-glow">Крутить!</button>
+                <div id="casino-result" class="casino-result hidden"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Инвентарь и эффекты</h2>
+          <h3 style="font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 10px; font-weight: 600;">Ваши предметы</h3>
+          <div id="inventory-list" class="inventory-grid"></div>
+          
+          <h3 style="margin-top: 20px; font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 10px; font-weight: 600;">Активные эффекты</h3>
+          <div id="effects-list" class="effects-list"></div>
+        </div>
+      </div>
+
+      <div class="grid-center">
+        <div class="card map-card">
+          <div class="map-header">
+            <h2>Карта ивента (300 ячеек)</h2>
+            <div class="dice-section">
+              <button id="roll-dice-btn" class="btn btn-primary btn-glow">Бросить кубик</button>
+              <button id="claim-reward-current-cell-btn" class="btn btn-glow hidden" style="background: linear-gradient(135deg, #00ff66, #00b3ff); border: none; color: #fff; margin-left: 10px;">Забрать награду</button>
+              <div id="dice-cooldown" class="cooldown-timer">Готов к броску</div>
+            </div>
+          </div>
+          <div class="board-3d-wrapper">
+            <div id="board-canvas-container"></div>
+            <div id="cell-info-tag" class="cell-info-tag hidden">
+              <button id="close-cell-info-tag" class="close-cell-info-tag">&times;</button>
+              <div id="cell-info-tag-content"></div>
+            </div>
+            <div id="username-tag" class="username-tag hidden"></div>
+          </div>
+          <div class="movement-log-box">
+            <div class="log-title">Движение на карте</div>
+            <div id="movement-messages" class="log-messages"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>История действий</h2>
+          <div id="action-history" class="history-list"></div>
+        </div>
+      </div>
+
+      <div class="grid-right">
+        <div class="card">
+          <h2>Игроки онлайн</h2>
+          <div id="online-players-list" class="online-list"></div>
+        </div>
+
+        <div id="admin-panel" class="card admin-card hidden">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+            <h2 style="margin: 0;">Панель администратора</h2>
+            <button id="admin-refresh-btn" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;">🔄 Обновить</button>
+          </div>
+          <div class="admin-tabs">
+            <button class="tab-btn active" data-tab="admin-tab-users">Игроки</button>
+            <button class="tab-btn" data-tab="admin-tab-cells">Настройка ячеек</button>
+            <button class="tab-btn" data-tab="admin-tab-settings">Настройки</button>
+          </div>
+          
+          <div id="admin-tab-users" class="tab-content active">
+            <div class="form-group" style="margin-bottom: 12px; margin-top: 10px;">
+              <input type="text" id="admin-search-users" placeholder="Поиск по имени / username / ID..." style="width: 100%; box-sizing: border-box;">
+            </div>
+            <div class="admin-users-table-wrapper">
+              <table class="admin-table">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Игрок</th>
+                    <th>Ячейка</th>
+                    <th>Баланс</th>
+                    <th>Действие</th>
+                  </tr>
+                </thead>
+                <tbody id="admin-users-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div id="admin-tab-cells" class="tab-content">
+            <div style="background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 6px; padding: 10px; margin-top: 10px; margin-bottom: 15px; font-size: 11px; color: #00f0ff;">
+              💡 Вы можете кликнуть по ячейке на 3D-карте, чтобы быстро настроить её параметры.
+            </div>
+            <div class="form-group">
+              <label>Номер ячейки (0-299)</label>
+              <input type="number" id="admin-cell-number" min="0" max="299" value="0">
+            </div>
+            <div class="form-group">
+              <label>Тип ячейки</label>
+              <select id="admin-cell-type">
+                <option value="normal">Обычная</option>
+                <option value="forward">Портал вперед</option>
+                <option value="backward">Ловушка назад</option>
+                <option value="obstacle">Болото (пропуск хода)</option>
+                <option value="guild_tax">Налог гильдии</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Значение сдвига / штрафа / налога</label>
+              <input type="number" id="admin-cell-value" value="0">
+            </div>
+            <div class="form-group">
+              <label>Тип награды на ячейке</label>
+              <select id="admin-cell-rew-type">
+                <option value="none">Нет награды</option>
+                <option value="currency">Монеты</option>
+                <option value="card">Карта предметов</option>
+                <option value="premium">Премиум статус</option>
+              </select>
+            </div>
+            <div id="admin-card-helper-group" class="form-group hidden" style="background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 6px; margin-bottom: 12px;">
+              <label style="font-size: 10px; color: #00f0ff;">Ссылка на карту Remanga</label>
+              <input type="text" id="admin-cell-card-url" placeholder="https://remanga.org/card/124112" style="margin-bottom: 6px; font-size: 11px;">
+              <button id="admin-fetch-card-btn" class="btn btn-secondary btn-sm btn-block" style="padding: 4px; font-size: 10px;">📥 Загрузить данные карты</button>
+            </div>
+            <div class="form-group">
+              <label>Название награды</label>
+              <input type="text" id="admin-cell-rew-name" placeholder="Например: 50 монет">
+            </div>
+            <div class="form-group">
+              <label>Детали награды (JSON / Значение)</label>
+              <input type="text" id="admin-cell-rew-detail" placeholder="Например: 50">
+            </div>
+            <button id="save-cell-btn" class="btn btn-primary btn-block">Сохранить ячейку</button>
+          </div>
+
+          <div id="admin-tab-settings" class="tab-content">
+            <div class="form-group" style="margin-top: 15px;">
+              <label>Время отката броска кубика (в секундах)</label>
+              <input type="number" id="admin-setting-cooldown" min="0" placeholder="Например: 1800">
+            </div>
+            <h3 style="margin-top: 20px; font-size: 11px; text-transform: uppercase; color: #8c9ba5; font-weight: 600;">Цены в магазине</h3>
+            <div class="form-group">
+              <label>Энергетический Щит (Shield)</label>
+              <input type="number" id="admin-price-shield" min="0">
+            </div>
+            <div class="form-group">
+              <label>Ледяной Свиток (Freeze)</label>
+              <input type="number" id="admin-price-freeze" min="0">
+            </div>
+            <div class="form-group">
+              <label>Гравитационный Импульс (Pusher)</label>
+              <input type="number" id="admin-price-pusher" min="0">
+            </div>
+            <div class="form-group">
+              <label>Очищающее Зелье (Cure)</label>
+              <input type="number" id="admin-price-cure" min="0">
+            </div>
+            <div class="form-group">
+              <label>Магические Оковы (Slowness)</label>
+              <input type="number" id="admin-price-slowness" min="0">
+            </div>
+            <div class="form-group">
+              <label>Крылья Ветра (Double Roll)</label>
+              <input type="number" id="admin-price-double_roll" min="0">
+            </div>
+            <div class="form-group">
+              <label>Стоимость удаления награды из инвентаря</label>
+              <input type="number" id="admin-price-remove-reward" min="0">
+            </div>
+            <button id="save-settings-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Сохранить настройки</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="profile-drawer" class="profile-drawer">
+    <div class="drawer-header">
+      <h2>Профиль игрока</h2>
+      <button id="close-profile-btn" class="close-btn">&times;</button>
+    </div>
+    <div class="drawer-content">
+      <div class="drawer-profile-card">
+        <div class="drawer-avatar-wrapper">
+          <img id="drawer-avatar-img" class="hidden avatar-img" src="" alt="">
+          <div id="drawer-avatar-fallback" class="avatar-placeholder"></div>
+        </div>
+        <div class="drawer-names">
+          <div id="drawer-display-name" class="display-name">-</div>
+          <div id="drawer-tg-username" class="tg-username">-</div>
+        </div>
+        <div class="remanga-info-box">
+          <span class="label">Remanga профиль:</span>
+          <span id="drawer-remanga-name" class="value text-gold">-</span>
+          <span id="drawer-remanga-id" class="sub-value">-</span>
+        </div>
+      </div>
+      <div class="drawer-char-preview">
+        <div id="drawer-char-canvas"></div>
+        <div class="lock-tag">Персонаж закреплен (изменение заблокировано)</div>
+      </div>
+      <div class="drawer-section">
+        <h3>Статистика</h3>
+        <div class="drawer-stats-row">
+          <div class="drawer-stat">
+            <span class="stat-label">Монеты</span>
+            <span id="drawer-balance" class="stat-value text-gold">0</span>
+          </div>
+          <div class="drawer-stat" style="display: none;">
+            <span class="stat-label">Победы</span>
+            <span id="drawer-wins" class="stat-value text-cyan">0</span>
+          </div>
+        </div>
+      </div>
+      <div class="drawer-section">
+        <h3>Ваши предметы</h3>
+        <div id="drawer-inventory-list" class="inventory-grid"></div>
+      </div>
+      <div class="drawer-section">
+        <h3>Активные эффекты</h3>
+        <div id="drawer-effects-list" class="effects-list"></div>
+      </div>
+      <div class="drawer-section">
+        <h3>История действий</h3>
+        <div id="drawer-history-list" class="history-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="confirm-char-modal" class="modal hidden">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h2>Подтверждение создания</h2>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 12px; line-height: 1.5; margin-bottom: 20px;">Вы уверены? После подтверждения персонажа больше нельзя будет поменять!</p>
+        <div style="display: flex; gap: 10px;">
+          <button id="confirm-char-yes" class="btn btn-primary" style="flex: 1;">Да, создать</button>
+          <button id="confirm-char-no" class="btn btn-secondary" style="flex: 1;">Отмена</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="use-item-modal" class="modal hidden">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h2>Применить способность</h2>
+        <button id="close-use-modal-btn" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p id="use-item-name" class="text-gold font-bold"></p>
+        <p id="use-item-desc"></p>
+        <div class="form-group">
+          <label for="use-target-select">Выберите цель (игрока)</label>
+          <select id="use-target-select"></select>
+        </div>
+        <button id="confirm-use-btn" class="btn btn-primary btn-block btn-glow">Применить способность</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="admin-edit-modal" class="modal hidden">
+    <div class="modal-content modal-md">
+      <div class="modal-header">
+        <h2>Редактирование игрока</h2>
+        <button id="close-admin-edit-btn" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <div>
+          <input type="hidden" id="edit-user-id">
+          <div class="form-group">
+            <label>Игрок</label>
+            <input type="text" id="edit-user-name" disabled style="opacity: 0.6;">
+          </div>
+          <div class="form-group">
+            <label>Баланс монет</label>
+            <input type="number" id="edit-user-balance">
+          </div>
+          <div class="form-group">
+            <label>Текущая ячейка (0-299)</label>
+            <input type="number" id="edit-user-cell" min="0" max="299">
+          </div>
+          <div class="form-group">
+            <label>Налог гильдии (Требуется)</label>
+            <input type="number" id="edit-user-tax-required" min="0">
+          </div>
+          <div class="form-group">
+            <label>Налог гильдии (Оплачено)</label>
+            <input type="number" id="edit-user-tax-paid" min="0">
+          </div>
+          <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+            <input type="checkbox" id="edit-user-admin" style="width: auto; margin: 0;">
+            <label for="edit-user-admin" style="margin: 0; cursor: pointer;">Администратор</label>
+          </div>
+          <button id="save-user-edit-btn" class="btn btn-primary btn-block btn-glow" style="margin-top: 15px;">Сохранить изменения</button>
+        </div>
+        <div style="border-left: 1px solid rgba(255,255,255,0.08); padding-left: 20px; display: flex; flex-direction: column; gap: 15px;">
+          <div>
+            <h3 style="font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 8px; font-weight: 600;">Инвентарь игрока</h3>
+            <div id="edit-user-inventory" class="inventory-grid" style="grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 6px; max-height: 180px; overflow-y: auto;">
+              <div style="font-size: 11px; color: #8c9ba5;">Загрузка...</div>
+            </div>
+          </div>
+          <div>
+            <h3 style="font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 8px; font-weight: 600;">Активные эффекты</h3>
+            <div id="edit-user-effects" style="display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto;">
+              <div style="font-size: 11px; color: #8c9ba5;">Загрузка...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dice-overlay" class="modal hidden" style="background: rgba(0, 0, 0, 0.85); display: flex; align-items: center; justify-content: center; z-index: 10000;">
+    <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 30px;">
+      <div id="dice-container" class="dice-scene">
+        <div id="dice-cube" class="dice-cube">
+          <div class="dice-face front">1</div>
+          <div class="dice-face back">6</div>
+          <div class="dice-face right">2</div>
+          <div class="dice-face left">5</div>
+          <div class="dice-face top">3</div>
+          <div class="dice-face bottom">4</div>
+        </div>
+      </div>
+      <div id="dice-result-text" class="text-gold font-bold" style="font-size: 24px; min-height: 36px; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);"></div>
+    </div>
+  </div>
+
+
+  <div id="reward-popup" class="reward-popup hidden">
+    <h3 id="reward-popup-title">Вы получили награду!</h3>
+    <div id="reward-popup-body"></div>
+  </div>
+
+  <div id="guild-tax-modal" class="modal hidden" style="z-index: 9999;">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h2>Налог гильдии!</h2>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 15px;">Вы попали на ячейку налога гильдии. Вы не сможете ходить дальше, пока не пожертвуете в сумме <span id="tax-amount-span" class="text-gold font-bold">0</span> молний в любую из следующих гильдий на Remanga:</p>
+        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 15px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; text-align: center;">
+          Внесено: <span id="tax-paid-span" class="text-cyan font-bold">0</span> / <span id="tax-total-span" class="text-gold font-bold">0</span> молний<br>
+          <span style="font-size: 11px; color: #8c9ba5;">Сканер обновит статус в течение 5 минут.</span>
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <a href="https://remanga.org/clubs/eternal-watchers-5fdc5a3d/" target="_blank" class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Watchers</a>
+          <a href="https://remanga.org/clubs/eternal-keepers-of-knowledge-06969ad9/" target="_blank" class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Keepers</a>
+          <a href="https://remanga.org/clubs/eternalangelicguardianse-w-da9b9d1b/" target="_blank" class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Angelic Guardians</a>
+          <button id="close-guild-tax-btn" class="btn btn-secondary">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="reward-choice-modal" class="modal hidden" style="z-index: 9999;">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h2>Награда найдена!</h2>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 15px;">Вы попали на ячейку с наградой. Хотите забрать её?</p>
+        <div style="font-size: 16px; font-weight: 700; color: #ffb800; text-align: center; margin-bottom: 15px;" id="reward-choice-name"></div>
+        <p style="font-size: 12px; color: #8c9ba5; line-height: 1.4; margin-bottom: 15px; text-align: center;" id="reward-choice-desc"></p>
+        <div style="display: flex; gap: 10px;">
+          <button id="claim-reward-yes-btn" class="btn btn-primary" style="flex: 1;">Забрать</button>
+          <button id="claim-reward-no-btn" class="btn btn-secondary" style="flex: 1;">Отказаться</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
