@@ -1583,9 +1583,6 @@ async function publishBackendUrl() {
     console.log('Не удалось автоматически определить URL бэкенда (ожидание запуска ngrok...)');
   }
 }
-    console.log('Не удалось автоматически определить URL бэкенда (ожидание запуска ngrok...)');
-  }
-}
 
 function startPublishingLoop() {
   publishBackendUrl();

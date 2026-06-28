@@ -27,7 +27,7 @@ async function resolveBackendUrl() {
   }
 
   try {
-    const binUrl = 'https://extendsclass.com/api/json-storage/bin/ffaabaf';
+    const binUrl = 'https://extendsclass.com/api/json-storage/bin/ffaabaf?nocache=' + Date.now();
     
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6000);
