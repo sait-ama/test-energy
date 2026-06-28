@@ -841,6 +841,10 @@ function initSocket() {
       showCellInfoTag(state.selectedCellInfo.cellIndex);
     }
   });
+
+  state.socket.on('settings_update', () => {
+    loadShop();
+  });
 }
 
 async function loadCells() {
@@ -3036,15 +3040,19 @@ window.quickAddCoins = async (userId) => {
         userId,
         balance: user.balance + 100,
         currentCell: user.current_cell,
-        isAdmin: user.is_admin
+        isAdmin: user.is_admin,
+        requesterUserId: state.user.id
       })
     });
-    if (!res.ok) throw new Error();
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || 'Ошибка сервера');
+    }
     showNotification('Баланс пополнен на +100 монет!', 'success');
     await loadAdminUsers();
     refreshProfile();
   } catch (err) {
-    showNotification('Ошибка при изменении баланса', 'error');
+    showNotification(err.message || 'Ошибка при изменении баланса', 'error');
   }
 };
 

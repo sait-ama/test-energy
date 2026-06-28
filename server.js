@@ -1340,6 +1340,9 @@ app.post('/api/admin/settings/update', checkAdmin, async (req, res) => {
     if (price_remove_reward !== undefined) {
       await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_remove_reward', ?)", [String(price_remove_reward)]);
     }
+    if (io) {
+      io.emit('settings_update');
+    }
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
