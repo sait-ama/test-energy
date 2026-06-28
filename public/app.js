@@ -1,27 +1,4 @@
-const originalFetch = window.fetch;
-const backendUrl = (location.hostname === "localhost" || location.hostname === "127.0.0.1" || location.port === "3000")
-  ? ""
-  : "https://patrina-unlusty-vince.ngrok-free.dev";
 
-window.fetch = function (input, init) {
-  if (typeof input === 'string' && input.startsWith('/api/')) {
-    input = backendUrl + input;
-    if (backendUrl) {
-      init = init || {};
-      if (!init.headers) {
-        init.headers = {};
-      }
-      if (init.headers instanceof Headers) {
-        init.headers.set('ngrok-skip-browser-warning', '69420');
-      } else if (Array.isArray(init.headers)) {
-        init.headers.push(['ngrok-skip-browser-warning', '69420']);
-      } else {
-        init.headers['ngrok-skip-browser-warning'] = '69420';
-      }
-    }
-  }
-  return originalFetch(input, init);
-};
 
 function getAvatarUrl(avatarPath) {
   if (!avatarPath) return '';
@@ -642,7 +619,7 @@ function performSelfMovement(moveData) {
 }
 
 function initSocket() {
-  state.socket = io(backendUrl || undefined);
+  state.socket = io();
   state.socket.emit('authenticate', { userId: state.user.id });
 
   state.socket.on('players_list', (list) => {
