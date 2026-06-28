@@ -19,23 +19,31 @@
       <h1>Регистрация и Вход</h1>
       <p class="subtitle">Присоединяйтесь к международному ивенту гильдии Eternal Watchers</p>
       
-      <div class="form-group">
-        <label for="tg-id-input">Telegram ID</label>
-        <input type="text" id="tg-id-input" placeholder="Например: 1276299">
-      </div>
-      
-      <div class="form-group">
-        <label for="tg-username-input">Username (@username)</label>
-        <input type="text" id="tg-username-input" placeholder="Например: saitama01010">
+      <div id="telegram-login-container" style="display: flex; justify-content: center; margin: 20px 0; min-height: 40px;"></div>
+
+      <div class="demo-toggle-wrapper" style="text-align: center; margin-top: 10px; margin-bottom: 15px;">
+        <button id="toggle-demo-btn" style="background: none; border: none; color: #8c9ba5; font-size: 11px; cursor: pointer; text-decoration: underline;">Войти в демо-режиме (для тестирования)</button>
       </div>
 
-      <div class="form-group">
-        <label for="tg-first-name-input">Имя (Никнейм)</label>
-        <input type="text" id="tg-first-name-input" placeholder="Например: Сайтама">
-      </div>
+      <div id="demo-auth-fields" class="hidden" style="display: none; flex-direction: column; gap: 15px;">
+        <div class="form-group">
+          <label for="tg-id-input">Telegram ID</label>
+          <input type="text" id="tg-id-input" placeholder="Например: 1276299">
+        </div>
+        
+        <div class="form-group">
+          <label for="tg-username-input">Username (@username)</label>
+          <input type="text" id="tg-username-input" placeholder="Например: saitama01010">
+        </div>
 
-      <button id="auth-btn" class="btn btn-primary btn-glow">Войти через Telegram</button>
-      <div class="info-note">Используется демонстрационный вход. Вы можете ввести любые данные для тестирования мультиплеера.</div>
+        <div class="form-group">
+          <label for="tg-first-name-input">Имя (Никнейм)</label>
+          <input type="text" id="tg-first-name-input" placeholder="Например: Сайтама">
+        </div>
+
+        <button id="auth-btn" class="btn btn-primary btn-glow">Войти (Демо)</button>
+        <div class="info-note">Используется демонстрационный вход. Вы можете ввести любые данные для тестирования мультиплеера.</div>
+      </div>
     </div>
   </div>
 
