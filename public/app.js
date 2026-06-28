@@ -570,6 +570,13 @@ async function startTelegramBotAuth() {
   const btn = document.getElementById('tg-bot-auth-btn');
   const statusEl = document.getElementById('tg-auth-status');
 
+  let newWindow = null;
+  try {
+    newWindow = window.open('about:blank', '_blank');
+  } catch (e) {
+    console.error(e);
+  }
+
   try {
     btn.disabled = true;
     btn.style.opacity = '0.6';
@@ -578,7 +585,11 @@ async function startTelegramBotAuth() {
     const data = await callApi('/api/auth/telegram-start', { method: 'POST' });
     const { token, botLink } = data;
 
-    window.open(botLink, '_blank');
+    if (newWindow) {
+      newWindow.location.href = botLink;
+    } else {
+      window.location.href = botLink;
+    }
 
     statusEl.style.display = 'block';
     statusEl.innerHTML = '⏳ Нажмите <b>Start</b> в боте Telegram и вернитесь сюда. Авторизация произойдёт автоматически...';
@@ -630,6 +641,11 @@ async function startTelegramBotAuth() {
     }, 2000);
 
   } catch (err) {
+    if (newWindow) {
+      try {
+        newWindow.close();
+      } catch (e) {}
+    }
     showNotification(err.message, 'error');
     resetTgAuthButton();
     statusEl.style.display = 'none';
