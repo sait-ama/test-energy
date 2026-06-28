@@ -146,10 +146,14 @@ window.alert = (message) => {
 
 const keysPressed = {};
 window.addEventListener('keydown', (e) => {
-  keysPressed[e.key.toLowerCase()] = true;
+  if (e && e.key) {
+    keysPressed[e.key.toLowerCase()] = true;
+  }
 });
 window.addEventListener('keyup', (e) => {
-  keysPressed[e.key.toLowerCase()] = false;
+  if (e && e.key) {
+    keysPressed[e.key.toLowerCase()] = false;
+  }
 });
 
 const TILE_SPACING = 3.5;
@@ -492,43 +496,54 @@ function initAuth() {
     });
   }
 
-  document.getElementById('auth-btn').addEventListener('click', async () => {
-    const tgId = document.getElementById('tg-id-input').value.trim();
-    const username = document.getElementById('tg-username-input').value.trim();
-    const firstName = document.getElementById('tg-first-name-input').value.trim();
+  const authBtn = document.getElementById('auth-btn');
+  if (authBtn) {
+    authBtn.addEventListener('click', async () => {
+      const tgIdInput = document.getElementById('tg-id-input');
+      const tgUsernameInput = document.getElementById('tg-username-input');
+      const tgFirstNameInput = document.getElementById('tg-first-name-input');
+      if (!tgIdInput || !tgFirstNameInput) return;
 
-    if (!tgId || !firstName) {
-      showNotification('Пожалуйста, заполните Telegram ID и Имя', 'error');
-      return;
-    }
+      const tgId = tgIdInput.value.trim();
+      const username = tgUsernameInput ? tgUsernameInput.value.trim() : '';
+      const firstName = tgFirstNameInput.value.trim();
 
-    try {
-      const res = await fetch('/api/auth/telegram-demo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tg_id: tgId, username, first_name: firstName })
-      });
-
-      if (!res.ok) {
-        throw new Error('Ошибка авторизации');
+      if (!tgId || !firstName) {
+        showNotification('Пожалуйста, заполните Telegram ID и Имя', 'error');
+        return;
       }
 
-      const data = await res.json();
-      state.user = data.user;
-      localStorage.setItem('ew_event_user', JSON.stringify(data.user));
-      checkOnboardingStage(state.user);
-    } catch (err) {
-      showNotification(err.message, 'error');
-    }
-  });
+      try {
+        const res = await fetch('/api/auth/telegram-demo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tg_id: tgId, username, first_name: firstName })
+        });
 
-  document.getElementById('logout-btn').addEventListener('click', () => {
-    localStorage.removeItem('ew_event_user');
-    if (state.socket) {
-      state.socket.disconnect();
-    }
-    location.reload();
-  });
+        if (!res.ok) {
+          throw new Error('Ошибка авторизации');
+        }
+
+        const data = await res.json();
+        state.user = data.user;
+        localStorage.setItem('ew_event_user', JSON.stringify(data.user));
+        checkOnboardingStage(state.user);
+      } catch (err) {
+        showNotification(err.message, 'error');
+      }
+    });
+  }
+
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('ew_event_user');
+      if (state.socket) {
+        state.socket.disconnect();
+      }
+      location.reload();
+    });
+  }
 }
 
 async function callApi(url, options = {}) {
