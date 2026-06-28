@@ -40,6 +40,10 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json());
+app.use((req, res, next) => {
+  console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.path}`, req.method === 'POST' ? req.body : '');
+  next();
+});
 app.use(express.static('public'));
 
 const onlineUsers = new Map();
