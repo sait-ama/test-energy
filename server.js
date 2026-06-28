@@ -1541,11 +1541,56 @@ app.post('/api/inventory/remove-reward', async (req, res) => {
   }
 });
 
+async function publishBackendUrl() {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const username = process.env.TELEGRAM_BOT_USERNAME;
+  if (!token || !username) {
+    console.log('TELEGRAM_BOT_TOKEN или TELEGRAM_BOT_USERNAME не настроены. Автопубликация адреса сервера отключена.');
+    return;
+  }
+
+  let backendUrl = process.env.BACKEND_URL;
+
+  if (!backendUrl) {
+    try {
+      const res = await fetch('http://127.0.0.1:4040/api/tunnels');
+      if (res.ok) {
+        const data = await res.json();
+        const tunnel = data.tunnels.find(t => t.proto === 'https');
+        if (tunnel) {
+          backendUrl = tunnel.public_url;
+        }
+      }
+    } catch (e) {
+      // ngrok не запущен или недоступен
+    }
+  }
+
+  if (backendUrl) {
+    try {
+      console.log(`Обновление описания бота в Telegram... Новый URL бэкенда: ${backendUrl}`);
+      const res = await fetch(`https://api.telegram.org/bot${token}/setMyDescription?description=${encodeURIComponent(backendUrl)}`);
+      const data = await res.json();
+      if (!data.ok) {
+        console.error('Не удалось обновить описание бота:', data.description);
+      } else {
+        console.log('Описание бота успешно обновлено!');
+      }
+    } catch (err) {
+      console.error('Ошибка при обновлении описания бота:', err.message);
+    }
+  } else {
+    console.log('Не удалось автоматически определить URL бэкенда (ngrok не запущен или NGROK_URL не задан в .env)');
+  }
+}
+
 const PORT = 3000;
 initDb().then(() => {
   server.listen(PORT, () => {
     startGuildScanner(io);
     startTelegramPolling();
+    publishBackendUrl();
+    setInterval(publishBackendUrl, 5 * 60 * 1000);
   });
 }).catch(err => {
   process.exit(1);
