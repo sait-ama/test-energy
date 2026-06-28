@@ -768,14 +768,12 @@ function performSelfMovement(moveData) {
 
 function initSocket() {
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const socketUrl = isLocal ? (backendUrl || undefined) : window.location.origin;
-  const options = {
-    transports: isLocal ? ['polling', 'websocket'] : ['polling']
-  };
-  if (isLocal && socketUrl && socketUrl.includes('ngrok')) {
-    options.extraHeaders = {
-      "ngrok-skip-browser-warning": "true"
-    };
+  const socketUrl = backendUrl || undefined;
+  const options = {};
+  if (isLocal) {
+    options.transports = ['polling', 'websocket'];
+  } else {
+    options.transports = ['websocket'];
   }
   state.socket = io(socketUrl, options);
   state.socket.emit('authenticate', { userId: state.user.id });
