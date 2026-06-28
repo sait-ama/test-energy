@@ -43,6 +43,100 @@ app.use(express.json());
 app.use(express.static('public'));
 
 const onlineUsers = new Map();
+const pendingAuthTokens = new Map();
+let telegramPollingOffset = 0;
+let telegramPollingActive = false;
+
+function generateAuthToken() {
+  return crypto.randomBytes(16).toString('hex');
+}
+
+async function startTelegramPolling() {
+  if (!TELEGRAM_BOT_TOKEN || telegramPollingActive) return;
+  telegramPollingActive = true;
+
+  async function poll() {
+    if (!telegramPollingActive) return;
+    try {
+      const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUpdates?offset=${telegramPollingOffset}&timeout=30&allowed_updates=["message"]`;
+      const resp = await fetch(url);
+      if (!resp.ok) {
+        setTimeout(poll, 5000);
+        return;
+      }
+      const data = await resp.json();
+      if (data.ok && data.result) {
+        for (const update of data.result) {
+          telegramPollingOffset = update.update_id + 1;
+          if (update.message && update.message.text) {
+            const text = update.message.text.trim();
+            const match = text.match(/^\/start\s+auth_(.+)$/);
+            if (match) {
+              const token = match[1];
+              const tgUser = update.message.from;
+              if (pendingAuthTokens.has(token)) {
+                pendingAuthTokens.set(token, {
+                  status: 'completed',
+                  tg_id: String(tgUser.id),
+                  first_name: tgUser.first_name || '',
+                  username: tgUser.username || '',
+                  completedAt: Date.now()
+                });
+
+                try {
+                  await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      chat_id: tgUser.id,
+                      text: `✅ Авторизация успешна!\n\nДобро пожаловать, ${tgUser.first_name}! Вернитесь на сайт — вход выполнен автоматически.`
+                    })
+                  });
+                } catch (e) {}
+              } else {
+                try {
+                  await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      chat_id: tgUser.id,
+                      text: `⚠️ Токен авторизации не найден или истёк.\nПожалуйста, нажмите кнопку "Войти через Telegram" на сайте заново.`
+                    })
+                  });
+                } catch (e) {}
+              }
+            } else if (text === '/start') {
+              const tgUser = update.message.from;
+              try {
+                await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    chat_id: tgUser.id,
+                    text: `👋 Привет, ${tgUser.first_name}!\n\nЭто бот авторизации для ивента Eternal Watchers.\nДля входа используйте кнопку "Войти через Telegram" на сайте.`
+                  })
+                });
+              } catch (e) {}
+            }
+          }
+        }
+      }
+    } catch (e) {}
+    setTimeout(poll, 1000);
+  }
+
+  poll();
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [token, data] of pendingAuthTokens.entries()) {
+    const age = now - (data.createdAt || data.completedAt || now);
+    if (age > 5 * 60 * 1000) {
+      pendingAuthTokens.delete(token);
+    }
+  }
+}, 60000);
 
 async function broadcastPlayersList() {
   try {
@@ -126,26 +220,75 @@ io.on('connection', (socket) => {
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || '';
 
-function verifyTelegramAuth(data, botToken) {
-  if (!botToken) {
-    return true;
-  }
-  const { hash, ...userData } = data;
-  const dataCheckString = Object.keys(userData)
-    .sort()
-    .map(key => `${key}=${userData[key]}`)
-    .join('\n');
-  
-  const secretKey = crypto.createHash('sha256').update(botToken).digest();
-  const calculatedHash = crypto.createHmac('sha256', secretKey)
-    .update(dataCheckString)
-    .digest('hex');
-    
-  return calculatedHash === hash;
-}
-
 app.get('/api/config/telegram', (req, res) => {
   res.json({ botUsername: TELEGRAM_BOT_USERNAME });
+});
+
+app.post('/api/auth/telegram-start', (req, res) => {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_BOT_USERNAME) {
+    return res.status(500).json({ error: 'Telegram бот не настроен' });
+  }
+  const token = generateAuthToken();
+  pendingAuthTokens.set(token, { status: 'pending', createdAt: Date.now() });
+  const botLink = `https://t.me/${TELEGRAM_BOT_USERNAME}?start=auth_${token}`;
+  res.json({ token, botLink });
+});
+
+app.get('/api/auth/telegram-check/:token', async (req, res) => {
+  const { token } = req.params;
+  const data = pendingAuthTokens.get(token);
+
+  if (!data) {
+    return res.json({ status: 'expired' });
+  }
+
+  if (data.status !== 'completed') {
+    return res.json({ status: 'pending' });
+  }
+
+  pendingAuthTokens.delete(token);
+
+  const tg_id = data.tg_id;
+  const username = data.username;
+  const first_name = data.first_name;
+
+  try {
+    let user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
+    const isOwner = (username && username.toLowerCase() === 'saitama01010');
+
+    if (!user) {
+      const isFirst = (await getQuery('SELECT COUNT(*) as count FROM users')).count === 0;
+      const isAdmin = (isFirst || isOwner) ? 1 : 0;
+
+      await runQuery(
+        'INSERT INTO users (tg_id, tg_username, tg_first_name, is_admin) VALUES (?, ?, ?, ?)',
+        [tg_id, username, first_name, isAdmin]
+      );
+      user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
+
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [user.id, 'registration', 'Регистрация через Telegram бот', new Date().toISOString()]
+      );
+    } else {
+      if (isOwner && !user.is_admin) {
+        await runQuery('UPDATE users SET is_admin = 1, tg_username = ?, tg_first_name = ? WHERE id = ?', [username, first_name, user.id]);
+      } else {
+        await runQuery('UPDATE users SET tg_username = ?, tg_first_name = ? WHERE id = ?', [username, first_name, user.id]);
+      }
+      user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
+    }
+
+    res.json({
+      status: 'completed',
+      user: {
+        ...user,
+        character_data: user.character_data ? JSON.parse(user.character_data) : null
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/auth/telegram', async (req, res) => {
@@ -1402,6 +1545,7 @@ const PORT = 3000;
 initDb().then(() => {
   server.listen(PORT, () => {
     startGuildScanner(io);
+    startTelegramPolling();
   });
 }).catch(err => {
   process.exit(1);
