@@ -1,3 +1,9 @@
+export const config = {
+  api: {
+    bodyParser: false,
+  },
+};
+
 export default async function handler(req, res) {
   let backendUrl = '';
   try {
@@ -32,7 +38,11 @@ export default async function handler(req, res) {
     };
 
     if (req.method !== 'GET' && req.method !== 'HEAD') {
-      fetchOptions.body = typeof req.body === 'object' ? JSON.stringify(req.body) : req.body;
+      const chunks = [];
+      for await (const chunk of req) {
+        chunks.push(chunk);
+      }
+      fetchOptions.body = Buffer.concat(chunks);
     }
 
     const targetRes = await fetch(targetUrl, fetchOptions);
