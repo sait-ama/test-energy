@@ -51,27 +51,6 @@ async function resolveBackendUrl() {
   }
 }
 
-const originalFetch = window.fetch;
-window.fetch = function (url, options) {
-  if (typeof url === 'string' && url.startsWith('/api/')) {
-    const API_BASE = backendUrl || '';
-    url = API_BASE + url;
-
-    if (API_BASE.includes('ngrok')) {
-      options = options || {};
-      options.headers = options.headers || {};
-      if (options.headers instanceof Headers) {
-        options.headers.set('ngrok-skip-browser-warning', 'true');
-      } else if (Array.isArray(options.headers)) {
-        options.headers.push(['ngrok-skip-browser-warning', 'true']);
-      } else {
-        options.headers['ngrok-skip-browser-warning'] = 'true';
-      }
-    }
-  }
-  return originalFetch(url, options);
-};
-
 const state = {
   user: null,
   inventory: [],
