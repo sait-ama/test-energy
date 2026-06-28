@@ -20,7 +20,14 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Адрес бэкенда не опубликован' });
   }
 
-  const targetUrl = backendUrl.replace(/\/$/, '') + req.url;
+  const parsedUrl = new URL(req.url, 'http://localhost');
+  let targetPath = parsedUrl.pathname + parsedUrl.search;
+  const originalPath = parsedUrl.searchParams.get('originalPath');
+  if (originalPath) {
+    parsedUrl.searchParams.delete('originalPath');
+    targetPath = originalPath + parsedUrl.search;
+  }
+  const targetUrl = backendUrl.replace(/\/$/, '') + targetPath;
 
   try {
     const headers = {};
