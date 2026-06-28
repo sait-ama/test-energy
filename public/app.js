@@ -422,6 +422,8 @@ document.addEventListener('DOMContentLoaded', () => {
   setupAdminTabs();
 });
 
+let tgAuthPollingInterval = null;
+
 function initAuth() {
   const savedUser = localStorage.getItem('ew_event_user');
   if (savedUser) {
@@ -431,7 +433,10 @@ function initAuth() {
     checkOnboardingStage(null);
   }
 
-  loadTelegramWidget();
+  const tgAuthBtn = document.getElementById('tg-bot-auth-btn');
+  if (tgAuthBtn) {
+    tgAuthBtn.addEventListener('click', startTelegramBotAuth);
+  }
 
   const toggleBtn = document.getElementById('toggle-demo-btn');
   const demoFields = document.getElementById('demo-auth-fields');
@@ -486,52 +491,88 @@ function initAuth() {
   });
 }
 
-async function loadTelegramWidget() {
+async function startTelegramBotAuth() {
+  const btn = document.getElementById('tg-bot-auth-btn');
+  const statusEl = document.getElementById('tg-auth-status');
+
   try {
-    const res = await fetch('/api/config/telegram');
-    const config = await res.json();
-    if (!config || !config.botUsername) {
-      return;
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.94 8.13l-1.97 9.28c-.15.67-.54.83-1.09.52l-3.02-2.23-1.46 1.4c-.16.16-.3.3-.61.3l.22-3.07 5.56-5.02c.24-.22-.05-.33-.38-.13L8.69 13.7l-2.98-.93c-.65-.2-.66-.65.14-.96l11.64-4.49c.54-.19 1.01.13.84.96l-.39-.15z"/></svg> Подождите...';
+
+    const res = await fetch('/api/auth/telegram-start', { method: 'POST' });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Ошибка при создании токена');
     }
-    const container = document.getElementById('telegram-login-container');
-    if (!container) return;
-    
-    container.innerHTML = '';
-    const script = document.createElement('script');
-    script.async = true;
-    script.src = 'https://telegram.org/js/telegram-widget.js?22';
-    script.setAttribute('data-telegram-login', config.botUsername);
-    script.setAttribute('data-size', 'large');
-    script.setAttribute('data-userpic', 'false');
-    script.setAttribute('data-onauth', 'onTelegramAuth(user)');
-    script.setAttribute('data-request-access', 'write');
-    container.appendChild(script);
+
+    const { token, botLink } = await res.json();
+
+    window.open(botLink, '_blank');
+
+    statusEl.style.display = 'block';
+    statusEl.innerHTML = '⏳ Нажмите <b>Start</b> в боте Telegram и вернитесь сюда. Авторизация произойдёт автоматически...';
+
+    btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.94 8.13l-1.97 9.28c-.15.67-.54.83-1.09.52l-3.02-2.23-1.46 1.4c-.16.16-.3.3-.61.3l.22-3.07 5.56-5.02c.24-.22-.05-.33-.38-.13L8.69 13.7l-2.98-.93c-.65-.2-.66-.65.14-.96l11.64-4.49c.54-.19 1.01.13.84.96l-.39-.15z"/></svg> Ожидание авторизации...';
+
+    if (tgAuthPollingInterval) clearInterval(tgAuthPollingInterval);
+
+    let attempts = 0;
+    const maxAttempts = 150;
+
+    tgAuthPollingInterval = setInterval(async () => {
+      attempts++;
+      if (attempts > maxAttempts) {
+        clearInterval(tgAuthPollingInterval);
+        tgAuthPollingInterval = null;
+        resetTgAuthButton();
+        statusEl.style.display = 'none';
+        showNotification('Время авторизации истекло. Попробуйте снова.', 'error');
+        return;
+      }
+
+      try {
+        const checkRes = await fetch(`/api/auth/telegram-check/${token}`);
+        const checkData = await checkRes.json();
+
+        if (checkData.status === 'completed' && checkData.user) {
+          clearInterval(tgAuthPollingInterval);
+          tgAuthPollingInterval = null;
+
+          state.user = checkData.user;
+          localStorage.setItem('ew_event_user', JSON.stringify(checkData.user));
+          statusEl.innerHTML = '✅ Авторизация успешна!';
+
+          showNotification(`Добро пожаловать, ${checkData.user.tg_first_name}!`, 'success');
+
+          setTimeout(() => {
+            checkOnboardingStage(state.user);
+          }, 500);
+        } else if (checkData.status === 'expired') {
+          clearInterval(tgAuthPollingInterval);
+          tgAuthPollingInterval = null;
+          resetTgAuthButton();
+          statusEl.style.display = 'none';
+          showNotification('Токен истёк. Нажмите кнопку заново.', 'error');
+        }
+      } catch (e) {}
+    }, 2000);
+
   } catch (err) {
-    console.error(err);
+    showNotification(err.message, 'error');
+    resetTgAuthButton();
+    statusEl.style.display = 'none';
   }
 }
 
-window.onTelegramAuth = async function (user) {
-  try {
-    const res = await fetch('/api/auth/telegram', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(user)
-    });
-
-    if (!res.ok) {
-      const errData = await res.json();
-      throw new Error(errData.error || 'Ошибка авторизации через Telegram');
-    }
-
-    const data = await res.json();
-    state.user = data.user;
-    localStorage.setItem('ew_event_user', JSON.stringify(data.user));
-    checkOnboardingStage(state.user);
-  } catch (err) {
-    showNotification(err.message, 'error');
+function resetTgAuthButton() {
+  const btn = document.getElementById('tg-bot-auth-btn');
+  if (btn) {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+    btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.94 8.13l-1.97 9.28c-.15.67-.54.83-1.09.52l-3.02-2.23-1.46 1.4c-.16.16-.3.3-.61.3l.22-3.07 5.56-5.02c.24-.22-.05-.33-.38-.13L8.69 13.7l-2.98-.93c-.65-.2-.66-.65.14-.96l11.64-4.49c.54-.19 1.01.13.84.96l-.39-.15z"/></svg> Войти через Telegram';
   }
-};
+}
 
 function showWizardStep(stepNumber) {
   const step1 = document.getElementById('creator-step-1');
