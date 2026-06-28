@@ -27,31 +27,27 @@ async function resolveBackendUrl() {
   }
 
   try {
-    const botPageUrl = 'https://t.me/quest_ewbot';
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(botPageUrl)}`;
+    const binUrl = 'https://extendsclass.com/api/json-storage/bin/ffaabaf';
     
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-    const res = await fetch(proxyUrl, { signal: controller.signal });
+    const res = await fetch(binUrl, { signal: controller.signal });
     clearTimeout(timeoutId);
 
     if (res.ok) {
-      const html = await res.text();
-      const match = html.match(/property="og:description"\s+content="(https?:\/\/[^"]+ngrok[^"]+)"/i) 
-                 || html.match(/content="(https?:\/\/[a-z0-9.-]+\.ngrok-free\.app)/i);
-      
-      if (match && match[1]) {
-        const newUrl = match[1].trim();
+      const data = await res.json();
+      if (data && data.backendUrl) {
+        const newUrl = data.backendUrl.trim();
         if (newUrl !== backendUrl) {
           backendUrl = newUrl;
           localStorage.setItem('ew_backend_url', backendUrl);
-          console.log('Backend URL dynamically resolved from Telegram:', backendUrl);
+          console.log('Backend URL dynamically resolved from storage:', backendUrl);
         }
       }
     }
   } catch (err) {
-    console.error('Не удалось обновить адрес бэкенда через Telegram:', err);
+    console.error('Не удалось обновить адрес бэкенда через хранилище:', err);
   }
 }
 

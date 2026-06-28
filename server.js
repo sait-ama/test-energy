@@ -1541,14 +1541,9 @@ app.post('/api/inventory/remove-reward', async (req, res) => {
   }
 });
 
-async function publishBackendUrl() {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
-  const username = process.env.TELEGRAM_BOT_USERNAME;
-  if (!token || !username) {
-    console.log('TELEGRAM_BOT_TOKEN или TELEGRAM_BOT_USERNAME не настроены. Автопубликация адреса сервера отключена.');
-    return;
-  }
+let backendUrlPublished = false;
 
+async function publishBackendUrl() {
   let backendUrl = process.env.BACKEND_URL;
 
   if (!backendUrl) {
@@ -1568,20 +1563,43 @@ async function publishBackendUrl() {
 
   if (backendUrl) {
     try {
-      console.log(`Обновление описания бота в Telegram... Новый URL бэкенда: ${backendUrl}`);
-      const res = await fetch(`https://api.telegram.org/bot${token}/setMyDescription?description=${encodeURIComponent(backendUrl)}`);
+      console.log(`Публикация адреса сервера... URL: ${backendUrl}`);
+      const res = await fetch('https://extendsclass.com/api/json-storage/bin/ffaabaf', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ backendUrl: backendUrl })
+      });
       const data = await res.json();
-      if (!data.ok) {
-        console.error('Не удалось обновить описание бота:', data.description);
+      if (data && data.status === 0) {
+        console.log('Адрес бэкенда успешно опубликован в облачном хранилище!');
+        backendUrlPublished = true;
       } else {
-        console.log('Описание бота успешно обновлено!');
+        console.error('Не удалось опубликовать адрес в облачном хранилище:', data);
       }
     } catch (err) {
-      console.error('Ошибка при обновлении описания бота:', err.message);
+      console.error('Ошибка при публикации адреса бэкенда:', err.message);
     }
   } else {
-    console.log('Не удалось автоматически определить URL бэкенда (ngrok не запущен или NGROK_URL не задан в .env)');
+    console.log('Не удалось автоматически определить URL бэкенда (ожидание запуска ngrok...)');
   }
+}
+    console.log('Не удалось автоматически определить URL бэкенда (ожидание запуска ngrok...)');
+  }
+}
+
+function startPublishingLoop() {
+  publishBackendUrl();
+  
+  let attempts = 0;
+  const retryInterval = setInterval(() => {
+    if (backendUrlPublished || attempts > 30) {
+      clearInterval(retryInterval);
+      setInterval(publishBackendUrl, 5 * 60 * 1000);
+    } else {
+      attempts++;
+      publishBackendUrl();
+    }
+  }, 5000);
 }
 
 const PORT = 3000;
@@ -1589,8 +1607,7 @@ initDb().then(() => {
   server.listen(PORT, () => {
     startGuildScanner(io);
     startTelegramPolling();
-    publishBackendUrl();
-    setInterval(publishBackendUrl, 5 * 60 * 1000);
+    startPublishingLoop();
   });
 }).catch(err => {
   process.exit(1);
