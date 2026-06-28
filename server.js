@@ -388,6 +388,88 @@ app.post('/api/auth/telegram-demo', async (req, res) => {
   }
 });
 
+app.get('/api/tg-avatar/:tgId', async (req, res) => {
+  try {
+    const tgId = req.params.tgId;
+    if (!tgId) {
+      return res.status(400).send('Missing tgId');
+    }
+
+    const avatarsDir = path.join(process.cwd(), 'public', 'avatars');
+    if (!fs.existsSync(avatarsDir)) {
+      fs.mkdirSync(avatarsDir, { recursive: true });
+    }
+
+    const localPath = path.join(avatarsDir, `tg_${tgId}.jpg`);
+    let useCache = false;
+    if (fs.existsSync(localPath)) {
+      const stats = fs.statSync(localPath);
+      const ageMs = Date.now() - stats.mtimeMs;
+      if (ageMs < 86400000) {
+        useCache = true;
+      }
+    }
+
+    if (useCache) {
+      res.setHeader('Cache-Control', 'public, max-age=86400');
+      return res.sendFile(localPath);
+    }
+
+    if (!TELEGRAM_BOT_TOKEN) {
+      if (fs.existsSync(localPath)) {
+        return res.sendFile(localPath);
+      }
+      return res.status(500).send('Bot token not configured');
+    }
+
+    const photosUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getUserProfilePhotos?user_id=${tgId}&limit=1`;
+    const photosResp = await fetch(photosUrl);
+    if (!photosResp.ok) {
+      if (fs.existsSync(localPath)) {
+        return res.sendFile(localPath);
+      }
+      return res.status(404).send('Avatar not found');
+    }
+
+    const photosData = await photosResp.json();
+    if (photosData.ok && photosData.result && photosData.result.total_count > 0) {
+      const photos = photosData.result.photos[0];
+      const photo = photos[0];
+      
+      const fileUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getFile?file_id=${photo.file_id}`;
+      const fileResp = await fetch(fileUrl);
+      if (fileResp.ok) {
+        const fileData = await fileResp.json();
+        if (fileData.ok && fileData.result && fileData.result.file_path) {
+          const imgUrl = `https://api.telegram.org/file/bot${TELEGRAM_BOT_TOKEN}/${fileData.result.file_path}`;
+          const imgResp = await fetch(imgUrl);
+          if (imgResp.ok) {
+            const buffer = await imgResp.arrayBuffer();
+            const nodeBuffer = Buffer.from(buffer);
+            fs.writeFileSync(localPath, nodeBuffer);
+            res.setHeader('Content-Type', 'image/jpeg');
+            res.setHeader('Cache-Control', 'public, max-age=86400');
+            return res.send(nodeBuffer);
+          }
+        }
+      }
+    }
+
+    if (fs.existsSync(localPath)) {
+      return res.sendFile(localPath);
+    }
+    return res.status(404).send('No photos found');
+  } catch (err) {
+    console.error(err);
+    const localPath = path.join(process.cwd(), 'public', 'avatars', `tg_${req.params.tgId}.jpg`);
+    if (fs.existsSync(localPath)) {
+      return res.sendFile(localPath);
+    }
+    res.status(500).send(err.message);
+  }
+});
+
+
 app.get('/api/profile/:id', async (req, res) => {
   try {
     let user = await getQuery('SELECT * FROM users WHERE id = ?', [req.params.id]);

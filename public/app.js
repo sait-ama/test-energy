@@ -7,6 +7,26 @@ function getAvatarUrl(avatarPath) {
   return `https://remanga.org/${avatarPath}`;
 }
 
+function loadAvatar(imgEl, fallbackEl, user) {
+  if (!user) return;
+  const tgAvatarUrl = `/api/tg-avatar/${user.tg_id}`;
+  const remangaAvatarUrl = user.remanga_avatar ? getAvatarUrl(user.remanga_avatar) : null;
+  imgEl.onload = () => {
+    imgEl.classList.remove('hidden');
+    fallbackEl.classList.add('hidden');
+  };
+  imgEl.onerror = () => {
+    if (imgEl.src !== remangaAvatarUrl && remangaAvatarUrl) {
+      imgEl.src = remangaAvatarUrl;
+    } else {
+      imgEl.classList.add('hidden');
+      fallbackEl.classList.remove('hidden');
+      fallbackEl.textContent = (user.tg_first_name || 'EW').substring(0, 2).toUpperCase();
+    }
+  };
+  imgEl.src = tgAvatarUrl;
+}
+
 function formatDateTime(isoString) {
   if (!isoString) return '';
   return new Date(isoString).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) + ' (МСК)';
@@ -857,36 +877,14 @@ async function refreshProfile() {
 
     const avatarImg = document.getElementById('user-avatar');
     const avatarFallback = document.getElementById('avatar-fallback');
-    
-    if (state.user.remanga_avatar) {
-      const avatarUrl = getAvatarUrl(state.user.remanga_avatar);
-      avatarImg.src = avatarUrl;
-      avatarImg.classList.remove('hidden');
-      avatarFallback.classList.add('hidden');
+    if (avatarImg && avatarFallback) {
+      loadAvatar(avatarImg, avatarFallback, state.user);
+    }
 
-      const drawerAvatarImg = document.getElementById('drawer-avatar-img');
-      if (drawerAvatarImg) {
-        drawerAvatarImg.src = avatarUrl;
-        drawerAvatarImg.classList.remove('hidden');
-      }
-      const drawerAvatarFallback = document.getElementById('drawer-avatar-fallback');
-      if (drawerAvatarFallback) {
-        drawerAvatarFallback.classList.add('hidden');
-      }
-    } else {
-      avatarImg.classList.add('hidden');
-      avatarFallback.classList.remove('hidden');
-      avatarFallback.textContent = (state.user.tg_first_name || 'EW').substring(0, 2).toUpperCase();
-
-      const drawerAvatarImg = document.getElementById('drawer-avatar-img');
-      if (drawerAvatarImg) {
-        drawerAvatarImg.classList.add('hidden');
-      }
-      const drawerAvatarFallback = document.getElementById('drawer-avatar-fallback');
-      if (drawerAvatarFallback) {
-        drawerAvatarFallback.classList.remove('hidden');
-        drawerAvatarFallback.textContent = (state.user.tg_first_name || 'EW').substring(0, 2).toUpperCase();
-      }
+    const drawerAvatarImg = document.getElementById('drawer-avatar-img');
+    const drawerAvatarFallback = document.getElementById('drawer-avatar-fallback');
+    if (drawerAvatarImg && drawerAvatarFallback) {
+      loadAvatar(drawerAvatarImg, drawerAvatarFallback, state.user);
     }
 
     const drawerDispName = document.getElementById('drawer-display-name');
@@ -2360,11 +2358,19 @@ function updateOnlineList() {
       }
     });
 
-    let avatarHtml = `<div class="online-avatar">EW</div>`;
-    if (player.remanga_avatar) {
-      const src = getAvatarUrl(player.remanga_avatar);
-      avatarHtml = `<div class="online-avatar"><img src="${src}" alt=""></div>`;
-    }
+    const tgSrc = `/api/tg-avatar/${player.tg_id}`;
+    const remangaSrc = player.remanga_avatar ? getAvatarUrl(player.remanga_avatar) : '';
+    const fallbackText = (player.tg_first_name || 'EW').substring(0, 2).toUpperCase();
+    
+    const avatarHtml = `
+      <div class="online-avatar">
+        <img src="${tgSrc}" 
+             onload="this.style.display='block'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';" 
+             onerror="if(this.getAttribute('data-tried-remanga')!=='true' && '${remangaSrc}'){this.setAttribute('data-tried-remanga','true');this.src='${remangaSrc}';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex';}" 
+             style="display:none; width:100%; height:100%; object-fit:cover; border-radius:50%;">
+        <div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; border-radius:50%; background:transparent; color:#00f0ff; font-size:11px; font-weight:bold;">${fallbackText}</div>
+      </div>
+    `;
 
     const statusColor = player.isOnline ? '#2ecc71' : '#95a5a6';
 
