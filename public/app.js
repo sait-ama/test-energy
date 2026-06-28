@@ -12,6 +12,18 @@ function formatDateTime(isoString) {
   return new Date(isoString).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) + ' (МСК)';
 }
 
+const originalFetch = window.fetch;
+window.fetch = function (url, options) {
+  if (typeof url === 'string' && url.startsWith('/api/')) {
+    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+    const API_BASE = (isLocal && window.location.port !== '3000')
+      ? 'http://localhost:3000'
+      : '';
+    url = API_BASE + url;
+  }
+  return originalFetch(url, options);
+};
+
 const state = {
   user: null,
   inventory: [],
@@ -491,6 +503,26 @@ function initAuth() {
   });
 }
 
+async function callApi(url, options = {}) {
+  const res = await fetch(url, options);
+  const text = await res.text();
+  if (!res.ok) {
+    let errMsg = `Ошибка сервера (${res.status})`;
+    try {
+      const errJson = JSON.parse(text);
+      errMsg = errJson.error || errMsg;
+    } catch (e) {
+      errMsg += `: ${text.substring(0, 150)}`;
+    }
+    throw new Error(errMsg);
+  }
+  try {
+    return JSON.parse(text);
+  } catch (e) {
+    throw new Error(`Ответ сервера не является JSON. Получено:\n${text.substring(0, 300)}`);
+  }
+}
+
 async function startTelegramBotAuth() {
   const btn = document.getElementById('tg-bot-auth-btn');
   const statusEl = document.getElementById('tg-auth-status');
@@ -500,13 +532,8 @@ async function startTelegramBotAuth() {
     btn.style.opacity = '0.6';
     btn.innerHTML = '<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.94 8.13l-1.97 9.28c-.15.67-.54.83-1.09.52l-3.02-2.23-1.46 1.4c-.16.16-.3.3-.61.3l.22-3.07 5.56-5.02c.24-.22-.05-.33-.38-.13L8.69 13.7l-2.98-.93c-.65-.2-.66-.65.14-.96l11.64-4.49c.54-.19 1.01.13.84.96l-.39-.15z"/></svg> Подождите...';
 
-    const res = await fetch('/api/auth/telegram-start', { method: 'POST' });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error || 'Ошибка при создании токена');
-    }
-
-    const { token, botLink } = await res.json();
+    const data = await callApi('/api/auth/telegram-start', { method: 'POST' });
+    const { token, botLink } = data;
 
     window.open(botLink, '_blank');
 
@@ -532,8 +559,7 @@ async function startTelegramBotAuth() {
       }
 
       try {
-        const checkRes = await fetch(`/api/auth/telegram-check/${token}`);
-        const checkData = await checkRes.json();
+        const checkData = await callApi(`/api/auth/telegram-check/${token}`);
 
         if (checkData.status === 'completed' && checkData.user) {
           clearInterval(tgAuthPollingInterval);
@@ -555,7 +581,9 @@ async function startTelegramBotAuth() {
           statusEl.style.display = 'none';
           showNotification('Токен истёк. Нажмите кнопку заново.', 'error');
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error(e);
+      }
     }, 2000);
 
   } catch (err) {
@@ -660,7 +688,11 @@ function performSelfMovement(moveData) {
 }
 
 function initSocket() {
-  state.socket = io();
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+  const socketUrl = (isLocal && window.location.port !== '3000')
+    ? 'http://localhost:3000'
+    : undefined;
+  state.socket = io(socketUrl);
   state.socket.emit('authenticate', { userId: state.user.id });
 
   state.socket.on('players_list', (list) => {
