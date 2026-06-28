@@ -767,9 +767,12 @@ function performSelfMovement(moveData) {
 }
 
 function initSocket() {
-  const socketUrl = backendUrl || undefined;
-  const options = {};
-  if (socketUrl && socketUrl.includes('ngrok')) {
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const socketUrl = isLocal ? (backendUrl || undefined) : window.location.origin;
+  const options = {
+    transports: isLocal ? ['polling', 'websocket'] : ['polling']
+  };
+  if (isLocal && socketUrl && socketUrl.includes('ngrok')) {
     options.extraHeaders = {
       "ngrok-skip-browser-warning": "true"
     };
@@ -2770,140 +2773,188 @@ function setupAdminTabs() {
 
       const contentId = tab.getAttribute('data-tab');
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      document.getElementById(contentId).classList.add('active');
+      const targetContent = document.getElementById(contentId);
+      if (targetContent) targetContent.classList.add('active');
     });
   });
 
-  document.getElementById('admin-search-users').addEventListener('input', (e) => {
-    renderAdminUsers(e.target.value);
-  });
+  const searchInput = document.getElementById('admin-search-users');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      renderAdminUsers(e.target.value);
+    });
+  }
 
-  document.getElementById('admin-refresh-btn').addEventListener('click', async () => {
-    await loadAdminUsers();
-    await loadCells();
-    showNotification('Данные обновлены!', 'success');
-  });
-
-  document.getElementById('admin-cell-number').addEventListener('input', (e) => {
-    const idx = parseInt(e.target.value);
-    if (idx >= 0 && idx < 300) {
-      loadAdminCellData(idx);
-    }
-  });
-
-  document.getElementById('save-cell-btn').addEventListener('click', async () => {
-    const cellNumber = parseInt(document.getElementById('admin-cell-number').value);
-    const type = document.getElementById('admin-cell-type').value;
-    const value = parseInt(document.getElementById('admin-cell-value').value);
-    const rewardType = document.getElementById('admin-cell-rew-type').value;
-    const rewardName = document.getElementById('admin-cell-rew-name').value.trim();
-    const rewardDetail = document.getElementById('admin-cell-rew-detail').value.trim();
-
-    try {
-      const res = await fetch('/api/admin/cells/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ cellNumber, type, value, rewardType, rewardName, rewardDetail, requesterUserId: state.user.id })
-      });
-
-      if (!res.ok) throw new Error();
-      showNotification('Данные ячейки обновлены!', 'success');
+  const refreshBtn = document.getElementById('admin-refresh-btn');
+  if (refreshBtn) {
+    refreshBtn.addEventListener('click', async () => {
+      await loadAdminUsers();
       await loadCells();
-      
-      if (state.boardScene) {
-        state.boardScene.remove(state.tileObjects[cellNumber]);
-        const pos = getTilePosition(cellNumber);
-        let color = '#121d33';
-        if (cellNumber === 0) color = '#ffb800';
-        else if (cellNumber === 299) color = '#00f0ff';
-        else if (type === 'forward') color = '#2ecc71';
-        else if (type === 'backward') color = '#e74c3c';
-        else if (type === 'obstacle') color = '#e67e22';
+      showNotification('Данные обновлены!', 'success');
+    });
+  }
 
-        const tileGeo = new THREE.BoxGeometry(2.4, 0.3, 2.4);
-        const tileMesh = new THREE.Mesh(tileGeo, createTileMaterials(cellNumber, color));
-        tileMesh.position.set(pos.x, pos.y, pos.z);
-        state.boardScene.add(tileMesh);
-        state.tileObjects[cellNumber] = tileMesh;
-
-        if (state.floatingIcons[cellNumber]) {
-          state.boardScene.remove(state.floatingIcons[cellNumber]);
-        }
-        const cellData = state.cells[cellNumber] || { type: 'normal' };
-        const iconMesh = createFloatingIconMesh(cellData);
-        if (iconMesh) {
-          iconMesh.position.set(pos.x, 1.2, pos.z);
-          iconMesh.userData = { baseY: 1.2, offset: Math.random() * 10 };
-          state.boardScene.add(iconMesh);
-          state.floatingIcons[cellNumber] = iconMesh;
-        } else {
-          state.floatingIcons[cellNumber] = null;
-        }
-        
-        layoutBoardElements();
+  const cellNumInput = document.getElementById('admin-cell-number');
+  if (cellNumInput) {
+    cellNumInput.addEventListener('input', (e) => {
+      const idx = parseInt(e.target.value);
+      if (idx >= 0 && idx < 300) {
+        loadAdminCellData(idx);
       }
-    } catch (err) {
-      showNotification('Ошибка обновления ячейки', 'error');
-    }
-  });
+    });
+  }
 
-  document.getElementById('sim-donation-btn').addEventListener('click', async () => {
-    const remangaUserId = parseInt(document.getElementById('sim-remanga-id').value);
-    const coinsToAdd = parseInt(document.getElementById('sim-coins-amount').value);
+  const saveCellBtn = document.getElementById('save-cell-btn');
+  if (saveCellBtn) {
+    saveCellBtn.addEventListener('click', async () => {
+      try {
+        const cellNumEl = document.getElementById('admin-cell-number');
+        const typeEl = document.getElementById('admin-cell-type');
+        const valueEl = document.getElementById('admin-cell-value');
+        const rewTypeEl = document.getElementById('admin-cell-rew-type');
+        const rewNameEl = document.getElementById('admin-cell-rew-name');
+        const rewDetailEl = document.getElementById('admin-cell-rew-detail');
 
-    if (!remangaUserId || !coinsToAdd) {
-      showNotification('Заполните все поля симуляции', 'error');
-      return;
-    }
+        const cellNumber = cellNumEl ? parseInt(cellNumEl.value) : 0;
+        const type = typeEl ? typeEl.value : 'normal';
+        const value = valueEl ? parseInt(valueEl.value) : 0;
+        const rewardType = rewTypeEl ? rewTypeEl.value : 'none';
+        const rewardName = rewNameEl ? rewNameEl.value.trim() : '';
+        const rewardDetail = rewDetailEl ? rewDetailEl.value.trim() : '';
 
-    try {
-      const res = await fetch('/api/admin/simulate-donation', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ remangaUserId, coinsToAdd })
-      });
+        if (!state.user) throw new Error('Пользователь не авторизован');
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error);
+        const res = await fetch('/api/admin/cells/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cellNumber, type, value, rewardType, rewardName, rewardDetail, requesterUserId: state.user.id })
+        });
 
-      showNotification(data.message, 'success');
-      refreshProfile();
-    } catch (err) {
-      showNotification(err.message, 'error');
-    }
-  });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || 'Ошибка обновления ячейки');
+        }
+        showNotification('Данные ячейки обновлены!', 'success');
+        await loadCells();
+        
+        if (state.boardScene) {
+          state.boardScene.remove(state.tileObjects[cellNumber]);
+          const pos = getTilePosition(cellNumber);
+          let color = '#121d33';
+          if (cellNumber === 0) color = '#ffb800';
+          else if (cellNumber === 299) color = '#00f0ff';
+          else if (type === 'forward') color = '#2ecc71';
+          else if (type === 'backward') color = '#e74c3c';
+          else if (type === 'obstacle') color = '#e67e22';
 
-  document.getElementById('save-settings-btn').addEventListener('click', async () => {
-    const dice_cooldown = parseInt(document.getElementById('admin-setting-cooldown').value) || 0;
-    const price_shield = parseInt(document.getElementById('admin-price-shield').value) || 0;
-    const price_freeze = parseInt(document.getElementById('admin-price-freeze').value) || 0;
-    const price_pusher = parseInt(document.getElementById('admin-price-pusher').value) || 0;
-    const price_cure = parseInt(document.getElementById('admin-price-cure').value) || 0;
-    const price_slowness = parseInt(document.getElementById('admin-price-slowness').value) || 0;
-    const price_double_roll = parseInt(document.getElementById('admin-price-double_roll').value) || 0;
-    const price_remove_reward = parseInt(document.getElementById('admin-price-remove-reward').value) || 0;
-    try {
-      const res = await fetch('/api/admin/settings/update', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          dice_cooldown,
-          price_shield,
-          price_freeze,
-          price_pusher,
-          price_cure,
-          price_slowness,
-          price_double_roll,
-          price_remove_reward,
-          requesterUserId: state.user.id
-        })
-      });
-      if (!res.ok) throw new Error();
-      showNotification('Настройки сохранены!', 'success');
-    } catch (err) {
-      showNotification('Ошибка при сохранении настроек', 'error');
-    }
-  });
+          const tileGeo = new THREE.BoxGeometry(2.4, 0.3, 2.4);
+          const tileMesh = new THREE.Mesh(tileGeo, createTileMaterials(cellNumber, color));
+          tileMesh.position.set(pos.x, pos.y, pos.z);
+          state.boardScene.add(tileMesh);
+          state.tileObjects[cellNumber] = tileMesh;
+
+          if (state.floatingIcons[cellNumber]) {
+            state.boardScene.remove(state.floatingIcons[cellNumber]);
+          }
+          const cellData = state.cells[cellNumber] || { type: 'normal' };
+          const iconMesh = createFloatingIconMesh(cellData);
+          if (iconMesh) {
+            iconMesh.position.set(pos.x, 1.2, pos.z);
+            iconMesh.userData = { baseY: 1.2, offset: Math.random() * 10 };
+            state.boardScene.add(iconMesh);
+            state.floatingIcons[cellNumber] = iconMesh;
+          } else {
+            state.floatingIcons[cellNumber] = null;
+          }
+          
+          layoutBoardElements();
+        }
+      } catch (err) {
+        showNotification(err.message || 'Ошибка обновления ячейки', 'error');
+      }
+    });
+  }
+
+  const simDonationBtn = document.getElementById('sim-donation-btn');
+  if (simDonationBtn) {
+    simDonationBtn.addEventListener('click', async () => {
+      try {
+        const remangaIdEl = document.getElementById('sim-remanga-id');
+        const coinsAmountEl = document.getElementById('sim-coins-amount');
+
+        const remangaUserId = remangaIdEl ? parseInt(remangaIdEl.value) : 0;
+        const coinsToAdd = coinsAmountEl ? parseInt(coinsAmountEl.value) : 0;
+
+        if (!remangaUserId || !coinsToAdd) {
+          throw new Error('Заполните все поля симуляции');
+        }
+
+        const res = await fetch('/api/admin/simulate-donation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ remangaUserId, coinsToAdd })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        showNotification(data.message, 'success');
+        refreshProfile();
+      } catch (err) {
+        showNotification(err.message || 'Ошибка симуляции доната', 'error');
+      }
+    });
+  }
+
+  const saveSettingsBtn = document.getElementById('save-settings-btn');
+  if (saveSettingsBtn) {
+    saveSettingsBtn.addEventListener('click', async () => {
+      try {
+        const cooldownEl = document.getElementById('admin-setting-cooldown');
+        const shieldEl = document.getElementById('admin-price-shield');
+        const freezeEl = document.getElementById('admin-price-freeze');
+        const pusherEl = document.getElementById('admin-price-pusher');
+        const cureEl = document.getElementById('admin-price-cure');
+        const slownessEl = document.getElementById('admin-price-slowness');
+        const doubleRollEl = document.getElementById('admin-price-double_roll');
+        const removeRewardEl = document.getElementById('admin-price-remove-reward');
+
+        const dice_cooldown = cooldownEl ? (parseInt(cooldownEl.value) || 0) : 0;
+        const price_shield = shieldEl ? (parseInt(shieldEl.value) || 0) : 0;
+        const price_freeze = freezeEl ? (parseInt(freezeEl.value) || 0) : 0;
+        const price_pusher = pusherEl ? (parseInt(pusherEl.value) || 0) : 0;
+        const price_cure = cureEl ? (parseInt(cureEl.value) || 0) : 0;
+        const price_slowness = slownessEl ? (parseInt(slownessEl.value) || 0) : 0;
+        const price_double_roll = doubleRollEl ? (parseInt(doubleRollEl.value) || 0) : 0;
+        const price_remove_reward = removeRewardEl ? (parseInt(removeRewardEl.value) || 0) : 0;
+
+        if (!state.user) throw new Error('Пользователь не авторизован');
+
+        const res = await fetch('/api/admin/settings/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dice_cooldown,
+            price_shield,
+            price_freeze,
+            price_pusher,
+            price_cure,
+            price_slowness,
+            price_double_roll,
+            price_remove_reward,
+            requesterUserId: state.user.id
+          })
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || 'Ошибка сервера при сохранении настроек');
+        }
+        showNotification('Настройки сохранены!', 'success');
+      } catch (err) {
+        showNotification(err.message || 'Ошибка при сохранении настроек', 'error');
+      }
+    });
+  }
 }
 
 async function loadAdminUsers() {

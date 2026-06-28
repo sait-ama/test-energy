@@ -50,8 +50,8 @@ export default async function handler(req, res) {
       const json = await targetRes.json();
       res.json(json);
     } else {
-      const text = await targetRes.text();
-      res.send(text);
+      const buffer = await targetRes.arrayBuffer();
+      res.send(Buffer.from(buffer));
     }
   } catch (err) {
     res.status(500).json({ error: 'Ошибка проксирования запроса к бэкенду: ' + err.message });
