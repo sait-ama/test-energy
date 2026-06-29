@@ -162,7 +162,87 @@ function updateBossMeshes() {
   });
 }
 
+const cachedBossGLTF = {};
+
+function getBossScale(index) {
+  switch (index) {
+    case 0: return 0.01;
+    case 1: return 0.015;
+    case 2: return 0.015;
+    case 3: return 0.015;
+    case 4: return 0.01;
+    case 5: return 0.01;
+    case 6: return 0.01;
+    case 7: return 0.015;
+    case 8: return 0.015;
+    default: return 0.012;
+  }
+}
+
+function getBossRotation(index) {
+  switch (index) {
+    case 0: return [0, -Math.PI / 4, 0];
+    case 1: return [0, 0, 0];
+    case 2: return [0, 0, 0];
+    case 3: return [0, 0, 0];
+    case 4: return [0, Math.PI, 0];
+    case 5: return [0, Math.PI, 0];
+    case 6: return [0, -Math.PI / 4, 0];
+    case 7: return [0, 0, 0];
+    case 8: return [0, 0, 0];
+    default: return [0, 0, 0];
+  }
+}
+
+function loadBossModels() {
+  if (typeof THREE.GLTFLoader === 'undefined') return;
+  const loader = new THREE.GLTFLoader();
+  const urls = [
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Horse.glb',
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Flamingo.glb',
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Stork.glb',
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Parrot.glb',
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/RobotExpressive/RobotExpressive.glb',
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Soldier.glb',
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Horse.glb',
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Parrot.glb',
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Flamingo.glb'
+  ];
+
+  urls.forEach((url, index) => {
+    loader.load(url, (gltf) => {
+      cachedBossGLTF[index] = gltf.scene;
+      updateBossMeshes();
+    }, undefined, (err) => {});
+  });
+}
+
 function create3DBossMesh(index, defeated) {
+  if (cachedBossGLTF[index]) {
+    const group = new THREE.Group();
+    const model = cachedBossGLTF[index].clone();
+    const scale = getBossScale(index);
+    model.scale.set(scale, scale, scale);
+    const rot = getBossRotation(index);
+    model.rotation.set(rot[0], rot[1], rot[2]);
+
+    if (defeated) {
+      model.traverse((child) => {
+        if (child.isMesh) {
+          child.material = child.material.clone();
+          child.material.transparent = true;
+          child.material.opacity = 0.35;
+          if (child.material.color) {
+            child.material.color.set('#555555');
+          }
+        }
+      });
+    }
+    
+    group.add(model);
+    return group;
+  }
+
   const group = new THREE.Group();
   const opacityVal = defeated ? 0.35 : 1.0;
   const transparentVal = defeated;
@@ -333,7 +413,7 @@ function create3DBossMesh(index, defeated) {
     group.add(eyeR);
   }
 
-  group.scale.set(3.0, 3.0, 3.0);
+  group.scale.set(1.5, 1.5, 1.5);
   return group;
 }
 
@@ -2441,6 +2521,7 @@ function initBoard3D() {
   state.boardControls = controls;
 
   buildBoardTiles();
+  loadBossModels();
   updateBoardPlayers();
   layoutBoardElements();
 
