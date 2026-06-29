@@ -767,6 +767,10 @@ async function initGameComponents() {
       document.getElementById('admin-panel').classList.remove('hidden');
       loadAdminUsers();
       loadAdminSettings();
+      setInterval(() => {
+        loadAdminUsers();
+        loadAdminSettings();
+      }, 2000);
     }
   } catch (e) {
     console.error(e);
@@ -3006,6 +3010,20 @@ async function loadAdminUsers() {
 
 async function loadAdminSettings() {
   try {
+    const activeEl = document.activeElement;
+    const settingsInputs = [
+      'admin-setting-cooldown',
+      'admin-price-shield',
+      'admin-price-freeze',
+      'admin-price-pusher',
+      'admin-price-cure',
+      'admin-price-slowness',
+      'admin-price-double_roll',
+      'admin-price-remove-reward'
+    ];
+    if (activeEl && settingsInputs.includes(activeEl.id)) {
+      return;
+    }
     const res = await fetch(`/api/admin/settings?requesterUserId=${state.user.id}`);
     const data = await res.json();
     const cooldownSetting = data.settings.find(s => s.key === 'dice_cooldown');
