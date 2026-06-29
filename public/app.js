@@ -361,8 +361,7 @@ function create3DBossMesh(index, defeated, faceAngle) {
     group.add(model);
     return group;
   }
-
-  const group = new THREE.Group();
+  return new THREE.Group();
   const opacityVal = defeated ? 0.35 : 1.0;
   const transparentVal = defeated;
   const mainColor = defeated ? '#555555' : getBossColor(index);
