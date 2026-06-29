@@ -686,6 +686,7 @@ function renderBossBattle3D(boss) {
 
     bossModel.rotation.y = -Math.PI / 2 + customRotation;
 
+    bossModel.position.set(0, 0, 0);
     bossModel.updateMatrixWorld(true);
     const box2 = getModelBoundingBox(bossModel);
     const center = new THREE.Vector3();
@@ -693,7 +694,7 @@ function renderBossBattle3D(boss) {
     
     bossModel.position.x = 1.0 - center.x;
     bossModel.position.z = 0 - center.z;
-    bossModel.position.y = -box2.min.y;
+    bossModel.position.y = 0;
 
     if (cached.animations && cached.animations.length > 0) {
       bossMixer = new THREE.AnimationMixer(bossModel);
