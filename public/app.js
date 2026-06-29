@@ -334,8 +334,7 @@ function create3DBossMesh(index, defeated, faceAngle, customScale) {
     box.getSize(size);
     const maxDim = Math.max(size.x, size.y, size.z);
     const targetHeight = 1.8;
-    const scaleMultiplier = (customScale !== undefined && customScale !== null) ? customScale : 1.0;
-    const autoScale = maxDim > 0 ? (targetHeight / maxDim) * scaleMultiplier : scaleMultiplier;
+    const autoScale = maxDim > 0 ? (targetHeight / maxDim) : 1.0;
     model.scale.set(autoScale, autoScale, autoScale);
 
     if (faceAngle !== undefined) {
@@ -361,6 +360,9 @@ function create3DBossMesh(index, defeated, faceAngle, customScale) {
     }
     
     group.add(model);
+    const scaleMultiplier = (customScale !== undefined && customScale !== null) ? parseFloat(customScale) : 1.0;
+    const finalScale = isNaN(scaleMultiplier) ? 1.0 : scaleMultiplier;
+    group.scale.set(finalScale, finalScale, finalScale);
     return group;
   }
   return new THREE.Group();
@@ -3098,26 +3100,48 @@ function initBoard3D() {
       }
     }
 
-    const tileIntersects = raycaster.intersectObjects(state.tileObjects);
-    if (tileIntersects.length > 0) {
-      const clickedTile = tileIntersects[0].object;
-      const cellIndex = state.tileObjects.indexOf(clickedTile);
-      if (cellIndex !== -1) {
-        state.selectedCellInfo = { cellIndex, mesh: clickedTile };
-        showCellInfoTag(cellIndex);
-        state.taggedPlayer = null;
-        document.getElementById('username-tag').classList.add('hidden');
-        clearTimeout(state.cellInfoTimeout);
-        state.cellInfoTimeout = setTimeout(() => {
-          state.selectedCellInfo = null;
-          document.getElementById('cell-info-tag').classList.add('hidden');
-        }, 2000);
-        if (state.user && state.user.is_admin) {
-          document.getElementById('admin-cell-number').value = cellIndex;
-          loadAdminCellData(cellIndex);
-          const tabBtn = document.querySelector('.tab-btn[data-tab="admin-tab-cells"]');
-          if (tabBtn) tabBtn.click();
+    const bossMeshes = Array.from(state.bossObjects.values());
+    const bossIntersects = raycaster.intersectObjects(bossMeshes, true);
+    let cellIndex = -1;
+    let clickedTile = null;
+
+    if (bossIntersects.length > 0) {
+      let hitBossObj = bossIntersects[0].object;
+      while (hitBossObj && hitBossObj.parent && hitBossObj.parent !== scene) {
+        hitBossObj = hitBossObj.parent;
+      }
+      for (const [cellNum, mesh] of state.bossObjects.entries()) {
+        if (mesh === hitBossObj) {
+          cellIndex = cellNum;
+          clickedTile = state.tileObjects[cellNum];
+          break;
         }
+      }
+    }
+
+    if (cellIndex === -1) {
+      const tileIntersects = raycaster.intersectObjects(state.tileObjects);
+      if (tileIntersects.length > 0) {
+        clickedTile = tileIntersects[0].object;
+        cellIndex = state.tileObjects.indexOf(clickedTile);
+      }
+    }
+
+    if (cellIndex !== -1 && clickedTile) {
+      state.selectedCellInfo = { cellIndex, mesh: clickedTile };
+      showCellInfoTag(cellIndex);
+      state.taggedPlayer = null;
+      document.getElementById('username-tag').classList.add('hidden');
+      clearTimeout(state.cellInfoTimeout);
+      state.cellInfoTimeout = setTimeout(() => {
+        state.selectedCellInfo = null;
+        document.getElementById('cell-info-tag').classList.add('hidden');
+      }, 2000);
+      if (state.user && state.user.is_admin) {
+        document.getElementById('admin-cell-number').value = cellIndex;
+        loadAdminCellData(cellIndex);
+        const tabBtn = document.querySelector('.tab-btn[data-tab="admin-tab-cells"]');
+        if (tabBtn) tabBtn.click();
       }
     } else {
       state.selectedCellInfo = null;
@@ -4780,6 +4804,49 @@ function showCellInfoTag(cellIndex) {
   if (!contentEl) return;
 
   let html = `<div style="font-size: 13px; font-weight: 700; color: #ffffff; margin-bottom: 4px;">Ячейка #${cellIndex}</div>`;
+  const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270, 299];
+  const isBossCell = bossCells.includes(cellIndex);
+
+  if (isBossCell) {
+    const boss = (state.bosses || []).find(b => b.cell_number === cellIndex);
+    if (boss) {
+      html += `<div style="font-size: 11px; font-weight: 700; color: #ff4a4a; margin-bottom: 8px;">БОСС</div>`;
+      html += `<div style="font-size: 12px; color: #ffffff; margin-bottom: 4px;"><strong>Босс:</strong> ${boss.name}</div>`;
+      html += `<div style="font-size: 11px; color: #aaaaaa; margin-bottom: 4px;"><strong>Модель:</strong> ${boss.model_file || 'Не выбрана'}</div>`;
+      html += `<div style="font-size: 11px; color: #aaaaaa; margin-bottom: 6px;"><strong>Характеристики:</strong> HP: ${boss.hp}/${boss.max_hp} | DMG: ${boss.dmg}</div>`;
+
+      let rewText = '';
+      if (boss.reward_type === 'coins') {
+        rewText = `${boss.reward_coins} монет`;
+      } else if (boss.reward_type === 'card') {
+        const parts = (boss.reward_detail || '').split('|');
+        rewText = `Карта: ${parts[1] || 'Случайная'}`;
+      } else {
+        rewText = `${boss.reward_type} (${boss.reward_detail})`;
+      }
+
+      html += `<div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; margin-top: 6px;">
+        <div style="font-size: 10px; font-weight: 700; color: #ffb800; margin-bottom: 4px;">Награда за победу:</div>
+        <div style="font-size: 11px; color: #ffffff; margin-bottom: 6px;">${rewText}</div>`;
+
+      if (boss.reward_type === 'card' && boss.reward_detail) {
+        const cardUrl = boss.reward_detail.split('|')[0] || boss.reward_detail;
+        html += `<div style="text-align: center; margin-top: 6px;">
+          <img src="${cardUrl}" referrerpolicy="no-referrer" alt="Награда" style="max-width: 100%; height: auto; max-height: 180px; border-radius: 4px; box-shadow: 0 0 10px rgba(255, 56, 56, 0.4); border: 1px solid rgba(255, 56, 56, 0.2);">
+        </div>`;
+      }
+
+      if (boss.defeated) {
+        html += `<div style="font-size: 10px; color: #ff4a4a; font-weight: bold; margin-top: 6px;">Забрал: ${boss.defeated_by_username || 'Неизвестно'}</div>`;
+      }
+      html += `</div>`;
+
+      contentEl.innerHTML = html;
+      document.getElementById('cell-info-tag').classList.remove('hidden');
+      return;
+    }
+  }
+
   let typeText = 'Обычная ячейка';
   if (cell.type === 'forward') typeText = `Портал (+${cell.value})`;
   else if (cell.type === 'backward') typeText = `Ловушка (-${cell.value})`;
