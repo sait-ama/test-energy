@@ -36,6 +36,15 @@ function formatDateTime(isoString) {
   return new Date(isoString).toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' }) + ' (МСК)';
 }
 
+function updateDOMBalance(balance) {
+  const el1 = document.getElementById('user-balance');
+  if (el1) el1.textContent = balance;
+  const el2 = document.getElementById('drawer-balance');
+  if (el2) el2.textContent = balance;
+  const el3 = document.getElementById('shop-balance');
+  if (el3) el3.textContent = balance;
+}
+
 let backendUrl = '';
 
 async function resolveBackendUrl() {
@@ -989,9 +998,7 @@ function initSocket() {
   state.socket.on('balance_update', (data) => {
     if (data.balance !== undefined) {
       state.user.balance = data.balance;
-      document.getElementById('user-balance').textContent = data.balance;
-      const dbVal = document.getElementById('drawer-balance');
-      if (dbVal) dbVal.textContent = data.balance;
+      updateDOMBalance(data.balance);
     }
     if (data.guild_tax_required !== undefined) {
       state.user.guild_tax_required = data.guild_tax_required;
@@ -1061,7 +1068,7 @@ async function refreshProfile() {
 
     document.getElementById('user-display-name').textContent = state.user.tg_first_name || 'Без имени';
     document.getElementById('user-tg-username').textContent = state.user.tg_username ? `@${state.user.tg_username}` : '';
-    document.getElementById('user-balance').textContent = state.user.balance;
+    updateDOMBalance(state.user.balance);
     document.getElementById('user-wins').textContent = state.user.wins;
 
     const avatarImg = document.getElementById('user-avatar');
@@ -1084,10 +1091,7 @@ async function refreshProfile() {
     if (drawerTgUser) {
       drawerTgUser.textContent = state.user.tg_username ? `@${state.user.tg_username}` : '';
     }
-    const drawerBal = document.getElementById('drawer-balance');
-    if (drawerBal) {
-      drawerBal.textContent = state.user.balance;
-    }
+
     const drawerWins = document.getElementById('drawer-wins');
     if (drawerWins) {
       drawerWins.textContent = state.user.wins;
@@ -3822,7 +3826,7 @@ async function casinoSpin() {
   }
 
   state.user.balance = state.user.balance - betAmount;
-  document.getElementById('user-balance').textContent = state.user.balance;
+  updateDOMBalance(state.user.balance);
 
   const total = casinoSegments.length;
   
@@ -3871,7 +3875,7 @@ async function casinoSpin() {
       document.getElementById('casino-spin-btn').disabled = false;
 
       state.user.balance = response.newBalance;
-      document.getElementById('user-balance').textContent = response.newBalance;
+      updateDOMBalance(response.newBalance);
 
       const colorNames = { red: 'Красный', black: 'Чёрный', green: 'Зелёный' };
 
