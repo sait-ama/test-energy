@@ -168,6 +168,62 @@ window.alert = (message) => {
   showNotification(message, type);
 };
 
+function proxyTouchEvent(e, targetElement) {
+  const joystickEl = document.getElementById('mobile-joystick-container');
+  if (!joystickEl) return e;
+  if (joystickEl.contains(targetElement)) return e;
+
+  const filteredTouches = Array.from(e.touches || []).filter(t => !joystickEl.contains(t.target));
+  const filteredTargetTouches = Array.from(e.targetTouches || []).filter(t => !joystickEl.contains(t.target));
+  const filteredChangedTouches = Array.from(e.changedTouches || []).filter(t => !joystickEl.contains(t.target));
+
+  return new Proxy(e, {
+    get(target, prop) {
+      if (prop === 'touches') return filteredTouches;
+      if (prop === 'targetTouches') return filteredTargetTouches;
+      if (prop === 'changedTouches') return filteredChangedTouches;
+      
+      const val = target[prop];
+      if (typeof val === 'function') {
+        return val.bind(target);
+      }
+      return val;
+    }
+  });
+}
+
+const originalAddEvent = EventTarget.prototype.addEventListener;
+const originalRemoveEvent = EventTarget.prototype.removeEventListener;
+
+EventTarget.prototype.addEventListener = function(type, listener, options) {
+  if (type.startsWith('touch')) {
+    const self = this;
+    const wrapped = function(e) {
+      listener(proxyTouchEvent(e, self));
+    };
+    if (!listener._wrappedListeners) {
+      listener._wrappedListeners = [];
+    }
+    listener._wrappedListeners.push({ target: this, wrapped });
+    originalAddEvent.call(this, type, wrapped, options);
+  } else {
+    originalAddEvent.call(this, type, listener, options);
+  }
+};
+
+EventTarget.prototype.removeEventListener = function(type, listener, options) {
+  if (type.startsWith('touch') && listener._wrappedListeners) {
+    const idx = listener._wrappedListeners.findIndex(x => x.target === this);
+    if (idx !== -1) {
+      const { wrapped } = listener._wrappedListeners[idx];
+      originalRemoveEvent.call(this, type, wrapped, options);
+      listener._wrappedListeners.splice(idx, 1);
+      return;
+    }
+  }
+  originalRemoveEvent.call(this, type, listener, options);
+};
+
 const keysPressed = {};
 const joystickInput = { x: 0, y: 0 };
 
