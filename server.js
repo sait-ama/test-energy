@@ -9,6 +9,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { initDb, runQuery, getQuery, allQuery } from './db.js';
 import { startGuildScanner, runGuildScan } from './scanner.js';
+import localtunnel from 'localtunnel';
 
 try {
   const envPath = path.resolve(process.cwd(), '.env');
@@ -2243,6 +2244,23 @@ app.post('/api/inventory/remove-reward', async (req, res) => {
 });
 
 let lastPublishedUrl = '';
+let localtunnelUrl = '';
+
+async function startLocalTunnel() {
+  try {
+    const tunnel = await localtunnel({ port: 3000 });
+    localtunnelUrl = tunnel.url;
+    console.log(`Localtunnel запущен: ${localtunnelUrl}`);
+    tunnel.on('close', () => {
+      localtunnelUrl = '';
+      console.log('Localtunnel закрыт. Перезапуск...');
+      setTimeout(startLocalTunnel, 5000);
+    });
+  } catch (err) {
+    console.error('Ошибка запуска Localtunnel:', err.message);
+    setTimeout(startLocalTunnel, 5000);
+  }
+}
 
 async function publishBackendUrl() {
   let backendUrl = process.env.BACKEND_URL;
@@ -2262,13 +2280,7 @@ async function publishBackendUrl() {
   }
 
   if (!backendUrl) {
-    try {
-      const fs = await import('fs');
-      if (fs.existsSync('tunnel_url.txt')) {
-        backendUrl = fs.readFileSync('tunnel_url.txt', 'utf8').trim();
-      }
-    } catch (e) {
-    }
+    backendUrl = localtunnelUrl;
   }
 
   if (backendUrl && backendUrl !== lastPublishedUrl) {
@@ -2293,6 +2305,7 @@ async function publishBackendUrl() {
 }
 
 function startPublishingLoop() {
+  startLocalTunnel();
   publishBackendUrl();
   setInterval(publishBackendUrl, 10000);
 }
