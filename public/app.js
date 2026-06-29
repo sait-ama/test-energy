@@ -169,6 +169,62 @@ window.alert = (message) => {
 };
 
 const keysPressed = {};
+const joystickInput = { x: 0, y: 0 };
+
+function initJoystick() {
+  const container = document.getElementById('mobile-joystick-container');
+  const dot = document.getElementById('mobile-joystick-dot');
+  if (!container || !dot) return;
+
+  let active = false;
+  let startX = 0;
+  let startY = 0;
+  const maxDistance = 35;
+
+  function handleStart(e) {
+    active = true;
+    const touch = e.touches ? e.touches[0] : e;
+    const rect = container.getBoundingClientRect();
+    startX = rect.left + rect.width / 2;
+    startY = rect.top + rect.height / 2;
+    handleMove(e);
+  }
+
+  function handleMove(e) {
+    if (!active) return;
+    const touch = e.touches ? e.touches[0] : e;
+    
+    let dx = touch.clientX - startX;
+    let dy = touch.clientY - startY;
+    
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance > maxDistance) {
+      dx = (dx / distance) * maxDistance;
+      dy = (dy / distance) * maxDistance;
+    }
+    
+    dot.style.transform = `translate(${dx}px, ${dy}px)`;
+    
+    joystickInput.x = dx / maxDistance;
+    joystickInput.y = dy / maxDistance;
+  }
+
+  function handleEnd() {
+    active = false;
+    dot.style.transform = 'translate(0px, 0px)';
+    joystickInput.x = 0;
+    joystickInput.y = 0;
+  }
+
+  container.addEventListener('touchstart', handleStart, { passive: true });
+  container.addEventListener('touchmove', handleMove, { passive: false });
+  container.addEventListener('touchend', handleEnd, { passive: true });
+  
+  container.addEventListener('mousedown', handleStart);
+  window.addEventListener('mousemove', handleMove);
+  window.addEventListener('mouseup', handleEnd);
+}
 window.addEventListener('keydown', (e) => {
   if (e && e.key) {
     keysPressed[e.key.toLowerCase()] = true;
@@ -488,6 +544,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAuth();
   setupUI();
   setupAdminTabs();
+  initJoystick();
 });
 
 let tgAuthPollingInterval = null;
@@ -1824,6 +1881,11 @@ function initBoard3D() {
     if (keysPressed['s'] || keysPressed['ы']) moveZ += speed;
     if (keysPressed['a'] || keysPressed['ф']) moveX -= speed;
     if (keysPressed['d'] || keysPressed['в']) moveX += speed;
+
+    if (joystickInput.x !== 0 || joystickInput.y !== 0) {
+      moveX += joystickInput.x * speed;
+      moveZ += joystickInput.y * speed;
+    }
 
     if (moveX !== 0 || moveZ !== 0) {
       const activeEl = document.activeElement;
