@@ -127,6 +127,7 @@ async function refreshBosses() {
     const res = await fetch('/api/bosses');
     if (res.ok) {
       state.bosses = await res.json();
+      loadBossModels();
       updateBossMeshes();
       if (currentOpenedBossCell !== null) {
         const currentBoss = state.bosses.find(b => b.cell_number === currentOpenedBossCell);
@@ -362,6 +363,7 @@ function create3DBossMesh(index, defeated, faceAngle, customScale) {
     group.add(model);
     const scaleMultiplier = (customScale !== undefined && customScale !== null) ? parseFloat(customScale) : 1.0;
     const finalScale = isNaN(scaleMultiplier) ? 1.0 : scaleMultiplier;
+    console.log("Boss Mesh scale applied:", index, "scale:", finalScale);
     group.scale.set(finalScale, finalScale, finalScale);
     return group;
   }
@@ -583,7 +585,7 @@ async function checkAndShowBossModal(cellNumber) {
   updateBossModalUI(boss);
 }
 
-let bossPreviewState = { renderer: null, scene: null, camera: null, animId: null, model: null };
+let bossPreviewState = { renderer: null, scene: null, camera: null, animId: null, model: null, mixer: null };
 
 function cleanupBossPreview() {
   if (bossPreviewState.animId) {
@@ -599,6 +601,7 @@ function cleanupBossPreview() {
   bossPreviewState.scene = null;
   bossPreviewState.camera = null;
   bossPreviewState.model = null;
+  bossPreviewState.mixer = null;
 }
 
 function renderBossPreview3D(boss) {
@@ -632,6 +635,8 @@ function renderBossPreview3D(boss) {
   const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270, 299];
   const bossIndex = bossCells.indexOf(boss.cell_number);
   const cached = bossIndex >= 0 ? cachedBossGLTF[bossIndex] : null;
+
+  let mixer = null;
 
   if (cached) {
     const model = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cached) : cached.clone();
@@ -669,6 +674,12 @@ function renderBossPreview3D(boss) {
     box2.getCenter(center);
     model.position.y -= center.y - (box2.max.y - box2.min.y) / 2;
 
+    if (cached.animations && cached.animations.length > 0) {
+      mixer = new THREE.AnimationMixer(model);
+      const action = mixer.clipAction(cached.animations[0]);
+      action.play();
+    }
+
     scene.add(model);
     bossPreviewState.model = model;
   } else {
@@ -680,10 +691,16 @@ function renderBossPreview3D(boss) {
   bossPreviewState.renderer = renderer;
   bossPreviewState.scene = scene;
   bossPreviewState.camera = camera;
+  bossPreviewState.mixer = mixer;
 
+  const clock = new THREE.Clock();
   const animate = () => {
     if (!bossPreviewState.renderer) return;
     bossPreviewState.animId = requestAnimationFrame(animate);
+    const delta = clock.getDelta();
+    if (bossPreviewState.mixer) {
+      bossPreviewState.mixer.update(delta);
+    }
     if (bossPreviewState.model) {
       bossPreviewState.model.rotation.y += 0.012;
     }
@@ -1195,6 +1212,8 @@ function setupAdminBossConfig() {
       }
     });
   }
+  loadBossFields();
+  loadBossPositionFields();
 }
 
 let backendUrl = '';
@@ -2157,6 +2176,7 @@ function initSocket() {
     state.bosses = list;
     if (state.tileObjects && state.tileObjects.length > 0) {
       highlightCurrentCell();
+      loadBossModels();
       updateBossMeshes();
       if (currentOpenedBossCell !== null) {
         const currentBoss = list.find(b => b.cell_number === currentOpenedBossCell);
@@ -3090,7 +3110,7 @@ function initBoard3D() {
       if (clickedPlayer) {
         state.taggedPlayer = { player: clickedPlayer, mesh: obj };
         state.selectedCellInfo = null;
-        document.getElementById('cell-info-tag').classList.add('hidden');
+        hideCellInfoTag();
         clearTimeout(state.usernameTimeout);
         state.usernameTimeout = setTimeout(() => {
           state.taggedPlayer = null;
@@ -3135,7 +3155,7 @@ function initBoard3D() {
       clearTimeout(state.cellInfoTimeout);
       state.cellInfoTimeout = setTimeout(() => {
         state.selectedCellInfo = null;
-        document.getElementById('cell-info-tag').classList.add('hidden');
+        hideCellInfoTag();
       }, 2000);
       if (state.user && state.user.is_admin) {
         document.getElementById('admin-cell-number').value = cellIndex;
@@ -3145,7 +3165,7 @@ function initBoard3D() {
       }
     } else {
       state.selectedCellInfo = null;
-      document.getElementById('cell-info-tag').classList.add('hidden');
+      hideCellInfoTag();
       clearTimeout(state.cellInfoTimeout);
     }
     
@@ -3664,7 +3684,7 @@ function setupUI() {
   document.getElementById('close-cell-info-tag').addEventListener('click', () => {
     state.selectedCellInfo = null;
     clearTimeout(state.cellInfoTimeout);
-    document.getElementById('cell-info-tag').classList.add('hidden');
+    hideCellInfoTag();
   });
 
   document.getElementById('close-guild-tax-btn').addEventListener('click', () => {
@@ -4796,7 +4816,106 @@ function loadAdminCellData(cellIndex) {
   }
 }
 
+let bossPreviewRenderer = null;
+let bossPreviewAnimationId = null;
+
+function hideCellInfoTag() {
+  const tag = document.getElementById('cell-info-tag');
+  if (tag) tag.classList.add('hidden');
+  if (bossPreviewAnimationId) {
+    cancelAnimationFrame(bossPreviewAnimationId);
+    bossPreviewAnimationId = null;
+  }
+  if (bossPreviewRenderer) {
+    bossPreviewRenderer.dispose();
+    bossPreviewRenderer = null;
+  }
+}
+
+function initBossPreview3D(bossIndex) {
+  if (bossPreviewAnimationId) {
+    cancelAnimationFrame(bossPreviewAnimationId);
+    bossPreviewAnimationId = null;
+  }
+  if (bossPreviewRenderer) {
+    bossPreviewRenderer.dispose();
+    bossPreviewRenderer = null;
+  }
+
+  const canvas = document.getElementById('boss-preview-canvas');
+  if (!canvas) return;
+
+  const width = canvas.clientWidth || 140;
+  const height = canvas.clientHeight || 140;
+
+  const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(window.devicePixelRatio || 1);
+  bossPreviewRenderer = renderer;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
+  camera.position.set(0, 1.2, 4);
+
+  const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+  scene.add(ambient);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(2, 4, 3);
+  scene.add(dirLight);
+
+  if (cachedBossGLTF[bossIndex]) {
+    const model = (typeof THREE.SkeletonUtils !== 'undefined')
+      ? THREE.SkeletonUtils.clone(cachedBossGLTF[bossIndex])
+      : cachedBossGLTF[bossIndex].clone();
+
+    scene.add(model);
+
+    const box = new THREE.Box3().setFromObject(model);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const targetHeight = 1.6;
+    const autoScale = maxDim > 0 ? (targetHeight / maxDim) : 1.0;
+    model.scale.set(autoScale, autoScale, autoScale);
+
+    const box2 = new THREE.Box3().setFromObject(model);
+    const center = new THREE.Vector3();
+    box2.getCenter(center);
+    model.position.x = -center.x;
+    model.position.y = -center.y + 0.8;
+    model.position.z = -center.z;
+
+    let mixer = null;
+    if (cachedBossGLTF[bossIndex].animations && cachedBossGLTF[bossIndex].animations.length > 0) {
+      mixer = new THREE.AnimationMixer(model);
+      const action = mixer.clipAction(cachedBossGLTF[bossIndex].animations[0]);
+      action.play();
+    }
+
+    const clock = new THREE.Clock();
+    const animatePreview = () => {
+      bossPreviewAnimationId = requestAnimationFrame(animatePreview);
+      const delta = clock.getDelta();
+      if (mixer) {
+        mixer.update(delta);
+      }
+      model.rotation.y += 0.015;
+      renderer.render(scene, camera);
+    };
+    animatePreview();
+  }
+}
+
 function showCellInfoTag(cellIndex) {
+  if (bossPreviewAnimationId) {
+    cancelAnimationFrame(bossPreviewAnimationId);
+    bossPreviewAnimationId = null;
+  }
+  if (bossPreviewRenderer) {
+    bossPreviewRenderer.dispose();
+    bossPreviewRenderer = null;
+  }
+
   const cell = state.cells ? state.cells[cellIndex] : null;
   if (!cell) return;
 
@@ -4812,7 +4931,9 @@ function showCellInfoTag(cellIndex) {
     if (boss) {
       html += `<div style="font-size: 11px; font-weight: 700; color: #ff4a4a; margin-bottom: 8px;">БОСС</div>`;
       html += `<div style="font-size: 12px; color: #ffffff; margin-bottom: 4px;"><strong>Босс:</strong> ${boss.name}</div>`;
-      html += `<div style="font-size: 11px; color: #aaaaaa; margin-bottom: 4px;"><strong>Модель:</strong> ${boss.model_file || 'Не выбрана'}</div>`;
+      html += `<div style="text-align: center; margin: 8px 0;">
+        <canvas id="boss-preview-canvas" style="width: 140px; height: 140px; border-radius: 8px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: inset 0 0 10px rgba(0,0,0,0.6); display: inline-block; vertical-align: middle;"></canvas>
+      </div>`;
       html += `<div style="font-size: 11px; color: #aaaaaa; margin-bottom: 6px;"><strong>Характеристики:</strong> HP: ${boss.hp}/${boss.max_hp} | DMG: ${boss.dmg}</div>`;
 
       let rewText = '';
@@ -4843,6 +4964,11 @@ function showCellInfoTag(cellIndex) {
 
       contentEl.innerHTML = html;
       document.getElementById('cell-info-tag').classList.remove('hidden');
+      
+      const bossIndex = bossCells.indexOf(cellIndex);
+      setTimeout(() => {
+        initBossPreview3D(bossIndex);
+      }, 0);
       return;
     }
   }
