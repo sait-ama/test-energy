@@ -2258,7 +2258,16 @@ async function publishBackendUrl() {
         }
       }
     } catch (e) {
-      // ngrok не запущен или недоступен
+    }
+  }
+
+  if (!backendUrl) {
+    try {
+      const fs = await import('fs');
+      if (fs.existsSync('tunnel_url.txt')) {
+        backendUrl = fs.readFileSync('tunnel_url.txt', 'utf8').trim();
+      }
+    } catch (e) {
     }
   }
 
