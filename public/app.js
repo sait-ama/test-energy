@@ -2635,6 +2635,7 @@ function updateOnlineList() {
 
 function addMovementLog(moveData) {
   const container = document.getElementById('movement-messages');
+  if (!container) return;
   const msg = document.createElement('div');
   msg.className = 'log-message';
   
