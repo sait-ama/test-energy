@@ -31,6 +31,7 @@ export default async function handler(req, res) {
       }
     }
     headers['ngrok-skip-browser-warning'] = 'true';
+    headers['bypass-tunnel-reminder'] = 'true';
 
     const fetchOptions = {
       method: req.method,
