@@ -2291,6 +2291,32 @@ function setupUI() {
     document.getElementById('profile-drawer').classList.remove('open');
   });
 
+  const mobileOpenProfileBtn = document.getElementById('mobile-open-profile-btn');
+  if (mobileOpenProfileBtn) {
+    mobileOpenProfileBtn.addEventListener('click', () => {
+      const drawer = document.getElementById('profile-drawer');
+      drawer.classList.add('open');
+      updateDrawerPreview();
+      refreshProfile();
+    });
+  }
+
+  const mobileOpenShopBtn = document.getElementById('mobile-open-shop-btn');
+  if (mobileOpenShopBtn) {
+    mobileOpenShopBtn.addEventListener('click', () => {
+      const shopCard = document.querySelector('.shop-card');
+      if (shopCard) shopCard.classList.add('open');
+    });
+  }
+
+  const closeShopBtn = document.getElementById('close-shop-btn');
+  if (closeShopBtn) {
+    closeShopBtn.addEventListener('click', () => {
+      const shopCard = document.querySelector('.shop-card');
+      if (shopCard) shopCard.classList.remove('open');
+    });
+  }
+
   document.querySelectorAll('.shop-tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.shop-tab-btn').forEach(b => b.classList.remove('active'));

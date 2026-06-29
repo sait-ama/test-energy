@@ -146,6 +146,12 @@
   </div>
 
   <div id="app-screen" class="app-container hidden">
+    <!-- Mobile top navigation buttons -->
+    <div class="mobile-nav-buttons mobile-only">
+      <button id="mobile-open-shop-btn" class="btn">Магазин</button>
+      <button id="mobile-open-profile-btn" class="btn">Мой Профиль</button>
+    </div>
+
     <header class="app-header">
       <div class="header-brand">
         <span class="brand-glow">ETERNAL WATCHERS</span>
@@ -180,8 +186,11 @@
 
     <div class="app-grid">
       <div class="grid-left">
-        <div class="card">
-          <h2>Магазин</h2>
+        <div class="card shop-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h2 style="margin: 0;">Магазин</h2>
+            <button id="close-shop-btn" class="btn btn-secondary btn-sm mobile-only" style="padding: 4px 8px;">&times; Закрыть</button>
+          </div>
           <div class="shop-tabs">
             <button class="shop-tab-btn active" data-tab="buffs">Баффы</button>
             <button class="shop-tab-btn" data-tab="debuffs">Дебаффы</button>
@@ -214,7 +223,7 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card inventory-card">
           <h2>Инвентарь и эффекты</h2>
           <h3 style="font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 10px; font-weight: 600;">Ваши предметы</h3>
           <div id="inventory-list" class="inventory-grid"></div>
@@ -253,14 +262,14 @@
           </div>
         </div>
 
-        <div class="card">
+        <div class="card history-card">
           <h2>История действий</h2>
           <div id="action-history" class="history-list"></div>
         </div>
       </div>
 
       <div class="grid-right">
-        <div class="card">
+        <div class="card online-card">
           <h2>Игроки онлайн</h2>
           <div id="online-players-list" class="online-list"></div>
         </div>
