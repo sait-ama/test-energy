@@ -585,9 +585,166 @@ async function checkAndShowBossModal(cellNumber) {
   updateBossModalUI(boss);
 }
 
+let bossBattleState = { renderer: null, scene: null, camera: null, animId: null, playerModel: null, bossModel: null, bossMixer: null, bossCellNumber: null };
+
+function cleanupBossBattle() {
+  if (bossBattleState.animId) {
+    cancelAnimationFrame(bossBattleState.animId);
+    bossBattleState.animId = null;
+  }
+  if (bossBattleState.renderer) {
+    bossBattleState.renderer.dispose();
+    const container = document.getElementById('boss-battle-canvas');
+    if (container) container.innerHTML = '';
+    bossBattleState.renderer = null;
+  }
+  bossBattleState.scene = null;
+  bossBattleState.camera = null;
+  bossBattleState.playerModel = null;
+  bossBattleState.bossModel = null;
+  bossBattleState.bossMixer = null;
+  bossBattleState.bossCellNumber = null;
+}
+
+function renderBossBattle3D(boss) {
+  cleanupBossBattle();
+  const container = document.getElementById('boss-battle-canvas');
+  if (!container || typeof THREE === 'undefined') return;
+
+  const width = container.clientWidth || 400;
+  const height = container.clientHeight || 260;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#080c14');
+
+  const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 20);
+  camera.position.set(0, 1.6, 4.0);
+  camera.lookAt(0, 0.7, 0);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(3, 5, 3);
+  scene.add(dirLight);
+  const backLight = new THREE.DirectionalLight(0xff3333, 0.4);
+  backLight.position.set(-3, 2, -3);
+  scene.add(backLight);
+
+  const tileGeom = new THREE.BoxGeometry(3.2, 0.2, 1.8);
+  const tileMat = new THREE.MeshStandardMaterial({ color: '#121a24', roughness: 0.6, metalness: 0.3 });
+  const tileMesh = new THREE.Mesh(tileGeom, tileMat);
+  tileMesh.position.y = -0.1;
+  scene.add(tileMesh);
+
+  const gridHelper = new THREE.GridHelper(3.2, 6, '#00f0ff', '#1a2736');
+  gridHelper.position.y = 0.01;
+  scene.add(gridHelper);
+
+  const charData = (state.user && state.user.character_data) 
+    ? state.user.character_data 
+    : getDefaultCharData();
+  const playerMesh = create3DCharacterMesh(charData);
+  playerMesh.position.set(-1.0, 0, 0);
+  playerMesh.rotation.y = Math.PI / 2;
+  scene.add(playerMesh);
+  bossBattleState.playerModel = playerMesh;
+
+  const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270, 299];
+  const bossIndex = bossCells.indexOf(boss.cell_number);
+  const cached = bossIndex >= 0 ? cachedBossGLTF[bossIndex] : null;
+
+  let bossMixer = null;
+
+  if (cached) {
+    const bossModel = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cached) : cached.clone();
+
+    const toReplace = [];
+    bossModel.traverse((child) => {
+      if (child.isSkinnedMesh && child.skeleton && child.skeleton.bones.length > 50) {
+        toReplace.push(child);
+      }
+    });
+    toReplace.forEach(skinned => {
+      const mesh = new THREE.Mesh(skinned.geometry.clone(), skinned.material.clone ? skinned.material.clone() : skinned.material);
+      mesh.name = skinned.name;
+      mesh.position.copy(skinned.position);
+      mesh.rotation.copy(skinned.rotation);
+      mesh.scale.copy(skinned.scale);
+      if (skinned.parent) { skinned.parent.add(mesh); skinned.parent.remove(skinned); }
+    });
+
+    bossModel.traverse((child) => {
+      if (child.isLight || child.isCamera || child.isHelper) child.visible = false;
+      if (child.isMesh && (child.name.toLowerCase().includes('grid') || child.name.toLowerCase().includes('floor') || child.name.toLowerCase().includes('ground') || child.name.toLowerCase().includes('sky'))) child.visible = false;
+    });
+
+    const box = new THREE.Box3().setFromObject(bossModel);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const targetH = 1.6;
+    const sc = maxDim > 0 ? targetH / maxDim : 1;
+    bossModel.scale.set(sc, sc, sc);
+
+    const box2 = new THREE.Box3().setFromObject(bossModel);
+    const center = new THREE.Vector3();
+    box2.getCenter(center);
+    
+    bossModel.position.set(1.0, -center.y + (box2.max.y - box2.min.y) / 2, 0);
+    bossModel.rotation.y = -Math.PI / 2;
+
+    if (cached.animations && cached.animations.length > 0) {
+      bossMixer = new THREE.AnimationMixer(bossModel);
+      const action = bossMixer.clipAction(cached.animations[0]);
+      action.play();
+    }
+
+    scene.add(bossModel);
+    bossBattleState.bossModel = bossModel;
+  } else {
+    const fallback = create3DBossMesh(bossIndex >= 0 ? bossIndex : 0, false);
+    fallback.position.set(1.0, 0, 0);
+    fallback.rotation.y = -Math.PI / 2;
+    scene.add(fallback);
+    bossBattleState.bossModel = fallback;
+  }
+
+  bossBattleState.renderer = renderer;
+  bossBattleState.scene = scene;
+  bossBattleState.camera = camera;
+  bossBattleState.bossMixer = bossMixer;
+
+  const clock = new THREE.Clock();
+  const animate = () => {
+    if (!bossBattleState.renderer) return;
+    bossBattleState.animId = requestAnimationFrame(animate);
+    const delta = clock.getDelta();
+    const time = performance.now() * 0.003;
+    
+    if (bossBattleState.bossMixer) {
+      bossBattleState.bossMixer.update(delta);
+    }
+    
+    if (bossBattleState.playerModel) {
+      bossBattleState.playerModel.position.y = Math.sin(time * 2) * 0.05;
+    }
+    if (bossBattleState.bossModel && !bossBattleState.bossMixer) {
+      bossBattleState.bossModel.position.y = Math.sin(time * 2 + 1) * 0.05;
+    }
+
+    renderer.render(scene, camera);
+  };
+  animate();
+}
+
 let bossPreviewState = { renderer: null, scene: null, camera: null, animId: null, model: null, mixer: null };
 
 function cleanupBossPreview() {
+  cleanupBossBattle();
   if (bossPreviewState.animId) {
     cancelAnimationFrame(bossPreviewState.animId);
     bossPreviewState.animId = null;
@@ -736,6 +893,13 @@ function updateBossModalUI(boss) {
     document.getElementById('boss-status-battle').classList.remove('hidden');
     document.getElementById('boss-btn-attack').classList.remove('hidden');
     document.getElementById('boss-btn-forfeit').classList.remove('hidden');
+
+    if (!bossBattleState.renderer || bossBattleState.bossCellNumber !== boss.cell_number) {
+      bossBattleState.bossCellNumber = boss.cell_number;
+      setTimeout(() => {
+        renderBossBattle3D(boss);
+      }, 0);
+    }
     
     const stats = getPlayerBattleStats(state.user);
     document.getElementById('battle-player-element').textContent = translateElement(stats.element);
@@ -856,14 +1020,19 @@ function updateAttackCooldownUI(boss) {
   attackCooldownInterval = setInterval(updateTimer, 1000);
 }
 
+function hideBossModal() {
+  const modal = document.getElementById('boss-battle-modal');
+  if (modal) modal.classList.add('hidden');
+  currentOpenedBossCell = null;
+  cleanupBossPreview();
+}
+
 function initBossModalEvents() {
   const modal = document.getElementById('boss-battle-modal');
   if (!modal) return;
 
   document.getElementById('boss-btn-close').addEventListener('click', () => {
-    modal.classList.add('hidden');
-    currentOpenedBossCell = null;
-    cleanupBossPreview();
+    hideBossModal();
   });
   
   document.getElementById('boss-btn-bypass-only').addEventListener('click', async () => {
@@ -875,8 +1044,7 @@ function initBossModalEvents() {
       });
       const data = await res.json();
       if (res.ok) {
-        modal.classList.add('hidden');
-        currentOpenedBossCell = null;
+        hideBossModal();
         if (data.path && data.path.length > 0) {
           animatePlayerMovement({ userId: state.user.id, path: data.path, endCell: data.endCell });
         }
@@ -902,8 +1070,7 @@ function initBossModalEvents() {
       });
       const data = await res.json();
       if (res.ok) {
-        modal.classList.add('hidden');
-        currentOpenedBossCell = null;
+        hideBossModal();
         if (data.path && data.path.length > 0) {
           animatePlayerMovement({ userId: state.user.id, path: data.path, endCell: data.endCell });
         }
@@ -958,15 +1125,12 @@ function initBossModalEvents() {
           msg += ` + 🃏 ${data.rewardCard}`;
         }
         showNotification(msg, 'success');
-        modal.classList.add('hidden');
-        currentOpenedBossCell = null;
-        cleanupBossPreview();
+        hideBossModal();
         await refreshProfile();
         await refreshBosses();
       } else if (data.status === 'defeat') {
         showNotification(`Поражение! Вы потеряли 300 монет и отступили назад.`, 'error');
-        modal.classList.add('hidden');
-        currentOpenedBossCell = null;
+        hideBossModal();
         
         animatePlayerMovement({
           userId: state.user.id,
@@ -998,8 +1162,7 @@ function initBossModalEvents() {
       const data = await res.json();
       if (res.ok) {
         showNotification(`Вы сбежали с поля боя, потеряв 300 монет.`, 'warning');
-        modal.classList.add('hidden');
-        currentOpenedBossCell = null;
+        hideBossModal();
         
         animatePlayerMovement({
           userId: state.user.id,
