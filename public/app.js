@@ -2015,7 +2015,7 @@ function initBoard3D() {
     const h = container.clientHeight;
     const aspect = w / h;
     camera.aspect = aspect;
-    camera.fov = 50 / Math.min(1, aspect);
+    camera.fov = 50;
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
   });
@@ -2280,15 +2280,29 @@ function setupUI() {
     }
   });
 
+  function updateBodyScrollLock() {
+    const shopCard = document.querySelector('.shop-card');
+    const profileDrawer = document.getElementById('profile-drawer');
+    const shopOpen = shopCard && shopCard.classList.contains('open');
+    const profileOpen = profileDrawer && profileDrawer.classList.contains('open');
+    if (shopOpen || profileOpen) {
+      document.body.classList.add('scroll-locked');
+    } else {
+      document.body.classList.remove('scroll-locked');
+    }
+  }
+
   document.getElementById('open-profile-btn').addEventListener('click', () => {
     const drawer = document.getElementById('profile-drawer');
     drawer.classList.add('open');
     updateDrawerPreview();
     refreshProfile();
+    updateBodyScrollLock();
   });
 
   document.getElementById('close-profile-btn').addEventListener('click', () => {
     document.getElementById('profile-drawer').classList.remove('open');
+    updateBodyScrollLock();
   });
 
   const mobileOpenProfileBtn = document.getElementById('mobile-open-profile-btn');
@@ -2298,6 +2312,7 @@ function setupUI() {
       drawer.classList.add('open');
       updateDrawerPreview();
       refreshProfile();
+      updateBodyScrollLock();
     });
   }
 
@@ -2306,6 +2321,7 @@ function setupUI() {
     mobileOpenShopBtn.addEventListener('click', () => {
       const shopCard = document.querySelector('.shop-card');
       if (shopCard) shopCard.classList.add('open');
+      updateBodyScrollLock();
     });
   }
 
@@ -2314,6 +2330,7 @@ function setupUI() {
     closeShopBtn.addEventListener('click', () => {
       const shopCard = document.querySelector('.shop-card');
       if (shopCard) shopCard.classList.remove('open');
+      updateBodyScrollLock();
     });
   }
 

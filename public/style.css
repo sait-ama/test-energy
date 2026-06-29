@@ -1850,3 +1850,9 @@ body {
     flex: 1;
   }
 }
+
+/* Body scroll lock when mobile drawers are open */
+body.scroll-locked {
+  overflow: hidden !important;
+  height: 100vh !important;
+}
