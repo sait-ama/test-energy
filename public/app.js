@@ -235,21 +235,10 @@ function initJoystick() {
   let active = false;
   let startX = 0;
   let startY = 0;
+  let touchId = null;
   const maxDistance = 35;
 
-  function handleStart(e) {
-    active = true;
-    const touch = e.touches ? e.touches[0] : e;
-    const rect = container.getBoundingClientRect();
-    startX = rect.left + rect.width / 2;
-    startY = rect.top + rect.height / 2;
-    handleMove(e);
-  }
-
-  function handleMove(e) {
-    if (!active) return;
-    const touch = e.touches ? e.touches[0] : e;
-    
+  function updateJoystickPosition(touch) {
     let dx = touch.clientX - startX;
     let dy = touch.clientY - startY;
     
@@ -266,11 +255,58 @@ function initJoystick() {
     joystickInput.y = dy / maxDistance;
   }
 
-  function handleEnd() {
-    active = false;
-    dot.style.transform = 'translate(0px, 0px)';
-    joystickInput.x = 0;
-    joystickInput.y = 0;
+  function handleStart(e) {
+    if (active) return;
+    
+    let touch = null;
+    if (e.changedTouches && e.changedTouches.length > 0) {
+      touch = e.changedTouches[0];
+      touchId = touch.identifier;
+    } else if (e.touches && e.touches.length > 0) {
+      touch = e.touches[0];
+      touchId = touch.identifier;
+    } else {
+      touch = e;
+    }
+
+    active = true;
+    const rect = container.getBoundingClientRect();
+    startX = rect.left + rect.width / 2;
+    startY = rect.top + rect.height / 2;
+    updateJoystickPosition(touch);
+  }
+
+  function handleMove(e) {
+    if (!active) return;
+    
+    let touch = null;
+    if (e.touches && touchId !== null) {
+      touch = Array.from(e.touches).find(t => t.identifier === touchId);
+    } else if (!e.touches) {
+      touch = e;
+    }
+    
+    if (!touch) return;
+    updateJoystickPosition(touch);
+  }
+
+  function handleEnd(e) {
+    if (!active) return;
+    
+    let ended = false;
+    if (e.changedTouches && touchId !== null) {
+      ended = Array.from(e.changedTouches).some(t => t.identifier === touchId);
+    } else if (!e.changedTouches) {
+      ended = true;
+    }
+    
+    if (ended) {
+      active = false;
+      touchId = null;
+      dot.style.transform = 'translate(0px, 0px)';
+      joystickInput.x = 0;
+      joystickInput.y = 0;
+    }
   }
 
   container.addEventListener('touchstart', handleStart, { passive: true });
