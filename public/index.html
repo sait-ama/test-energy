@@ -433,7 +433,16 @@
                 <option value="210">Ячейка 210: Скорпион</option>
                 <option value="240">Ячейка 240: Стрелец</option>
                 <option value="270">Ячейка 270: Козерог</option>
+                <option value="299">Ячейка 299: Водолей</option>
               </select>
+            </div>
+            <div class="form-group">
+              <label>Имя босса</label>
+              <input type="text" id="admin-boss-name" placeholder="Название босса">
+            </div>
+            <div class="form-group">
+              <label>3D Модель</label>
+              <select id="admin-boss-model"></select>
             </div>
             <div class="form-group">
               <label>Здоровье босса (HP)</label>
@@ -447,7 +456,56 @@
               <label>Кд ударов игрока (сек)</label>
               <input type="number" id="admin-boss-cooldown" min="0">
             </div>
+            <div class="form-group">
+              <label>Награда за победу (монеты)</label>
+              <input type="number" id="admin-boss-reward" min="0">
+            </div>
+            <div class="form-group">
+              <label>Тип награды</label>
+              <select id="admin-boss-reward-type">
+                <option value="coins">Монеты</option>
+                <option value="card">Карта (предмет)</option>
+              </select>
+            </div>
+            <div id="admin-boss-card-helper" class="form-group hidden" style="background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 6px; margin-bottom: 12px;">
+              <label style="font-size: 10px; color: #00f0ff;">Ссылка на карту Remanga</label>
+              <input type="text" id="admin-boss-card-url" placeholder="https://remanga.org/card/124112" style="margin-bottom: 6px; font-size: 11px;">
+              <button id="admin-boss-fetch-card-btn" class="btn btn-secondary btn-sm btn-block" style="padding: 4px; font-size: 10px;">📥 Загрузить данные карты</button>
+              <div id="admin-boss-card-preview" class="hidden" style="margin-top: 8px; display: flex; align-items: center; gap: 10px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px;">
+                <img id="admin-boss-card-preview-img" src="" style="width: 50px; height: 70px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">
+                <div>
+                  <div id="admin-boss-card-preview-name" style="font-size: 12px; color: #fff; font-weight: 600;"></div>
+                  <div id="admin-boss-card-preview-char" style="font-size: 10px; color: #8c9ba5;"></div>
+                </div>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Детали награды (название карты / описание)</label>
+              <input type="text" id="admin-boss-reward-detail" placeholder="Например: Легендарная карта SSR">
+            </div>
             <button id="admin-boss-save-btn" class="btn btn-primary btn-block">Сохранить настройки босса</button>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
+              <h3 style="font-size: 11px; text-transform: uppercase; color: #00f0ff; margin-bottom: 10px; font-weight: 600;">Позиция на карте</h3>
+              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
+                <div class="form-group">
+                  <label style="font-size: 10px;">Смещ. X</label>
+                  <input type="number" id="admin-boss-offset-x" step="0.1" value="0">
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 10px;">Смещ. Y</label>
+                  <input type="number" id="admin-boss-offset-y" step="0.1" value="0">
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 10px;">Смещ. Z</label>
+                  <input type="number" id="admin-boss-offset-z" step="0.1" value="0">
+                </div>
+              </div>
+              <div class="form-group">
+                <label style="font-size: 10px;">Поворот (градусы, 0-360)</label>
+                <input type="number" id="admin-boss-rotation" step="15" min="0" max="360" value="0">
+              </div>
+              <button id="admin-boss-pos-save-btn" class="btn btn-secondary btn-block" style="font-size: 11px;">Сохранить позицию</button>
+            </div>
           </div>
         </div>
       </div>
@@ -627,10 +685,31 @@
           <p style="font-size: 12px; color: #8c9ba5;">Вы должны подождать, пока бой не завершится, либо можете пройти дальше.</p>
         </div>
         <div id="boss-status-ready" class="hidden" style="margin-bottom: 20px;">
+          <div id="boss-preview-3d" style="width: 100%; height: 200px; background: rgba(0,0,0,0.4); border-radius: 8px; margin-bottom: 15px; position: relative; overflow: hidden;">
+            <div id="boss-preview-canvas" style="width: 100%; height: 100%;"></div>
+            <div style="position: absolute; top: 8px; left: 12px; display: flex; flex-direction: column; gap: 4px;">
+              <div style="background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,50,50,0.4);">
+                <span style="font-size: 10px; color: #ff4444;">❤️ HP:</span>
+                <span id="boss-preview-hp" style="font-size: 12px; color: #ff6666; font-weight: bold;"></span>
+              </div>
+              <div style="background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,170,0,0.4);">
+                <span style="font-size: 10px; color: #ffaa00;">⚔️ DMG:</span>
+                <span id="boss-preview-dmg" style="font-size: 12px; color: #ffcc44; font-weight: bold;"></span>
+              </div>
+            </div>
+          </div>
           <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
             <p style="font-size: 13px; margin: 0 0 10px 0;">Перед вами босс: <span id="boss-info-name" class="text-gold font-bold"></span></p>
             <p style="font-size: 12px; color: #a3b2bc; margin: 0 0 10px 0;">Характеристики: Здоровье <span id="boss-info-hp" class="text-cyan font-bold"></span>, Урон <span id="boss-info-dmg" class="text-gold font-bold"></span></p>
-            <p style="font-size: 12px; color: #ff9900; margin: 0;">Слабость к стихии: <span id="boss-info-weakness" class="text-gold font-bold" style="text-transform: capitalize;"></span></p>
+            <p style="font-size: 12px; color: #ff9900; margin: 0 0 10px 0;">Слабость к стихии: <span id="boss-info-weakness" class="text-gold font-bold" style="text-transform: capitalize;"></span></p>
+            <p style="font-size: 12px; color: #00ff66; margin: 0 0 10px 0;">Награда за победу: <span id="boss-info-reward" class="text-gold font-bold"></span></p>
+            <div id="boss-reward-card-img" class="hidden" style="display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px; border: 1px solid rgba(255,200,0,0.2);">
+              <img id="boss-reward-card-cover" src="" style="width: 45px; height: 63px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15);">
+              <div>
+                <div id="boss-reward-card-name" style="font-size: 12px; color: #ffcc00; font-weight: 600;"></div>
+                <div id="boss-reward-card-char" style="font-size: 10px; color: #8c9ba5;"></div>
+              </div>
+            </div>
           </div>
           <p style="font-size: 12px; color: #8c9ba5; line-height: 1.5;">Сражение длится до полной победы или вашего поражения. При поражении вы теряете 300 монет и откидываетесь назад на 5 ячеек. Интервал между вашими ударами — 5 минут.</p>
         </div>

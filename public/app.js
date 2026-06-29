@@ -54,7 +54,7 @@ function highlightCurrentCell() {
     if (!tileMesh || !tileMesh.material) continue;
     const materials = Array.isArray(tileMesh.material) ? tileMesh.material : [tileMesh.material];
     
-    const isBossCell = (i > 0 && i % 30 === 0);
+    const isBossCell = (i > 0 && i % 30 === 0) || i === 299;
     const bossData = (state.bosses || []).find(b => b.cell_number === i);
     const defeated = bossData ? bossData.defeated : 0;
 
@@ -150,84 +150,161 @@ function updateBossMeshes() {
   }
   state.bossObjects.clear();
 
+  if (!state.bossLabels) state.bossLabels = [];
+  state.bossLabels.forEach(s => state.boardScene.remove(s));
+  state.bossLabels = [];
+
   const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270, 299];
   bossCells.forEach((cellNum, idx) => {
     const bossData = (state.bosses || []).find(b => b.cell_number === cellNum);
     const defeated = bossData ? bossData.defeated : 0;
     const pos = getTilePosition(cellNum);
-    const bossMesh = create3DBossMesh(idx, defeated);
-    bossMesh.position.set(pos.x + 1.1, pos.y + 0.15, pos.z + 1.1);
+    const prevPos = getTilePosition(Math.max(0, cellNum - 1));
+    const dx = prevPos.x - pos.x;
+    const dz = prevPos.z - pos.z;
+    const autoAngle = Math.atan2(dx, dz);
+    const angle = (bossData && bossData.custom_rotation !== null && bossData.custom_rotation !== undefined) 
+      ? bossData.custom_rotation 
+      : autoAngle;
+    const bossMesh = create3DBossMesh(idx, defeated, angle);
+    const offX = (bossData && bossData.position_offset_x) || 0;
+    const offY = (bossData && bossData.position_offset_y) || 0;
+    const offZ = (bossData && bossData.position_offset_z) || 0;
+    bossMesh.position.set(pos.x + 1.1 + offX, pos.y + 0.15 + offY, pos.z + 1.1 + offZ);
     state.boardScene.add(bossMesh);
     state.bossObjects.set(cellNum, bossMesh);
+
+    const labelSprite = createBossCellLabel(cellNum, bossData ? bossData.name : '');
+    labelSprite.position.set(pos.x + 1.1 + offX, pos.y + 2.8 + offY, pos.z + 1.1 + offZ);
+    state.boardScene.add(labelSprite);
+    state.bossLabels.push(labelSprite);
   });
+}
+
+function createBossCellLabel(cellNum, bossName) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  const r = 10;
+  ctx.beginPath();
+  ctx.moveTo(r, 0);
+  ctx.lineTo(canvas.width - r, 0);
+  ctx.quadraticCurveTo(canvas.width, 0, canvas.width, r);
+  ctx.lineTo(canvas.width, canvas.height - r);
+  ctx.quadraticCurveTo(canvas.width, canvas.height, canvas.width - r, canvas.height);
+  ctx.lineTo(r, canvas.height);
+  ctx.quadraticCurveTo(0, canvas.height, 0, canvas.height - r);
+  ctx.lineTo(0, r);
+  ctx.quadraticCurveTo(0, 0, r, 0);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(0, 240, 255, 0.6)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.font = 'bold 28px Orbitron, sans-serif';
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const label = bossName ? `${cellNum} • ${bossName}` : String(cellNum);
+  ctx.fillText(label, canvas.width / 2, canvas.height / 2);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+
+  const spriteMat = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+  const sprite = new THREE.Sprite(spriteMat);
+  sprite.scale.set(2.5, 0.625, 1);
+  return sprite;
 }
 
 const cachedBossGLTF = {};
 
 function getBossScale(index) {
   switch (index) {
-    case 0: return 0.8;
-    case 1: return 0.8;
-    case 2: return 0.05;
-    case 3: return 0.6;
+    case 0: return 1.5;
+    case 1: return 0.008;
+    case 2: return 0.012;
+    case 3: return 1.0;
     case 4: return 0.8;
     case 5: return 0.6;
-    case 6: return 0.05;
-    case 7: return 0.8;
-    case 8: return 0.8;
+    case 6: return 0.008;
+    case 7: return 0.015;
+    case 8: return 0.012;
     case 9: return 0.6;
-    default: return 0.7;
+    default: return 0.8;
   }
 }
 
 function getBossRotation(index) {
-  switch (index) {
-    case 0: return [0, Math.PI, 0];
-    case 1: return [0, Math.PI, 0];
-    case 2: return [0, 0, 0];
-    case 3: return [0, 0, 0];
-    case 4: return [0, Math.PI, 0];
-    case 5: return [0, 0, 0];
-    case 6: return [0, 0, 0];
-    case 7: return [0, Math.PI, 0];
-    case 8: return [0, Math.PI, 0];
-    case 9: return [0, 0, 0];
-    default: return [0, 0, 0];
-  }
+  return [0, 0, 0];
 }
 
 function loadBossModels() {
   if (typeof THREE.GLTFLoader === 'undefined') return;
   const loader = new THREE.GLTFLoader();
-  const urls = [
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Soldier.glb',
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Xbot.glb',
-    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/1.0/Monster/glTF-Binary/Monster.glb',
-    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BrainStem/glTF-Binary/BrainStem.glb',
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/RobotExpressive/RobotExpressive.glb',
-    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb',
-    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/1.0/Monster/glTF-Binary/Monster.glb',
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Soldier.glb',
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Xbot.glb',
-    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BrainStem/glTF-Binary/BrainStem.glb'
+  const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270, 299];
+  const defaultModels = [
+    'Duck.glb', 'aion_boss_rigged_character_3d_model.glb', 'caine_-_boss_form_tadc___hh.glb',
+    'frog_boss_from_dragon_land.glb', 'haishan_boss.glb', 'lowpoly_boss_with_huge_sword_spear.glb',
+    'metal_slug_-_boss_organic.glb', 'ps2_monster_house_boss.glb', 'slasher_castom_boss.glb', 'gold_sandworm.glb'
   ];
 
-  urls.forEach((url, index) => {
+  bossCells.forEach((cellNum, index) => {
+    const bossData = (state.bosses || []).find(b => b.cell_number === cellNum);
+    const modelFile = (bossData && bossData.model_file) ? bossData.model_file : defaultModels[index];
+    const url = '/bosses/' + encodeURIComponent(modelFile);
+
+    if (cachedBossGLTF[modelFile]) {
+      cachedBossGLTF[index] = cachedBossGLTF[modelFile];
+      updateBossMeshes();
+      return;
+    }
+
     loader.load(url, (gltf) => {
+      cachedBossGLTF[modelFile] = gltf.scene;
       cachedBossGLTF[index] = gltf.scene;
       updateBossMeshes();
-    }, undefined, (err) => {});
+    }, undefined, (err) => {
+      console.error(`[BOSS MODEL] Failed to load model ${index}: ${url}`, err);
+    });
   });
 }
 
-function create3DBossMesh(index, defeated) {
+function create3DBossMesh(index, defeated, faceAngle) {
   if (cachedBossGLTF[index]) {
     const group = new THREE.Group();
     const model = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cachedBossGLTF[index]) : cachedBossGLTF[index].clone();
     
+    const toReplace = [];
+    model.traverse((child) => {
+      if (child.isSkinnedMesh && child.skeleton && child.skeleton.bones.length > 50) {
+        toReplace.push(child);
+      }
+    });
+    toReplace.forEach(skinned => {
+      const geo = skinned.geometry.clone();
+      const mat = skinned.material.clone ? skinned.material.clone() : skinned.material;
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.name = skinned.name;
+      mesh.position.copy(skinned.position);
+      mesh.rotation.copy(skinned.rotation);
+      mesh.scale.copy(skinned.scale);
+      if (skinned.parent) {
+        skinned.parent.add(mesh);
+        skinned.parent.remove(skinned);
+      }
+    });
+
+    const hiddenNodes = [];
     model.traverse((child) => {
       if (child.isLight || child.isCamera || child.isHelper) {
         child.visible = false;
+        hiddenNodes.push(child);
       }
       if (child.isMesh && (
         child.name.toLowerCase().includes('grid') || 
@@ -237,13 +314,36 @@ function create3DBossMesh(index, defeated) {
         child.name.toLowerCase().includes('sky')
       )) {
         child.visible = false;
+        hiddenNodes.push(child);
       }
     });
 
-    const scale = getBossScale(index);
-    model.scale.set(scale, scale, scale);
-    const rot = getBossRotation(index);
-    model.rotation.set(rot[0], rot[1], rot[2]);
+    let visibleMeshCount = 0;
+    model.traverse((child) => {
+      if (child.isMesh && child.visible) visibleMeshCount++;
+    });
+
+    if (visibleMeshCount === 0) {
+      hiddenNodes.forEach(n => { n.visible = true; });
+      model.traverse((child) => { child.visible = true; });
+    }
+
+    const box = new THREE.Box3().setFromObject(model);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const targetHeight = 1.8;
+    const autoScale = maxDim > 0 ? (targetHeight / maxDim) : 1.0;
+    model.scale.set(autoScale, autoScale, autoScale);
+
+    if (faceAngle !== undefined) {
+      model.rotation.set(0, faceAngle, 0);
+    }
+
+    const box2 = new THREE.Box3().setFromObject(model);
+    const center = new THREE.Vector3();
+    box2.getCenter(center);
+    model.position.y -= center.y - (box2.max.y - box2.min.y) / 2;
 
     if (defeated) {
       model.traverse((child) => {
@@ -480,6 +580,115 @@ async function checkAndShowBossModal(cellNumber) {
   updateBossModalUI(boss);
 }
 
+let bossPreviewState = { renderer: null, scene: null, camera: null, animId: null, model: null };
+
+function cleanupBossPreview() {
+  if (bossPreviewState.animId) {
+    cancelAnimationFrame(bossPreviewState.animId);
+    bossPreviewState.animId = null;
+  }
+  if (bossPreviewState.renderer) {
+    bossPreviewState.renderer.dispose();
+    const container = document.getElementById('boss-preview-canvas');
+    if (container) container.innerHTML = '';
+    bossPreviewState.renderer = null;
+  }
+  bossPreviewState.scene = null;
+  bossPreviewState.camera = null;
+  bossPreviewState.model = null;
+}
+
+function renderBossPreview3D(boss) {
+  cleanupBossPreview();
+  const container = document.getElementById('boss-preview-canvas');
+  if (!container || typeof THREE === 'undefined') return;
+
+  const width = container.clientWidth || 400;
+  const height = container.clientHeight || 200;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color('#080c14');
+
+  const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 20);
+  camera.position.set(0, 1.2, 3.5);
+  camera.lookAt(0, 0.8, 0);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight.position.set(2, 3, 2);
+  scene.add(dirLight);
+  const backLight = new THREE.DirectionalLight(0xff3333, 0.3);
+  backLight.position.set(-2, 1, -2);
+  scene.add(backLight);
+
+  const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270, 299];
+  const bossIndex = bossCells.indexOf(boss.cell_number);
+  const cached = bossIndex >= 0 ? cachedBossGLTF[bossIndex] : null;
+
+  if (cached) {
+    const model = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cached) : cached.clone();
+
+    const toReplace = [];
+    model.traverse((child) => {
+      if (child.isSkinnedMesh && child.skeleton && child.skeleton.bones.length > 50) {
+        toReplace.push(child);
+      }
+    });
+    toReplace.forEach(skinned => {
+      const mesh = new THREE.Mesh(skinned.geometry.clone(), skinned.material.clone ? skinned.material.clone() : skinned.material);
+      mesh.name = skinned.name;
+      mesh.position.copy(skinned.position);
+      mesh.rotation.copy(skinned.rotation);
+      mesh.scale.copy(skinned.scale);
+      if (skinned.parent) { skinned.parent.add(mesh); skinned.parent.remove(skinned); }
+    });
+
+    model.traverse((child) => {
+      if (child.isLight || child.isCamera || child.isHelper) child.visible = false;
+      if (child.isMesh && (child.name.toLowerCase().includes('grid') || child.name.toLowerCase().includes('floor') || child.name.toLowerCase().includes('ground') || child.name.toLowerCase().includes('sky'))) child.visible = false;
+    });
+
+    const box = new THREE.Box3().setFromObject(model);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const maxDim = Math.max(size.x, size.y, size.z);
+    const targetH = 2.0;
+    const sc = maxDim > 0 ? targetH / maxDim : 1;
+    model.scale.set(sc, sc, sc);
+
+    const box2 = new THREE.Box3().setFromObject(model);
+    const center = new THREE.Vector3();
+    box2.getCenter(center);
+    model.position.y -= center.y - (box2.max.y - box2.min.y) / 2;
+
+    scene.add(model);
+    bossPreviewState.model = model;
+  } else {
+    const fallback = create3DBossMesh(bossIndex >= 0 ? bossIndex : 0, false);
+    scene.add(fallback);
+    bossPreviewState.model = fallback;
+  }
+
+  bossPreviewState.renderer = renderer;
+  bossPreviewState.scene = scene;
+  bossPreviewState.camera = camera;
+
+  const animate = () => {
+    if (!bossPreviewState.renderer) return;
+    bossPreviewState.animId = requestAnimationFrame(animate);
+    if (bossPreviewState.model) {
+      bossPreviewState.model.rotation.y += 0.012;
+    }
+    renderer.render(scene, camera);
+  };
+  animate();
+}
+
 function updateBossModalUI(boss) {
   document.getElementById('boss-status-defeated').classList.add('hidden');
   document.getElementById('boss-status-occupied').classList.add('hidden');
@@ -533,7 +742,33 @@ function updateBossModalUI(boss) {
     document.getElementById('boss-info-hp').textContent = boss.max_hp;
     document.getElementById('boss-info-dmg').textContent = boss.dmg;
     document.getElementById('boss-info-weakness').textContent = translateElement(boss.weakness);
+    const rewardText = formatBossReward(boss);
+    document.getElementById('boss-info-reward').textContent = rewardText;
     
+    document.getElementById('boss-preview-hp').textContent = boss.max_hp;
+    document.getElementById('boss-preview-dmg').textContent = boss.dmg;
+    renderBossPreview3D(boss);
+
+    const cardImgBlock = document.getElementById('boss-reward-card-img');
+    if (cardImgBlock) {
+      if (boss.reward_type === 'card' && boss.reward_detail) {
+        const parts = boss.reward_detail.split('|');
+        if (parts.length >= 2) {
+          cardImgBlock.classList.remove('hidden');
+          cardImgBlock.style.display = 'flex';
+          document.getElementById('boss-reward-card-cover').src = parts[0];
+          document.getElementById('boss-reward-card-name').textContent = parts[1];
+          document.getElementById('boss-reward-card-char').textContent = parts[2] || '';
+        } else {
+          cardImgBlock.classList.add('hidden');
+          cardImgBlock.style.display = 'none';
+        }
+      } else {
+        cardImgBlock.classList.add('hidden');
+        cardImgBlock.style.display = 'none';
+      }
+    }
+
     document.getElementById('boss-btn-fight').classList.remove('hidden');
     document.getElementById('boss-btn-bypass').classList.remove('hidden');
   }
@@ -547,6 +782,18 @@ function translateElement(el) {
     wind: 'Ветер'
   };
   return map[el] || el;
+}
+
+function formatBossReward(boss) {
+  const rt = boss.reward_type || 'coins';
+  if (rt === 'card' && boss.reward_detail) {
+    const parts = boss.reward_detail.split('|');
+    if (parts.length >= 2) {
+      return `🃏 ${parts[1]}`;
+    }
+    return `🃏 ${boss.reward_detail}`;
+  }
+  return `${boss.reward_coins || 500} монет`;
 }
 
 let attackCooldownInterval = null;
@@ -596,16 +843,61 @@ function initBossModalEvents() {
   document.getElementById('boss-btn-close').addEventListener('click', () => {
     modal.classList.add('hidden');
     currentOpenedBossCell = null;
+    cleanupBossPreview();
   });
   
-  document.getElementById('boss-btn-bypass-only').addEventListener('click', () => {
-    modal.classList.add('hidden');
-    currentOpenedBossCell = null;
+  document.getElementById('boss-btn-bypass-only').addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/boss/skip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: state.user.id })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        modal.classList.add('hidden');
+        currentOpenedBossCell = null;
+        if (data.path && data.path.length > 0) {
+          animatePlayerMovement({ userId: state.user.id, path: data.path, endCell: data.endCell });
+        }
+        await refreshProfile();
+        await refreshBosses();
+        if (data.bossEncounter) {
+          showPendingBossModal(data.bossEncounter);
+        }
+      } else {
+        showNotification(data.error || 'Ошибка', 'error');
+      }
+    } catch (e) {
+      showNotification('Ошибка сети', 'error');
+    }
   });
   
-  document.getElementById('boss-btn-bypass').addEventListener('click', () => {
-    modal.classList.add('hidden');
-    currentOpenedBossCell = null;
+  document.getElementById('boss-btn-bypass').addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/boss/skip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: state.user.id })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        modal.classList.add('hidden');
+        currentOpenedBossCell = null;
+        if (data.path && data.path.length > 0) {
+          animatePlayerMovement({ userId: state.user.id, path: data.path, endCell: data.endCell });
+        }
+        await refreshProfile();
+        await refreshBosses();
+        if (data.bossEncounter) {
+          showPendingBossModal(data.bossEncounter);
+        }
+      } else {
+        showNotification(data.error || 'Ошибка', 'error');
+      }
+    } catch (e) {
+      showNotification('Ошибка сети', 'error');
+    }
   });
 
   document.getElementById('boss-btn-fight').addEventListener('click', async () => {
@@ -641,9 +933,14 @@ function initBossModalEvents() {
       }
       
       if (data.status === 'victory') {
-        showNotification(`Победа! Вы победили босса и получили ${data.reward} монет!`, 'success');
+        let msg = `Победа! Вы победили босса и получили ${data.reward} монет!`;
+        if (data.rewardCard) {
+          msg += ` + 🃏 ${data.rewardCard}`;
+        }
+        showNotification(msg, 'success');
         modal.classList.add('hidden');
         currentOpenedBossCell = null;
+        cleanupBossPreview();
         await refreshProfile();
         await refreshBosses();
       } else if (data.status === 'defeat') {
@@ -703,31 +1000,134 @@ function initBossModalEvents() {
 
 function setupAdminBossConfig() {
   const bossSelect = document.getElementById('admin-boss-select');
-  if (bossSelect) {
-    bossSelect.addEventListener('change', () => {
-      const cellNum = parseInt(bossSelect.value);
-      const boss = (state.bosses || []).find(b => b.cell_number === cellNum);
-      if (boss) {
-        document.getElementById('admin-boss-hp').value = boss.max_hp;
-        document.getElementById('admin-boss-dmg').value = boss.dmg;
-        document.getElementById('admin-boss-cooldown').value = boss.attack_cooldown_seconds;
+  const modelSelect = document.getElementById('admin-boss-model');
+
+  fetch('/api/boss-models').then(r => r.json()).then(models => {
+    if (modelSelect && Array.isArray(models)) {
+      modelSelect.innerHTML = '<option value="">-- Без модели --</option>';
+      models.forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m;
+        opt.textContent = m.replace('.glb', '');
+        modelSelect.appendChild(opt);
+      });
+    }
+  }).catch(() => {});
+
+  const loadBossFields = () => {
+    const cellNum = parseInt(bossSelect.value);
+    const boss = (state.bosses || []).find(b => b.cell_number === cellNum);
+    if (boss) {
+      const nameEl = document.getElementById('admin-boss-name');
+      if (nameEl) nameEl.value = boss.name || '';
+      if (modelSelect) modelSelect.value = boss.model_file || '';
+      document.getElementById('admin-boss-hp').value = boss.max_hp;
+      document.getElementById('admin-boss-dmg').value = boss.dmg;
+      document.getElementById('admin-boss-cooldown').value = boss.attack_cooldown_seconds;
+      document.getElementById('admin-boss-reward').value = boss.reward_coins || 500;
+      const rtEl = document.getElementById('admin-boss-reward-type');
+      if (rtEl) rtEl.value = boss.reward_type || 'coins';
+      const rdEl = document.getElementById('admin-boss-reward-detail');
+      if (rdEl) rdEl.value = boss.reward_detail || '';
+
+      toggleBossCardHelper(boss.reward_type || 'coins');
+      updateBossCardPreview(boss);
+    }
+  };
+
+  const toggleBossCardHelper = (type) => {
+    const helper = document.getElementById('admin-boss-card-helper');
+    if (helper) {
+      if (type === 'card') {
+        helper.classList.remove('hidden');
+      } else {
+        helper.classList.add('hidden');
+      }
+    }
+  };
+
+  const updateBossCardPreview = (boss) => {
+    const preview = document.getElementById('admin-boss-card-preview');
+    if (!preview) return;
+    if (boss.reward_type === 'card' && boss.reward_detail) {
+      preview.classList.remove('hidden');
+      const imgEl = document.getElementById('admin-boss-card-preview-img');
+      const nameEl = document.getElementById('admin-boss-card-preview-name');
+      const charEl = document.getElementById('admin-boss-card-preview-char');
+      if (imgEl) imgEl.src = boss.reward_detail;
+      const parts = (boss.reward_detail || '').split('|');
+      if (nameEl) nameEl.textContent = parts[1] || 'Карта';
+      if (charEl) charEl.textContent = parts[2] || '';
+    } else {
+      preview.classList.add('hidden');
+    }
+  };
+
+  const bossRewardTypeEl = document.getElementById('admin-boss-reward-type');
+  if (bossRewardTypeEl) {
+    bossRewardTypeEl.addEventListener('change', () => {
+      toggleBossCardHelper(bossRewardTypeEl.value);
+    });
+  }
+
+  const bossCardFetchBtn = document.getElementById('admin-boss-fetch-card-btn');
+  if (bossCardFetchBtn) {
+    bossCardFetchBtn.addEventListener('click', async () => {
+      const url = document.getElementById('admin-boss-card-url').value.trim();
+      if (!url) {
+        showNotification('Введите ссылку на карту', 'error');
+        return;
+      }
+      try {
+        const res = await fetch('/api/admin/fetch-card', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cardUrl: url, requesterUserId: state.user.id })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        const cardTitle = `${data.title} (${data.characterName})`;
+        const rewardStr = `${data.cover}|${cardTitle}|${data.characterName}`;
+        document.getElementById('admin-boss-reward-detail').value = rewardStr;
+
+        const preview = document.getElementById('admin-boss-card-preview');
+        if (preview) {
+          preview.classList.remove('hidden');
+          document.getElementById('admin-boss-card-preview-img').src = data.cover;
+          document.getElementById('admin-boss-card-preview-name').textContent = cardTitle;
+          document.getElementById('admin-boss-card-preview-char').textContent = data.characterName;
+        }
+
+        showNotification('Карта загружена!', 'success');
+      } catch (err) {
+        showNotification(err.message, 'error');
       }
     });
+  }
+
+  if (bossSelect) {
+    bossSelect.addEventListener('change', loadBossFields);
   }
 
   const bossSaveBtn = document.getElementById('admin-boss-save-btn');
   if (bossSaveBtn) {
     bossSaveBtn.addEventListener('click', async () => {
       const cellNum = parseInt(bossSelect.value);
+      const name = document.getElementById('admin-boss-name').value;
+      const modelFile = modelSelect ? modelSelect.value : '';
       const hp = parseInt(document.getElementById('admin-boss-hp').value);
       const dmg = parseInt(document.getElementById('admin-boss-dmg').value);
       const cooldown = parseInt(document.getElementById('admin-boss-cooldown').value);
+      const reward = parseInt(document.getElementById('admin-boss-reward').value);
+      const rewardType = document.getElementById('admin-boss-reward-type').value;
+      const rewardDetail = document.getElementById('admin-boss-reward-detail').value;
       
       try {
         const res = await fetch('/api/admin/boss/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cellNumber: cellNum, hp, dmg, cooldown })
+          body: JSON.stringify({ cellNumber: cellNum, name, modelFile, hp, dmg, cooldown, reward, rewardType, rewardDetail, requesterUserId: state.user.id })
         });
         if (res.ok) {
           showNotification('Настройки босса сохранены!', 'success');
@@ -735,6 +1135,54 @@ function setupAdminBossConfig() {
         } else {
           const data = await res.json();
           showNotification(data.error || 'Ошибка при сохранении', 'error');
+        }
+      } catch (err) {
+        showNotification('Ошибка сети', 'error');
+      }
+    });
+  }
+
+  const loadBossPositionFields = () => {
+    const cellNum = parseInt(bossSelect.value);
+    const boss = (state.bosses || []).find(b => b.cell_number === cellNum);
+    if (boss) {
+      const oxEl = document.getElementById('admin-boss-offset-x');
+      const oyEl = document.getElementById('admin-boss-offset-y');
+      const ozEl = document.getElementById('admin-boss-offset-z');
+      const rotEl = document.getElementById('admin-boss-rotation');
+      if (oxEl) oxEl.value = boss.position_offset_x || 0;
+      if (oyEl) oyEl.value = boss.position_offset_y || 0;
+      if (ozEl) ozEl.value = boss.position_offset_z || 0;
+      if (rotEl) rotEl.value = boss.custom_rotation !== null && boss.custom_rotation !== undefined ? Math.round(boss.custom_rotation * 180 / Math.PI) : 0;
+    }
+  };
+
+  if (bossSelect) {
+    bossSelect.addEventListener('change', loadBossPositionFields);
+  }
+
+  const posSaveBtn = document.getElementById('admin-boss-pos-save-btn');
+  if (posSaveBtn) {
+    posSaveBtn.addEventListener('click', async () => {
+      const cellNum = parseInt(bossSelect.value);
+      const offsetX = parseFloat(document.getElementById('admin-boss-offset-x').value) || 0;
+      const offsetY = parseFloat(document.getElementById('admin-boss-offset-y').value) || 0;
+      const offsetZ = parseFloat(document.getElementById('admin-boss-offset-z').value) || 0;
+      const rotDeg = parseFloat(document.getElementById('admin-boss-rotation').value) || 0;
+      const rotation = rotDeg * Math.PI / 180;
+
+      try {
+        const res = await fetch('/api/admin/boss/position', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cellNumber: cellNum, offsetX, offsetY, offsetZ, rotation, requesterUserId: state.user.id })
+        });
+        if (res.ok) {
+          showNotification('Позиция босса сохранена!', 'success');
+          await refreshBosses();
+        } else {
+          const data = await res.json();
+          showNotification(data.error || 'Ошибка', 'error');
         }
       } catch (err) {
         showNotification('Ошибка сети', 'error');
@@ -1204,7 +1652,7 @@ function createTileMaterials(i, baseColor) {
   const texture = new THREE.CanvasTexture(canvas);
   texture.needsUpdate = true;
 
-  const isBossCell = (i > 0 && i % 30 === 0);
+  const isBossCell = (i > 0 && i % 30 === 0) || i === 299;
   const emissiveColor = isBossCell ? new THREE.Color(baseColor) : new THREE.Color('#000000');
   const emissiveIntensity = isBossCell ? 0.85 : 0;
 
@@ -1668,7 +2116,7 @@ function performSelfMovement(moveData) {
   animatePlayerMovement(moveData);
   setTimeout(() => {
     refreshProfile().then(() => {
-      const isBoss = (moveData.endCell > 0 && moveData.endCell % 30 === 0);
+      const isBoss = (moveData.endCell > 0 && moveData.endCell % 30 === 0) || moveData.endCell === 299;
       if (isBoss) {
         checkAndShowBossModal(moveData.endCell);
       } else {
@@ -1879,13 +2327,61 @@ async function refreshProfile() {
       updateDrawerPreview();
     }
     
-    const isBoss = (state.user.current_cell > 0 && state.user.current_cell % 30 === 0);
+    const isBoss = (state.user.current_cell > 0 && state.user.current_cell % 30 === 0) || state.user.current_cell === 299;
     if (isBoss) {
       checkAndShowBossModal(state.user.current_cell);
     }
 
+    if (data.pendingBoss && !data.pendingBoss.defeated) {
+      showPendingBossModal(data.pendingBoss);
+    }
+
   } catch (err) {
     
+  }
+}
+
+function showPendingBossModal(pendingBoss) {
+  currentOpenedBossCell = pendingBoss.cellNumber;
+  const modal = document.getElementById('boss-battle-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+
+  document.getElementById('boss-status-defeated').classList.add('hidden');
+  document.getElementById('boss-status-occupied').classList.add('hidden');
+  document.getElementById('boss-status-ready').classList.add('hidden');
+  document.getElementById('boss-status-battle').classList.add('hidden');
+  document.getElementById('boss-btn-close').classList.add('hidden');
+  document.getElementById('boss-btn-bypass-only').classList.add('hidden');
+  document.getElementById('boss-btn-fight').classList.add('hidden');
+  document.getElementById('boss-btn-bypass').classList.add('hidden');
+  document.getElementById('boss-btn-attack').classList.add('hidden');
+  document.getElementById('boss-btn-forfeit').classList.add('hidden');
+
+  document.getElementById('boss-modal-title').textContent = `Босс: ${pendingBoss.bossName} (Ячейка ${pendingBoss.cellNumber})`;
+
+  if (pendingBoss.currentFighterId && pendingBoss.currentFighterId !== state.user.id) {
+    document.getElementById('boss-status-occupied').classList.remove('hidden');
+    document.getElementById('boss-fighter-name').textContent = pendingBoss.currentFighterName || 'Неизвестно';
+    document.getElementById('boss-btn-bypass').classList.remove('hidden');
+  } else {
+    document.getElementById('boss-status-ready').classList.remove('hidden');
+    document.getElementById('boss-info-name').textContent = pendingBoss.bossName;
+    document.getElementById('boss-info-hp').textContent = pendingBoss.bossHp;
+    document.getElementById('boss-info-dmg').textContent = pendingBoss.bossDmg;
+    document.getElementById('boss-info-weakness').textContent = translateElement(pendingBoss.bossWeakness);
+    document.getElementById('boss-info-reward').textContent = formatBossReward({
+      reward_type: pendingBoss.bossRewardType || 'coins',
+      reward_coins: pendingBoss.bossReward,
+      reward_detail: pendingBoss.bossRewardDetail || ''
+    });
+
+    document.getElementById('boss-preview-hp').textContent = pendingBoss.bossHp;
+    document.getElementById('boss-preview-dmg').textContent = pendingBoss.bossDmg;
+    renderBossPreview3D({ cell_number: pendingBoss.cellNumber, max_hp: pendingBoss.bossHp, dmg: pendingBoss.bossDmg });
+
+    document.getElementById('boss-btn-fight').classList.remove('hidden');
+    document.getElementById('boss-btn-bypass').classList.remove('hidden');
   }
 }
 
@@ -2800,11 +3296,10 @@ function buildBoardTiles() {
     const pos = getTilePosition(i);
     
     let color = '#121d33';
-    const isBossCell = (i > 0 && i % 30 === 0);
+    const isBossCell = (i > 0 && i % 30 === 0) || i === 299;
     const bossData = (state.bosses || []).find(b => b.cell_number === i);
     const defeated = bossData ? bossData.defeated : 0;
     if (i === 0) color = '#ffb800';
-    else if (i === 299) color = '#00f0ff';
     else if (isBossCell) color = defeated ? '#00ff33' : '#ff0033';
     else if (cellData.type === 'forward') color = '#2ecc71';
     else if (cellData.type === 'backward') color = '#e74c3c';
@@ -3240,13 +3735,19 @@ function animateDiceRoll(rollValue, callback) {
         throw new Error(data.error);
       }
 
+      const bossEnc = data.bossEncounter;
+
       animateDiceRoll(data.baseRoll !== undefined ? data.baseRoll : data.roll, () => {
         state.diceRolling = false;
         if (state.pendingSelfMove) {
           performSelfMovement(state.pendingSelfMove);
           state.pendingSelfMove = null;
         } else {
-          refreshProfile();
+          refreshProfile().then(() => {
+            if (bossEnc) {
+              showPendingBossModal(bossEnc);
+            }
+          });
         }
       });
     } catch (err) {
