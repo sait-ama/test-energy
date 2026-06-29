@@ -1,7 +1,7 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
 
-const child = spawn('npx.cmd', ['localtunnel', '--port', '3000']);
+const child = spawn('npx.cmd', ['-y', 'localtunnel', '--port', '3000']);
 
 child.stdout.on('data', (data) => {
   const output = data.toString();
