@@ -2242,7 +2242,7 @@ app.post('/api/inventory/remove-reward', async (req, res) => {
   }
 });
 
-let backendUrlPublished = false;
+let lastPublishedUrl = '';
 
 async function publishBackendUrl() {
   let backendUrl = process.env.BACKEND_URL;
@@ -2271,7 +2271,7 @@ async function publishBackendUrl() {
     }
   }
 
-  if (backendUrl) {
+  if (backendUrl && backendUrl !== lastPublishedUrl) {
     try {
       console.log(`Публикация адреса сервера... URL: ${backendUrl}`);
       const res = await fetch('https://extendsclass.com/api/json-storage/bin/ffaabaf', {
@@ -2282,31 +2282,19 @@ async function publishBackendUrl() {
       const data = await res.json();
       if (data && data.status === 0) {
         console.log('Адрес бэкенда успешно опубликован в облачном хранилище!');
-        backendUrlPublished = true;
+        lastPublishedUrl = backendUrl;
       } else {
         console.error('Не удалось опубликовать адрес в облачном хранилище:', data);
       }
     } catch (err) {
       console.error('Ошибка при публикации адреса бэкенда:', err.message);
     }
-  } else {
-    console.log('Не удалось автоматически определить URL бэкенда (ожидание запуска ngrok...)');
   }
 }
 
 function startPublishingLoop() {
   publishBackendUrl();
-  
-  let attempts = 0;
-  const retryInterval = setInterval(() => {
-    if (backendUrlPublished || attempts > 30) {
-      clearInterval(retryInterval);
-      setInterval(publishBackendUrl, 5 * 60 * 1000);
-    } else {
-      attempts++;
-      publishBackendUrl();
-    }
-  }, 5000);
+  setInterval(publishBackendUrl, 10000);
 }
 
 const PORT = 3000;
