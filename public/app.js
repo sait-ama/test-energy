@@ -282,26 +282,6 @@ function create3DBossMesh(index, defeated, faceAngle, customScale) {
     const group = new THREE.Group();
     const model = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cachedBossGLTF[index]) : cachedBossGLTF[index].clone();
     
-    const toReplace = [];
-    model.traverse((child) => {
-      if (child.isSkinnedMesh && child.skeleton && child.skeleton.bones.length > 50) {
-        toReplace.push(child);
-      }
-    });
-    toReplace.forEach(skinned => {
-      const geo = skinned.geometry.clone();
-      const mat = skinned.material.clone ? skinned.material.clone() : skinned.material;
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.name = skinned.name;
-      mesh.position.copy(skinned.position);
-      mesh.rotation.copy(skinned.rotation);
-      mesh.scale.copy(skinned.scale);
-      if (skinned.parent) {
-        skinned.parent.add(mesh);
-        skinned.parent.remove(skinned);
-      }
-    });
-
     const hiddenNodes = [];
     model.traverse((child) => {
       if (child.isLight || child.isCamera || child.isHelper) {
@@ -689,21 +669,6 @@ function renderBossBattle3D(boss) {
   if (cached) {
     const bossModel = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cached) : cached.clone();
 
-    const toReplace = [];
-    bossModel.traverse((child) => {
-      if (child.isSkinnedMesh && child.skeleton && child.skeleton.bones.length > 50) {
-        toReplace.push(child);
-      }
-    });
-    toReplace.forEach(skinned => {
-      const mesh = new THREE.Mesh(skinned.geometry.clone(), skinned.material.clone ? skinned.material.clone() : skinned.material);
-      mesh.name = skinned.name;
-      mesh.position.copy(skinned.position);
-      mesh.rotation.copy(skinned.rotation);
-      mesh.scale.copy(skinned.scale);
-      if (skinned.parent) { skinned.parent.add(mesh); skinned.parent.remove(skinned); }
-    });
-
     bossModel.traverse((child) => {
       if (child.isLight || child.isCamera || child.isHelper) child.visible = false;
       if (child.isMesh && (child.name.toLowerCase().includes('grid') || child.name.toLowerCase().includes('floor') || child.name.toLowerCase().includes('ground') || child.name.toLowerCase().includes('sky'))) child.visible = false;
@@ -829,21 +794,6 @@ function renderBossPreview3D(boss) {
 
   if (cached) {
     const model = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cached) : cached.clone();
-
-    const toReplace = [];
-    model.traverse((child) => {
-      if (child.isSkinnedMesh && child.skeleton && child.skeleton.bones.length > 50) {
-        toReplace.push(child);
-      }
-    });
-    toReplace.forEach(skinned => {
-      const mesh = new THREE.Mesh(skinned.geometry.clone(), skinned.material.clone ? skinned.material.clone() : skinned.material);
-      mesh.name = skinned.name;
-      mesh.position.copy(skinned.position);
-      mesh.rotation.copy(skinned.rotation);
-      mesh.scale.copy(skinned.scale);
-      if (skinned.parent) { skinned.parent.add(mesh); skinned.parent.remove(skinned); }
-    });
 
     model.traverse((child) => {
       if (child.isLight || child.isCamera || child.isHelper) child.visible = false;
