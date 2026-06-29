@@ -121,7 +121,8 @@ export function initDb() {
               { cell: 180, name: "Весы", hp: 350, dmg: 35, weakness: "earth", reward: 1000 },
               { cell: 210, name: "Скорпион", hp: 400, dmg: 40, weakness: "fire", reward: 1100 },
               { cell: 240, name: "Стрелец", hp: 450, dmg: 45, weakness: "water", reward: 1200 },
-              { cell: 270, name: "Козерог", hp: 500, dmg: 50, weakness: "wind", reward: 1300 }
+              { cell: 270, name: "Козерог", hp: 500, dmg: 50, weakness: "wind", reward: 1300 },
+              { cell: 299, name: "Водолей", hp: 600, dmg: 60, weakness: "earth", reward: 1500 }
             ];
             const stmt = db.prepare("INSERT INTO bosses (cell_number, name, hp, max_hp, dmg, weakness, reward_coins) VALUES (?, ?, ?, ?, ?, ?, ?)");
             bossesData.forEach(b => {

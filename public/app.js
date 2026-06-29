@@ -150,7 +150,7 @@ function updateBossMeshes() {
   }
   state.bossObjects.clear();
 
-  const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270];
+  const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270, 299];
   bossCells.forEach((cellNum, idx) => {
     const bossData = (state.bosses || []).find(b => b.cell_number === cellNum);
     const defeated = bossData ? bossData.defeated : 0;
@@ -166,30 +166,32 @@ const cachedBossGLTF = {};
 
 function getBossScale(index) {
   switch (index) {
-    case 0: return 0.01;
-    case 1: return 0.015;
-    case 2: return 0.015;
-    case 3: return 0.015;
-    case 4: return 0.01;
-    case 5: return 0.01;
-    case 6: return 0.01;
-    case 7: return 0.015;
-    case 8: return 0.015;
-    default: return 0.012;
+    case 0: return 0.8;
+    case 1: return 0.8;
+    case 2: return 0.05;
+    case 3: return 0.6;
+    case 4: return 0.8;
+    case 5: return 0.6;
+    case 6: return 0.05;
+    case 7: return 0.8;
+    case 8: return 0.8;
+    case 9: return 0.6;
+    default: return 0.7;
   }
 }
 
 function getBossRotation(index) {
   switch (index) {
-    case 0: return [0, -Math.PI / 4, 0];
-    case 1: return [0, 0, 0];
+    case 0: return [0, Math.PI, 0];
+    case 1: return [0, Math.PI, 0];
     case 2: return [0, 0, 0];
     case 3: return [0, 0, 0];
     case 4: return [0, Math.PI, 0];
-    case 5: return [0, Math.PI, 0];
-    case 6: return [0, -Math.PI / 4, 0];
-    case 7: return [0, 0, 0];
-    case 8: return [0, 0, 0];
+    case 5: return [0, 0, 0];
+    case 6: return [0, 0, 0];
+    case 7: return [0, Math.PI, 0];
+    case 8: return [0, Math.PI, 0];
+    case 9: return [0, 0, 0];
     default: return [0, 0, 0];
   }
 }
@@ -198,15 +200,16 @@ function loadBossModels() {
   if (typeof THREE.GLTFLoader === 'undefined') return;
   const loader = new THREE.GLTFLoader();
   const urls = [
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Horse.glb',
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Flamingo.glb',
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Stork.glb',
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Parrot.glb',
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/RobotExpressive/RobotExpressive.glb',
     'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Soldier.glb',
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Horse.glb',
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Parrot.glb',
-    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Flamingo.glb'
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Xbot.glb',
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/1.0/Monster/glTF-Binary/Monster.glb',
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BrainStem/glTF-Binary/BrainStem.glb',
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/RobotExpressive/RobotExpressive.glb',
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/CesiumMan/glTF-Binary/CesiumMan.glb',
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/1.0/Monster/glTF-Binary/Monster.glb',
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Soldier.glb',
+    'https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Xbot.glb',
+    'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/BrainStem/glTF-Binary/BrainStem.glb'
   ];
 
   urls.forEach((url, index) => {
@@ -220,7 +223,23 @@ function loadBossModels() {
 function create3DBossMesh(index, defeated) {
   if (cachedBossGLTF[index]) {
     const group = new THREE.Group();
-    const model = cachedBossGLTF[index].clone();
+    const model = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cachedBossGLTF[index]) : cachedBossGLTF[index].clone();
+    
+    model.traverse((child) => {
+      if (child.isLight || child.isCamera || child.isHelper) {
+        child.visible = false;
+      }
+      if (child.isMesh && (
+        child.name.toLowerCase().includes('grid') || 
+        child.name.toLowerCase().includes('helper') || 
+        child.name.toLowerCase().includes('floor') || 
+        child.name.toLowerCase().includes('ground') ||
+        child.name.toLowerCase().includes('sky')
+      )) {
+        child.visible = false;
+      }
+    });
+
     const scale = getBossScale(index);
     model.scale.set(scale, scale, scale);
     const rot = getBossRotation(index);
