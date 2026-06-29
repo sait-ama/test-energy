@@ -166,7 +166,8 @@ function updateBossMeshes() {
     const angle = (bossData && bossData.custom_rotation !== null && bossData.custom_rotation !== undefined) 
       ? bossData.custom_rotation 
       : autoAngle;
-    const bossMesh = create3DBossMesh(idx, defeated, angle);
+    const customScale = (bossData && bossData.custom_scale !== null && bossData.custom_scale !== undefined) ? bossData.custom_scale : 1.0;
+    const bossMesh = create3DBossMesh(idx, defeated, angle, customScale);
     const offX = (bossData && bossData.position_offset_x) || 0;
     const offY = (bossData && bossData.position_offset_y) || 0;
     const offZ = (bossData && bossData.position_offset_z) || 0;
@@ -275,7 +276,7 @@ function loadBossModels() {
   });
 }
 
-function create3DBossMesh(index, defeated, faceAngle) {
+function create3DBossMesh(index, defeated, faceAngle, customScale) {
   if (cachedBossGLTF[index]) {
     const group = new THREE.Group();
     const model = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cachedBossGLTF[index]) : cachedBossGLTF[index].clone();
@@ -333,7 +334,8 @@ function create3DBossMesh(index, defeated, faceAngle) {
     box.getSize(size);
     const maxDim = Math.max(size.x, size.y, size.z);
     const targetHeight = 1.8;
-    const autoScale = maxDim > 0 ? (targetHeight / maxDim) : 1.0;
+    const scaleMultiplier = (customScale !== undefined && customScale !== null) ? customScale : 1.0;
+    const autoScale = maxDim > 0 ? (targetHeight / maxDim) * scaleMultiplier : scaleMultiplier;
     model.scale.set(autoScale, autoScale, autoScale);
 
     if (faceAngle !== undefined) {
@@ -1149,10 +1151,12 @@ function setupAdminBossConfig() {
       const oyEl = document.getElementById('admin-boss-offset-y');
       const ozEl = document.getElementById('admin-boss-offset-z');
       const rotEl = document.getElementById('admin-boss-rotation');
+      const scaleEl = document.getElementById('admin-boss-scale');
       if (oxEl) oxEl.value = boss.position_offset_x || 0;
       if (oyEl) oyEl.value = boss.position_offset_y || 0;
       if (ozEl) ozEl.value = boss.position_offset_z || 0;
       if (rotEl) rotEl.value = boss.custom_rotation !== null && boss.custom_rotation !== undefined ? Math.round(boss.custom_rotation * 180 / Math.PI) : 0;
+      if (scaleEl) scaleEl.value = boss.custom_scale !== null && boss.custom_scale !== undefined ? boss.custom_scale : 1.0;
     }
   };
 
@@ -1169,12 +1173,13 @@ function setupAdminBossConfig() {
       const offsetZ = parseFloat(document.getElementById('admin-boss-offset-z').value) || 0;
       const rotDeg = parseFloat(document.getElementById('admin-boss-rotation').value) || 0;
       const rotation = rotDeg * Math.PI / 180;
+      const scale = parseFloat(document.getElementById('admin-boss-scale').value) || 1.0;
 
       try {
         const res = await fetch('/api/admin/boss/position', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cellNumber: cellNum, offsetX, offsetY, offsetZ, rotation, requesterUserId: state.user.id })
+          body: JSON.stringify({ cellNumber: cellNum, offsetX, offsetY, offsetZ, rotation, scale, requesterUserId: state.user.id })
         });
         if (res.ok) {
           showNotification('Позиция босса сохранена!', 'success');

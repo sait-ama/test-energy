@@ -1438,14 +1438,14 @@ app.post('/api/admin/boss/update', checkAdmin, async (req, res) => {
 });
 
 app.post('/api/admin/boss/position', checkAdmin, async (req, res) => {
-  const { cellNumber, offsetX, offsetY, offsetZ, rotation } = req.body;
+  const { cellNumber, offsetX, offsetY, offsetZ, rotation, scale } = req.body;
   if (!cellNumber) {
     return res.status(400).json({ error: 'Missing cellNumber' });
   }
   try {
     await runQuery(
-      'UPDATE bosses SET position_offset_x = ?, position_offset_y = ?, position_offset_z = ?, custom_rotation = ? WHERE cell_number = ?',
-      [offsetX || 0, offsetY || 0, offsetZ || 0, rotation !== undefined && rotation !== null ? rotation : null, cellNumber]
+      'UPDATE bosses SET position_offset_x = ?, position_offset_y = ?, position_offset_z = ?, custom_rotation = ?, custom_scale = ? WHERE cell_number = ?',
+      [offsetX || 0, offsetY || 0, offsetZ || 0, rotation !== undefined && rotation !== null ? rotation : null, scale !== undefined && scale !== null ? scale : 1.0, cellNumber]
     );
     
     const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
