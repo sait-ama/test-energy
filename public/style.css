@@ -1781,7 +1781,7 @@ body {
     display: none !important;
   }
   .mobile-nav-buttons {
-    display: flex;
+    display: flex !important;
     gap: 15px;
     margin: 10px 8px 25px;
   }
