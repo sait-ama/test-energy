@@ -45,6 +45,32 @@ function updateDOMBalance(balance) {
   if (el3) el3.textContent = balance;
 }
 
+function highlightCurrentCell() {
+  if (!state.tileObjects || state.tileObjects.length === 0) return;
+  if (!state.user || state.user.current_cell === undefined) return;
+  const currentCell = state.user.current_cell;
+  for (let i = 0; i < state.tileObjects.length; i++) {
+    const tileMesh = state.tileObjects[i];
+    if (!tileMesh || !tileMesh.material) continue;
+    const materials = Array.isArray(tileMesh.material) ? tileMesh.material : [tileMesh.material];
+    if (i === currentCell) {
+      materials.forEach(mat => {
+        if (mat) {
+          mat.emissive = new THREE.Color('#00f0ff');
+          mat.emissiveIntensity = 0.5;
+        }
+      });
+    } else {
+      materials.forEach(mat => {
+        if (mat) {
+          mat.emissive = new THREE.Color('#000000');
+          mat.emissiveIntensity = 0;
+        }
+      });
+    }
+  }
+}
+
 let backendUrl = '';
 
 async function resolveBackendUrl() {
@@ -1070,6 +1096,9 @@ async function refreshProfile() {
     document.getElementById('user-tg-username').textContent = state.user.tg_username ? `@${state.user.tg_username}` : '';
     updateDOMBalance(state.user.balance);
     document.getElementById('user-wins').textContent = state.user.wins;
+    if (state.tileObjects && state.tileObjects.length > 0) {
+      highlightCurrentCell();
+    }
 
     const avatarImg = document.getElementById('user-avatar');
     const avatarFallback = document.getElementById('avatar-fallback');
@@ -2064,6 +2093,7 @@ function buildBoardTiles() {
       state.floatingIcons[i] = null;
     }
   }
+  highlightCurrentCell();
 }
 
 function updateBoardPlayers() {
@@ -2107,6 +2137,7 @@ function updateBoardPlayers() {
   }
 
   layoutBoardElements();
+  highlightCurrentCell();
 }
 
 function animatePlayerMovement(moveData) {
@@ -2135,6 +2166,8 @@ function animatePlayerMovement(moveData) {
       layoutBoardElements();
       
       if (moveData.userId === state.user.id) {
+        state.user.current_cell = moveData.endCell;
+        highlightCurrentCell();
         if (state.boardControls) {
           smoothCameraFocus(finalPos);
         }
@@ -2163,6 +2196,10 @@ function animatePlayerMovement(moveData) {
       if (progress < 1) {
         requestAnimationFrame(updateHop);
       } else {
+        if (moveData.userId === state.user.id) {
+          state.user.current_cell = path[step];
+          highlightCurrentCell();
+        }
         step++;
         hopNext();
       }
