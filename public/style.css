@@ -498,37 +498,41 @@ body {
   border-radius: 6px;
 }
 
-.shop-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 15px;
+.shop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 8px 4px 30px;
 }
 
 .shop-item-card {
-  background: rgba(15, 25, 45, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  padding: 15px;
-  transition: all 0.3s;
+  background: rgba(15, 25, 45, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  padding: 18px 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 
 .shop-item-card:hover {
   border-color: #00f0ff;
-  background: rgba(15, 25, 45, 0.7);
+  background: rgba(20, 35, 60, 0.7);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 240, 255, 0.15);
 }
 
 .shop-item-card h3 {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 15px;
+  font-weight: 700;
   color: #ffffff;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .shop-item-card p {
-  font-size: 11px;
-  color: #8c9ba5;
-  line-height: 1.4;
-  margin-bottom: 12px;
+  font-size: 12px;
+  color: #a3b2bc;
+  line-height: 1.45;
+  margin-bottom: 16px;
 }
 
 .shop-item-footer {
@@ -540,7 +544,7 @@ body {
 .shop-item-cost {
   font-family: 'Orbitron', sans-serif;
   font-weight: 700;
-  font-size: 14px;
+  font-size: 15px;
   color: #ffb800;
 }
 
