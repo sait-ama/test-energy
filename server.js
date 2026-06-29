@@ -622,6 +622,11 @@ app.post('/api/board/roll', async (req, res) => {
       return res.status(400).json({ error: `Вы не можете бросить кубик, пока не оплатите налог гильдии! Осталось внести: ${remaining} молний.` });
     }
 
+    const activeFight = await getQuery('SELECT * FROM bosses WHERE current_fighter_id = ?', [user.id]);
+    if (activeFight) {
+      return res.status(400).json({ error: 'Вы не можете бросить кубик, пока сражаетесь с боссом!' });
+    }
+
     if (user.current_cell >= 299) {
       return res.status(400).json({ error: 'Вы уже дошли до финиша!' });
     }
@@ -846,6 +851,340 @@ async function getShopPrices() {
     return defaults;
   }
 }
+
+function getPlayerBattleStats(user) {
+  let charData = {};
+  try {
+    charData = typeof user.character_data === 'string' ? JSON.parse(user.character_data) : (user.character_data || {});
+  } catch (e) {
+    charData = {};
+  }
+  const baseHp = 100;
+  const baseDmg = 10;
+  let bonusHp = 0;
+  let bonusDmg = 0;
+
+  const weapon = charData.weapon || 'none';
+  if (weapon === 'sword') bonusDmg += 15;
+  else if (weapon === 'staff') { bonusDmg += 10; bonusHp += 20; }
+  else if (weapon === 'shield') { bonusDmg += 5; bonusHp += 30; }
+  else if (weapon === 'axe') bonusDmg += 20;
+  else if (weapon === 'bow') bonusDmg += 12;
+  else if (weapon === 'scythe') bonusDmg += 18;
+  else if (weapon === 'hammer') bonusDmg += 22;
+
+  const costume = charData.costume || 'normal';
+  if (costume === 'armor') bonusHp += 50;
+  else if (costume === 'robe') { bonusHp += 20; bonusDmg += 5; }
+  else if (costume === 'cyber') { bonusHp += 30; bonusDmg += 8; }
+  else if (costume === 'steampunk') { bonusHp += 25; bonusDmg += 6; }
+  else if (costume === 'ninja_suit') { bonusHp += 15; bonusDmg += 12; }
+
+  return {
+    maxHp: baseHp + bonusHp,
+    dmg: baseDmg + bonusDmg,
+    element: charData.element || 'water'
+  };
+}
+
+app.get('/api/bosses', async (req, res) => {
+  try {
+    const rows = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/boss/start-fight', async (req, res) => {
+  const { userId, cellNumber } = req.body;
+  if (!userId || !cellNumber) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+  try {
+    const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    if (user.current_cell !== parseInt(cellNumber)) {
+      return res.status(400).json({ error: 'Вы не находитесь на ячейке с боссом!' });
+    }
+    
+    const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [cellNumber]);
+    if (!boss) return res.status(404).json({ error: 'Boss not found' });
+    
+    if (boss.defeated) {
+      return res.status(400).json({ error: 'Этот босс уже побежден!' });
+    }
+    
+    if (boss.current_fighter_id && boss.current_fighter_id !== user.id) {
+      return res.status(400).json({ error: `С боссом уже сражается другой игрок: ${boss.current_fighter_username}` });
+    }
+    
+    const stats = getPlayerBattleStats(user);
+    
+    await runQuery(
+      'UPDATE bosses SET current_fighter_id = ?, current_fighter_username = ?, current_fighter_hp = ?, hp = ? WHERE cell_number = ?',
+      [user.id, user.tg_first_name || user.tg_username || 'Неизвестно', stats.maxHp, boss.max_hp, cellNumber]
+    );
+    
+    const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
+    io.emit('bosses_update', updatedBosses);
+    
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/boss/attack', async (req, res) => {
+  const { userId, cellNumber } = req.body;
+  if (!userId || !cellNumber) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+  try {
+    const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [cellNumber]);
+    if (!boss) return res.status(404).json({ error: 'Boss not found' });
+    
+    if (boss.current_fighter_id !== user.id) {
+      return res.status(400).json({ error: 'Вы не сражаетесь с этим боссом!' });
+    }
+    
+    const now = new Date();
+    if (user.last_boss_attack_time) {
+      const lastAttack = new Date(user.last_boss_attack_time);
+      const elapsedSeconds = (now.getTime() - lastAttack.getTime()) / 1000;
+      const cdSeconds = boss.attack_cooldown_seconds || 300;
+      if (elapsedSeconds < cdSeconds) {
+        const remain = Math.ceil(cdSeconds - elapsedSeconds);
+        return res.status(400).json({ error: `Кулдаун удара! Подождите ещё ${remain} секунд.` });
+      }
+    }
+    
+    const stats = getPlayerBattleStats(user);
+    
+    let dmgDealt = stats.dmg;
+    let elementMatch = false;
+    if (stats.element === boss.weakness) {
+      dmgDealt = Math.floor(dmgDealt * 1.5);
+      elementMatch = true;
+    }
+    
+    const newBossHp = Math.max(0, boss.hp - dmgDealt);
+    
+    await runQuery('UPDATE users SET last_boss_attack_time = ? WHERE id = ?', [now.toISOString(), user.id]);
+    user.last_boss_attack_time = now.toISOString();
+    
+    if (newBossHp <= 0) {
+      const reward = boss.reward_coins || 500;
+      const newBalance = user.balance + reward;
+      
+      await runQuery(
+        'UPDATE bosses SET hp = 0, defeated = 1, defeated_by_username = ?, current_fighter_id = NULL, current_fighter_username = NULL, current_fighter_hp = 0 WHERE cell_number = ?',
+        [user.tg_first_name || user.tg_username || 'Неизвестно', cellNumber]
+      );
+      
+      await runQuery('UPDATE users SET balance = ? WHERE id = ?', [newBalance, user.id]);
+      
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [user.id, 'boss_victory', `Побежден босс ${boss.name}! Получено ${reward} монет.`, now.toISOString()]
+      );
+      
+      const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
+      io.emit('bosses_update', updatedBosses);
+      
+      io.to(`user_${user.id}`).emit('balance_update', { balance: newBalance });
+      
+      return res.json({
+        status: 'victory',
+        dmgDealt,
+        bossHp: 0,
+        reward,
+        elementMatch
+      });
+    }
+    
+    const bossDmg = boss.dmg;
+    const newPlayerHp = Math.max(0, boss.current_fighter_hp - bossDmg);
+    
+    if (newPlayerHp <= 0) {
+      const loss = 300;
+      const newBalance = user.balance - loss;
+      const newCell = Math.max(0, user.current_cell - 5);
+      
+      const path = [];
+      for (let c = user.current_cell - 1; c >= newCell; c--) {
+        path.push(c);
+      }
+      
+      await runQuery(
+        'UPDATE bosses SET current_fighter_id = NULL, current_fighter_username = NULL, current_fighter_hp = 0, hp = max_hp WHERE cell_number = ?',
+        [cellNumber]
+      );
+      
+      await runQuery(
+        'UPDATE users SET current_cell = ?, balance = ? WHERE id = ?',
+        [newCell, newBalance, user.id]
+      );
+      
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [user.id, 'boss_defeat', `Поражение от босса ${boss.name}! Потеряно ${loss} монет, откат на ячейку ${newCell}.`, now.toISOString()]
+      );
+      
+      const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
+      io.emit('bosses_update', updatedBosses);
+      
+      if (onlineUsers.has(String(user.id))) {
+        const cached = onlineUsers.get(String(user.id));
+        cached.current_cell = newCell;
+      }
+      
+      io.emit('player_move', {
+        userId: user.id,
+        tg_username: user.tg_username,
+        path,
+        startCell: user.current_cell,
+        endCell: newCell,
+        specialEffect: null,
+        rewardTriggered: null,
+        win: false
+      });
+      
+      await broadcastPlayersList();
+      
+      io.to(`user_${user.id}`).emit('balance_update', { balance: newBalance });
+      
+      return res.json({
+        status: 'defeat',
+        dmgDealt,
+        bossDmg,
+        playerHp: 0,
+        newCell,
+        newBalance,
+        path,
+        elementMatch
+      });
+    }
+    
+    await runQuery(
+      'UPDATE bosses SET hp = ?, current_fighter_hp = ? WHERE cell_number = ?',
+      [newBossHp, newPlayerHp, cellNumber]
+    );
+    
+    const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
+    io.emit('bosses_update', updatedBosses);
+    
+    res.json({
+      status: 'active',
+      dmgDealt,
+      bossDmg,
+      playerHp: newPlayerHp,
+      bossHp: newBossHp,
+      elementMatch
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/boss/forfeit', async (req, res) => {
+  const { userId, cellNumber } = req.body;
+  if (!userId || !cellNumber) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+  try {
+    const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [cellNumber]);
+    if (!boss) return res.status(404).json({ error: 'Boss not found' });
+    
+    if (boss.current_fighter_id !== user.id) {
+      return res.status(400).json({ error: 'Вы не сражаетесь с этим боссом!' });
+    }
+    
+    const loss = 300;
+    const newBalance = user.balance - loss;
+    const newCell = Math.max(0, user.current_cell - 5);
+    
+    const path = [];
+    for (let c = user.current_cell - 1; c >= newCell; c--) {
+      path.push(c);
+    }
+    
+    await runQuery(
+      'UPDATE bosses SET current_fighter_id = NULL, current_fighter_username = NULL, current_fighter_hp = 0, hp = max_hp WHERE cell_number = ?',
+      [cellNumber]
+    );
+    
+    await runQuery(
+      'UPDATE users SET current_cell = ?, balance = ? WHERE id = ?',
+      [newCell, newBalance, user.id]
+    );
+    
+    const now = new Date();
+    await runQuery(
+      'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+      [user.id, 'boss_forfeit', `Побег от босса ${boss.name}! Потеряно ${loss} монет, откат на ячейку ${newCell}.`, now.toISOString()]
+    );
+    
+    const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
+    io.emit('bosses_update', updatedBosses);
+    
+    if (onlineUsers.has(String(user.id))) {
+      const cached = onlineUsers.get(String(user.id));
+      cached.current_cell = newCell;
+    }
+    
+    io.emit('player_move', {
+      userId: user.id,
+      tg_username: user.tg_username,
+      path,
+      startCell: user.current_cell,
+      endCell: newCell,
+      specialEffect: null,
+      rewardTriggered: null,
+      win: false
+    });
+    
+    await broadcastPlayersList();
+    
+    io.to(`user_${user.id}`).emit('balance_update', { balance: newBalance });
+    
+    res.json({
+      status: 'defeat',
+      newCell,
+      newBalance,
+      path
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/admin/boss/update', checkAdmin, async (req, res) => {
+  const { cellNumber, hp, dmg, cooldown } = req.body;
+  if (!cellNumber || hp === undefined || dmg === undefined || cooldown === undefined) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+  try {
+    await runQuery(
+      'UPDATE bosses SET max_hp = ?, hp = ?, dmg = ?, attack_cooldown_seconds = ? WHERE cell_number = ?',
+      [hp, hp, dmg, cooldown, cellNumber]
+    );
+    
+    const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
+    io.emit('bosses_update', updatedBosses);
+    
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 app.get('/api/shop', async (req, res) => {
   const prices = await getShopPrices();

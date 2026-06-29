@@ -92,6 +92,45 @@ export function initDb() {
       db.run(`ALTER TABLE cells ADD COLUMN claimed_by_username TEXT DEFAULT NULL`, () => {});
       db.run(`ALTER TABLE inventory ADD COLUMN origin_cell_number INTEGER DEFAULT NULL`, () => {});
       db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('price_remove_reward', '100')`);
+      db.run(`ALTER TABLE users ADD COLUMN last_boss_attack_time TEXT`, () => {});
+      db.run(`
+        CREATE TABLE IF NOT EXISTS bosses (
+          cell_number INTEGER PRIMARY KEY,
+          name TEXT,
+          hp INTEGER,
+          max_hp INTEGER,
+          dmg INTEGER,
+          weakness TEXT,
+          defeated INTEGER DEFAULT 0,
+          defeated_by_username TEXT,
+          current_fighter_id INTEGER DEFAULT NULL,
+          current_fighter_username TEXT,
+          current_fighter_hp INTEGER DEFAULT 0,
+          reward_coins INTEGER DEFAULT 500,
+          attack_cooldown_seconds INTEGER DEFAULT 300
+        )
+      `, () => {
+        db.get("SELECT COUNT(*) as count FROM bosses", (err, row) => {
+          if (!err && row && row.count === 0) {
+            const bossesData = [
+              { cell: 30, name: "Телец", hp: 100, dmg: 10, weakness: "wind", reward: 500 },
+              { cell: 60, name: "Близнецы", hp: 150, dmg: 15, weakness: "earth", reward: 600 },
+              { cell: 90, name: "Рак", hp: 200, dmg: 20, weakness: "fire", reward: 700 },
+              { cell: 120, name: "Лев", hp: 250, dmg: 25, weakness: "water", reward: 800 },
+              { cell: 150, name: "Дева", hp: 300, dmg: 30, weakness: "wind", reward: 900 },
+              { cell: 180, name: "Весы", hp: 350, dmg: 35, weakness: "earth", reward: 1000 },
+              { cell: 210, name: "Скорпион", hp: 400, dmg: 40, weakness: "fire", reward: 1100 },
+              { cell: 240, name: "Стрелец", hp: 450, dmg: 45, weakness: "water", reward: 1200 },
+              { cell: 270, name: "Козерог", hp: 500, dmg: 50, weakness: "wind", reward: 1300 }
+            ];
+            const stmt = db.prepare("INSERT INTO bosses (cell_number, name, hp, max_hp, dmg, weakness, reward_coins) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            bossesData.forEach(b => {
+              stmt.run(b.cell, b.name, b.hp, b.hp, b.dmg, b.weakness, b.reward);
+            });
+            stmt.finalize();
+          }
+        });
+      });
 
       db.run(`
         CREATE TABLE IF NOT EXISTS history (
@@ -104,7 +143,7 @@ export function initDb() {
         )
       `, (err) => {
         if (err) return reject(err);
-        
+        db.run(`UPDATE cells SET type = 'boss' WHERE cell_number IN (30, 60, 90, 120, 150, 180, 210, 240, 270)`, () => {});
         db.get("SELECT COUNT(*) as count FROM cells", (err, row) => {
           if (err) return reject(err);
           if (row.count === 0) {
@@ -117,7 +156,9 @@ export function initDb() {
               let reward_detail = '';
 
               if (i > 0 && i < 299) {
-                if (i % 17 === 0) {
+                if (i % 30 === 0) {
+                  type = 'boss';
+                } else if (i % 17 === 0) {
                   type = 'forward';
                   value = 3 + (i % 5);
                 } else if (i % 23 === 0) {

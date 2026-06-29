@@ -54,6 +54,20 @@
           <div id="creator-canvas-container"></div>
         </div>
         <div class="customizer-controls">
+          <div class="creator-stats-panel" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(0, 240, 255, 0.2); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+            <h4 style="margin: 0 0 8px 0; font-size: 12px; color: #00f0ff; text-transform: uppercase; font-family: 'Orbitron', sans-serif;">Характеристики персонажа</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; margin-bottom: 8px;">
+              <div>Здоровье (HP): <span id="creator-stat-hp" style="font-weight: bold; color: #00ff66;">100</span></div>
+              <div>Урон (DMG): <span id="creator-stat-dmg" style="font-weight: bold; color: #ffcc00;">10</span></div>
+            </div>
+            <div style="font-size: 11px; color: #8c9ba5; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 6px;">
+              Стихия: <span id="creator-stat-element" style="font-weight: bold; color: #00f0ff;">Вода</span>
+              <div id="creator-stat-element-desc" style="margin-top: 3px; font-size: 10px; color: #a3b2bc;">
+                Эффективна против боссов: Лев, Стрелец.
+              </div>
+            </div>
+          </div>
+
           <div id="creator-step-1" class="creator-step">
             <h3>Шаг 1: Тело и костюм</h3>
             <div class="form-group">
@@ -63,13 +77,25 @@
             <div class="form-group">
               <label>Тип костюма</label>
               <select id="creator-costume">
-                <option value="normal">Обычный</option>
-                <option value="armor">Рыцарский доспех</option>
-                <option value="robe">Мантия мага</option>
-                <option value="cyber">Кибер-костюм</option>
-                <option value="steampunk">Стимпанк жилет</option>
-                <option value="ninja_suit">Костюм шиноби</option>
+                <option value="normal">Обычный (без бонусов)</option>
+                <option value="armor">Рыцарский доспех (+50 HP)</option>
+                <option value="robe">Мантия мага (+20 HP, +5 DMG)</option>
+                <option value="cyber">Кибер-костюм (+30 HP, +8 DMG)</option>
+                <option value="steampunk">Стимпанк жилет (+25 HP, +6 DMG)</option>
+                <option value="ninja_suit">Костюм шиноби (+15 HP, +12 DMG)</option>
               </select>
+            </div>
+            <div class="form-group">
+              <label>Стихия</label>
+              <select id="creator-element">
+                <option value="water">Вода</option>
+                <option value="fire">Огонь</option>
+                <option value="earth">Земля</option>
+                <option value="wind">Ветер</option>
+              </select>
+              <div id="creator-element-help" style="font-size: 11px; color: #8c9ba5; margin-top: 5px; line-height: 1.4;">
+                Вода наносит повышенный урон боссам: Лев (120 ячейка), Стрелец (240 ячейка).
+              </div>
             </div>
             <div class="form-group">
               <label>Цвет костюма</label>
@@ -113,14 +139,14 @@
             <div class="form-group">
               <label>Оружие</label>
               <select id="creator-weapon">
-                <option value="none">Без оружия</option>
-                <option value="sword">Энергетический меч</option>
-                <option value="staff">Посох мага</option>
-                <option value="shield">Энергетический щит</option>
-                <option value="axe">Боевой топор</option>
-                <option value="bow">Лук</option>
-                <option value="scythe">Коса смерти</option>
-                <option value="hammer">Молот Тора</option>
+                <option value="none">Без оружия (без бонусов)</option>
+                <option value="sword">Энергетический меч (+15 DMG)</option>
+                <option value="staff">Посох мага (+20 HP, +10 DMG)</option>
+                <option value="shield">Энергетический щит (+30 HP, +5 DMG)</option>
+                <option value="axe">Боевой топор (+20 DMG)</option>
+                <option value="bow">Лук (+12 DMG)</option>
+                <option value="scythe">Коса смерти (+18 DMG)</option>
+                <option value="hammer">Молот Тора (+22 DMG)</option>
               </select>
             </div>
             <div class="form-group">
@@ -285,6 +311,7 @@
             <button class="tab-btn active" data-tab="admin-tab-users">Игроки</button>
             <button class="tab-btn" data-tab="admin-tab-cells">Настройка ячеек</button>
             <button class="tab-btn" data-tab="admin-tab-settings">Настройки</button>
+            <button class="tab-btn" data-tab="admin-tab-bosses">Настройка боссов</button>
           </div>
           
           <div id="admin-tab-users" class="tab-content active">
@@ -390,6 +417,36 @@
             </div>
             <button id="save-settings-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Сохранить настройки</button>
           </div>
+
+          <div id="admin-tab-bosses" class="tab-content" style="margin-top: 10px;">
+            <div class="form-group">
+              <label>Выберите босса</label>
+              <select id="admin-boss-select">
+                <option value="30">Ячейка 30: Телец</option>
+                <option value="60">Ячейка 60: Близнецы</option>
+                <option value="90">Ячейка 90: Рак</option>
+                <option value="120">Ячейка 120: Лев</option>
+                <option value="150">Ячейка 150: Дева</option>
+                <option value="180">Ячейка 180: Весы</option>
+                <option value="210">Ячейка 210: Скорпион</option>
+                <option value="240">Ячейка 240: Стрелец</option>
+                <option value="270">Ячейка 270: Козерог</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Здоровье босса (HP)</label>
+              <input type="number" id="admin-boss-hp" min="1">
+            </div>
+            <div class="form-group">
+              <label>Урон босса (DMG)</label>
+              <input type="number" id="admin-boss-dmg" min="0">
+            </div>
+            <div class="form-group">
+              <label>Кд ударов игрока (сек)</label>
+              <input type="number" id="admin-boss-cooldown" min="0">
+            </div>
+            <button id="admin-boss-save-btn" class="btn btn-primary btn-block">Сохранить настройки босса</button>
+          </div>
         </div>
       </div>
     </div>
@@ -419,6 +476,23 @@
       <div class="drawer-char-preview">
         <div id="drawer-char-canvas"></div>
         <div class="lock-tag">Персонаж закреплен (изменение заблокировано)</div>
+      </div>
+      <div class="drawer-section">
+        <h3>Характеристики персонажа</h3>
+        <div class="drawer-stats-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+          <div class="drawer-stat">
+            <span class="stat-label">Здоровье (HP)</span>
+            <span id="drawer-hp" class="stat-value text-green" style="color: #00ff66;">100</span>
+          </div>
+          <div class="drawer-stat">
+            <span class="stat-label">Урон (DMG)</span>
+            <span id="drawer-dmg" class="stat-value text-yellow" style="color: #ffcc00;">10</span>
+          </div>
+          <div class="drawer-stat">
+            <span class="stat-label">Стихия</span>
+            <span id="drawer-element" class="stat-value text-cyan" style="color: #00f0ff; text-transform: capitalize;">-</span>
+          </div>
+        </div>
       </div>
       <div class="drawer-section">
         <h3>Статистика</h3>
@@ -529,6 +603,70 @@
               <div style="font-size: 11px; color: #8c9ba5;">Загрузка...</div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="boss-battle-modal" class="modal hidden" style="z-index: 9999;">
+    <div class="modal-content modal-md" style="background: linear-gradient(135deg, #0b0f19 0%, #152035 100%); border: 1px solid rgba(0, 240, 255, 0.2); box-shadow: 0 0 35px rgba(0, 0, 0, 0.8);">
+      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 15px;">
+        <h2 id="boss-modal-title" style="margin: 0; color: #ff3333; font-family: 'Orbitron', sans-serif; font-size: 20px;">Борьба с боссом</h2>
+      </div>
+      <div class="modal-body" style="padding-top: 15px;">
+        <div id="boss-status-defeated" class="hidden" style="text-align: center; margin-bottom: 20px;">
+          <div style="font-size: 48px; margin-bottom: 10px;">🏆</div>
+          <p style="font-size: 14px; line-height: 1.5; color: #00ff66;">Босс повержен игроком <b id="boss-victor-name" class="text-gold"></b>!</p>
+          <p style="font-size: 12px; color: #8c9ba5;">С этим боссом больше нельзя сражаться.</p>
+        </div>
+        <div id="boss-status-occupied" class="hidden" style="text-align: center; margin-bottom: 20px;">
+          <div style="font-size: 48px; margin-bottom: 10px;">⚔️</div>
+          <p style="font-size: 14px; line-height: 1.5; color: #ff9900;">Сражается с боссом: <b id="boss-fighter-name" class="text-gold"></b></p>
+          <p style="font-size: 12px; color: #8c9ba5;">Вы должны подождать, пока бой не завершится, либо можете пройти дальше.</p>
+        </div>
+        <div id="boss-status-ready" class="hidden" style="margin-bottom: 20px;">
+          <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+            <p style="font-size: 13px; margin: 0 0 10px 0;">Перед вами босс: <span id="boss-info-name" class="text-gold font-bold"></span></p>
+            <p style="font-size: 12px; color: #a3b2bc; margin: 0 0 10px 0;">Характеристики: Здоровье <span id="boss-info-hp" class="text-cyan font-bold"></span>, Урон <span id="boss-info-dmg" class="text-gold font-bold"></span></p>
+            <p style="font-size: 12px; color: #ff9900; margin: 0;">Слабость к стихии: <span id="boss-info-weakness" class="text-gold font-bold" style="text-transform: capitalize;"></span></p>
+          </div>
+          <p style="font-size: 12px; color: #8c9ba5; line-height: 1.5;">Сражение длится до полной победы или вашего поражения. При поражении вы теряете 300 монет и откидываетесь назад на 5 ячеек. Интервал между вашими ударами — 5 минут.</p>
+        </div>
+        <div id="boss-status-battle" class="hidden" style="margin-bottom: 20px;">
+          <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div style="flex: 1; background: rgba(0, 240, 255, 0.05); border: 1px solid rgba(0, 240, 255, 0.1); border-radius: 8px; padding: 12px; text-align: center;">
+              <div style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #00f0ff;">Вы</div>
+              <div style="font-size: 11px; color: #8c9ba5; margin-bottom: 5px;">Стихия: <span id="battle-player-element" style="font-weight: 700; text-transform: capitalize;"></span></div>
+              <div style="font-size: 11px; color: #8c9ba5; margin-bottom: 8px;">Урон: <span id="battle-player-dmg" class="text-gold font-bold"></span></div>
+              <div class="progress-bar-container" style="background: rgba(255,255,255,0.05); border-radius: 4px; height: 16px; position: relative; overflow: hidden; margin-top: 5px;">
+                <div id="battle-player-hp-bar" style="background: #00ff66; height: 100%; width: 100%; transition: width 0.3s;"></div>
+                <div id="battle-player-hp-text" style="position: absolute; width: 100%; text-align: center; top: 0; font-size: 10px; font-weight: bold; color: #fff; line-height: 16px;">100 / 100</div>
+              </div>
+            </div>
+            <div style="flex: 1; background: rgba(255, 51, 51, 0.05); border: 1px solid rgba(255, 51, 51, 0.1); border-radius: 8px; padding: 12px; text-align: center;">
+              <div id="battle-boss-name-label" style="font-weight: bold; font-size: 14px; margin-bottom: 8px; color: #ff3333;">Босс</div>
+              <div style="font-size: 11px; color: #8c9ba5; margin-bottom: 5px;">Слабость: <span id="battle-boss-weakness" style="font-weight: 700; text-transform: capitalize; color: #ff9900;"></span></div>
+              <div style="font-size: 11px; color: #8c9ba5; margin-bottom: 8px;">Урон: <span id="battle-boss-dmg" class="text-gold font-bold"></span></div>
+              <div class="progress-bar-container" style="background: rgba(255,255,255,0.05); border-radius: 4px; height: 16px; position: relative; overflow: hidden; margin-top: 5px;">
+                <div id="battle-boss-hp-bar" style="background: #ff3333; height: 100%; width: 100%; transition: width 0.3s;"></div>
+                <div id="battle-boss-hp-text" style="position: absolute; width: 100%; text-align: center; top: 0; font-size: 10px; font-weight: bold; color: #fff; line-height: 16px;">100 / 100</div>
+              </div>
+            </div>
+          </div>
+          <div id="battle-log" style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; font-size: 11px; color: #a3b2bc; min-height: 40px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; text-align: center;">
+            Нажмите кнопку «Нанести удар» для атаки!
+          </div>
+          <div id="battle-cooldown-text" style="text-align: center; font-size: 12px; color: #ff9900; margin-bottom: 10px;" class="hidden">
+            Следующий удар доступен через: <span id="battle-cooldown-time" style="font-weight: bold;"></span>
+          </div>
+        </div>
+        <div style="display: flex; gap: 10px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px;">
+          <button id="boss-btn-close" class="btn btn-secondary hidden" style="flex: 1;">Закрыть</button>
+          <button id="boss-btn-bypass-only" class="btn btn-primary hidden" style="flex: 1;">Пройти дальше</button>
+          <button id="boss-btn-fight" class="btn btn-primary btn-glow hidden" style="flex: 1;">Сразиться</button>
+          <button id="boss-btn-bypass" class="btn btn-secondary hidden" style="flex: 1;">Пройти дальше</button>
+          <button id="boss-btn-attack" class="btn btn-primary btn-glow hidden" style="flex: 1;">Нанести удар</button>
+          <button id="boss-btn-forfeit" class="btn btn-secondary hidden" style="flex: 1;">Сдаться</button>
         </div>
       </div>
     </div>

@@ -53,21 +53,594 @@ function highlightCurrentCell() {
     const tileMesh = state.tileObjects[i];
     if (!tileMesh || !tileMesh.material) continue;
     const materials = Array.isArray(tileMesh.material) ? tileMesh.material : [tileMesh.material];
+    
+    const isBossCell = (i > 0 && i % 30 === 0);
+    const bossData = (state.bosses || []).find(b => b.cell_number === i);
+    const defeated = bossData ? bossData.defeated : 0;
+
     if (i === currentCell) {
       materials.forEach(mat => {
         if (mat) {
           mat.emissive = new THREE.Color('#00f0ff');
-          mat.emissiveIntensity = 0.5;
+          mat.emissiveIntensity = 0.75;
+          if (isBossCell) {
+            mat.color = new THREE.Color(defeated ? '#00ff33' : '#ff0033');
+          }
         }
       });
     } else {
       materials.forEach(mat => {
         if (mat) {
-          mat.emissive = new THREE.Color('#000000');
-          mat.emissiveIntensity = 0;
+          if (isBossCell) {
+            mat.color = new THREE.Color(defeated ? '#00ff33' : '#ff0033');
+            mat.emissive = new THREE.Color(defeated ? '#00ff33' : '#ff0033');
+            mat.emissiveIntensity = 0.85;
+          } else {
+            mat.emissive = new THREE.Color('#000000');
+            mat.emissiveIntensity = 0;
+          }
         }
       });
     }
+  }
+}
+
+let currentOpenedBossCell = null;
+
+function getPlayerBattleStats(user) {
+  let charData = {};
+  try {
+    charData = typeof user.character_data === 'string' ? JSON.parse(user.character_data) : (user.character_data || {});
+  } catch (e) {
+    charData = {};
+  }
+  const baseHp = 100;
+  const baseDmg = 10;
+  let bonusHp = 0;
+  let bonusDmg = 0;
+
+  const weapon = charData.weapon || 'none';
+  if (weapon === 'sword') bonusDmg += 15;
+  else if (weapon === 'staff') { bonusDmg += 10; bonusHp += 20; }
+  else if (weapon === 'shield') { bonusDmg += 5; bonusHp += 30; }
+  else if (weapon === 'axe') bonusDmg += 20;
+  else if (weapon === 'bow') bonusDmg += 12;
+  else if (weapon === 'scythe') bonusDmg += 18;
+  else if (weapon === 'hammer') bonusDmg += 22;
+
+  const costume = charData.costume || 'normal';
+  if (costume === 'armor') bonusHp += 50;
+  else if (costume === 'robe') { bonusHp += 20; bonusDmg += 5; }
+  else if (costume === 'cyber') { bonusHp += 30; bonusDmg += 8; }
+  else if (costume === 'steampunk') { bonusHp += 25; bonusDmg += 6; }
+  else if (costume === 'ninja_suit') { bonusHp += 15; bonusDmg += 12; }
+
+  return {
+    maxHp: baseHp + bonusHp,
+    dmg: baseDmg + bonusDmg,
+    element: charData.element || 'water'
+  };
+}
+
+async function refreshBosses() {
+  try {
+    const res = await fetch('/api/bosses');
+    if (res.ok) {
+      state.bosses = await res.json();
+      updateBossMeshes();
+      if (currentOpenedBossCell !== null) {
+        const currentBoss = state.bosses.find(b => b.cell_number === currentOpenedBossCell);
+        if (currentBoss) {
+          updateBossModalUI(currentBoss);
+        }
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function updateBossMeshes() {
+  if (!state.boardScene) return;
+  if (!state.bossObjects) {
+    state.bossObjects = new Map();
+  }
+  for (const [cellNum, mesh] of state.bossObjects.entries()) {
+    state.boardScene.remove(mesh);
+  }
+  state.bossObjects.clear();
+
+  const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270];
+  bossCells.forEach((cellNum, idx) => {
+    const bossData = (state.bosses || []).find(b => b.cell_number === cellNum);
+    const defeated = bossData ? bossData.defeated : 0;
+    const pos = getTilePosition(cellNum);
+    const bossMesh = create3DBossMesh(idx, defeated);
+    bossMesh.position.set(pos.x + 1.1, pos.y + 0.15, pos.z + 1.1);
+    state.boardScene.add(bossMesh);
+    state.bossObjects.set(cellNum, bossMesh);
+  });
+}
+
+function create3DBossMesh(index, defeated) {
+  const group = new THREE.Group();
+  const opacityVal = defeated ? 0.35 : 1.0;
+  const transparentVal = defeated;
+  const mainColor = defeated ? '#555555' : getBossColor(index);
+  const accentColor = defeated ? '#777777' : getBossAccentColor(index);
+  
+  const mainMat = new THREE.MeshStandardMaterial({
+    color: mainColor,
+    roughness: 0.5,
+    metalness: defeated ? 0.0 : 0.2,
+    transparent: transparentVal,
+    opacity: opacityVal
+  });
+  
+  const accMat = new THREE.MeshStandardMaterial({
+    color: accentColor,
+    roughness: 0.4,
+    metalness: defeated ? 0.0 : 0.5,
+    transparent: transparentVal,
+    opacity: opacityVal
+  });
+
+  const eyeColor = defeated ? '#333333' : '#ff0000';
+  const eyeMat = new THREE.MeshBasicMaterial({
+    color: eyeColor,
+    transparent: transparentVal,
+    opacity: opacityVal
+  });
+
+  if (index === 0) {
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 2.0), mainMat);
+    torso.position.y = 0.8;
+    group.add(torso);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9), mainMat);
+    head.position.set(0, 1.5, 0.8);
+    group.add(head);
+    const hornL = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.7, 8), accMat);
+    hornL.rotation.z = -Math.PI / 4;
+    hornL.rotation.x = -Math.PI / 8;
+    hornL.position.set(-0.5, 1.9, 0.9);
+    const hornR = hornL.clone();
+    hornR.rotation.z = Math.PI / 4;
+    hornR.position.x = 0.5;
+    group.add(hornL);
+    group.add(hornR);
+  } else if (index === 1) {
+    const fig1 = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 1.8, 8), mainMat);
+    fig1.position.set(-0.6, 0.9, 0);
+    const head1 = new THREE.Mesh(new THREE.SphereGeometry(0.4, 8, 8), accMat);
+    head1.position.set(-0.6, 2.0, 0);
+    const fig2 = fig1.clone();
+    fig2.position.x = 0.6;
+    const head2 = head1.clone();
+    head2.position.x = 0.6;
+    group.add(fig1);
+    group.add(head1);
+    group.add(fig2);
+    group.add(head2);
+  } else if (index === 2) {
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(0.9, 8, 8), mainMat);
+    shell.scale.set(1.4, 0.6, 1.2);
+    shell.position.y = 0.6;
+    group.add(shell);
+    const clawL = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.8), accMat);
+    clawL.position.set(-1.1, 0.8, 0.6);
+    clawL.rotation.y = Math.PI / 6;
+    const clawR = clawL.clone();
+    clawR.position.x = 1.1;
+    clawR.rotation.y = -Math.PI / 6;
+    group.add(clawL);
+    group.add(clawR);
+  } else if (index === 3) {
+    const body = new THREE.Mesh(new THREE.BoxGeometry(1.2, 1.0, 1.8), mainMat);
+    body.position.y = 0.7;
+    group.add(body);
+    const mane = new THREE.Mesh(new THREE.SphereGeometry(0.8, 8, 8), accMat);
+    mane.position.set(0, 1.4, 0.7);
+    group.add(mane);
+    const face = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), mainMat);
+    face.position.set(0, 1.4, 1.1);
+    group.add(face);
+  } else if (index === 4) {
+    const gown = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.8, 2.2, 10), mainMat);
+    gown.position.y = 1.1;
+    group.add(gown);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.45, 8, 8), accMat);
+    head.position.y = 2.4;
+    group.add(head);
+    const wingL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 1.8, 0.8), accMat);
+    wingL.rotation.y = Math.PI / 4;
+    wingL.rotation.z = Math.PI / 6;
+    wingL.position.set(-0.6, 1.6, -0.4);
+    const wingR = wingL.clone();
+    wingR.rotation.y = -Math.PI / 4;
+    wingR.rotation.z = -Math.PI / 6;
+    wingR.position.x = 0.6;
+    group.add(wingL);
+    group.add(wingR);
+  } else if (index === 5) {
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 2.0, 8), mainMat);
+    base.position.y = 1.0;
+    group.add(base);
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.15, 0.15), accMat);
+    beam.position.y = 2.0;
+    group.add(beam);
+    const panL = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.05, 8), accMat);
+    panL.position.set(-1.2, 1.5, 0);
+    const panR = panL.clone();
+    panR.position.x = 1.2;
+    group.add(panL);
+    group.add(panR);
+  } else if (index === 6) {
+    const body = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.5, 1.6), mainMat);
+    body.position.y = 0.4;
+    group.add(body);
+    const tail1 = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.3, 0.6), accMat);
+    tail1.position.set(0, 0.7, -0.7);
+    tail1.rotation.x = Math.PI / 4;
+    const tail2 = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.6), accMat);
+    tail2.position.set(0, 1.2, -0.9);
+    tail2.rotation.x = Math.PI / 2;
+    const sting = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.4, 4), accMat);
+    sting.position.set(0, 1.5, -0.6);
+    sting.rotation.x = -Math.PI / 4;
+    group.add(tail1);
+    group.add(tail2);
+    group.add(sting);
+  } else if (index === 7) {
+    const horseTorso = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 1.6), mainMat);
+    horseTorso.position.y = 0.7;
+    group.add(horseTorso);
+    const humanTorso = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 1.0, 8), mainMat);
+    humanTorso.position.set(0, 1.6, 0.6);
+    group.add(humanTorso);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), accMat);
+    head.position.set(0, 2.2, 0.6);
+    group.add(head);
+    const bow = new THREE.Mesh(new THREE.TorusGeometry(0.4, 0.05, 8, 8, Math.PI), accMat);
+    bow.position.set(0, 1.6, 1.1);
+    bow.rotation.y = Math.PI / 2;
+    group.add(bow);
+  } else {
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 1.6), mainMat);
+    body.position.y = 0.7;
+    group.add(body);
+    const tail = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.45, 1.0, 8), accMat);
+    tail.rotation.x = Math.PI / 3;
+    tail.position.set(0, 0.5, -1.0);
+    group.add(tail);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), mainMat);
+    head.position.set(0, 1.4, 0.6);
+    group.add(head);
+    const horns = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.7, 6), accMat);
+    horns.rotation.x = -Math.PI / 4;
+    horns.position.set(0, 1.9, 0.4);
+    group.add(horns);
+  }
+
+  if (index !== 4 && index !== 5) {
+    const eyeL = new THREE.Mesh(new THREE.SphereGeometry(0.08, 4, 4), eyeMat);
+    eyeL.position.set(-0.25, 1.5, 1.25);
+    if (index === 0) eyeL.position.set(-0.25, 1.6, 1.25);
+    else if (index === 7) eyeL.position.set(-0.15, 2.25, 0.9);
+    else if (index === 8) eyeL.position.set(-0.15, 1.5, 0.9);
+    const eyeR = eyeL.clone();
+    eyeR.position.x = -eyeL.position.x;
+    group.add(eyeL);
+    group.add(eyeR);
+  }
+
+  group.scale.set(3.0, 3.0, 3.0);
+  return group;
+}
+
+function getBossColor(index) {
+  const colors = [
+    '#5c3d2e',
+    '#2d4059',
+    '#9a0f0f',
+    '#d39e00',
+    '#f5f5f5',
+    '#4b5d67',
+    '#1a1a1a',
+    '#005f73',
+    '#556b2f'
+  ];
+  return colors[index] || '#777777';
+}
+
+function getBossAccentColor(index) {
+  const colors = [
+    '#ffb800',
+    '#00f0ff',
+    '#ff4444',
+    '#ffffff',
+    '#ff00ff',
+    '#00ffcc',
+    '#990000',
+    '#ff8800',
+    '#a2b93a'
+  ];
+  return colors[index] || '#ffffff';
+}
+
+async function checkAndShowBossModal(cellNumber) {
+  currentOpenedBossCell = cellNumber;
+  await refreshBosses();
+  const boss = (state.bosses || []).find(b => b.cell_number === cellNumber);
+  if (!boss) {
+    currentOpenedBossCell = null;
+    return;
+  }
+  const modal = document.getElementById('boss-battle-modal');
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  updateBossModalUI(boss);
+}
+
+function updateBossModalUI(boss) {
+  document.getElementById('boss-status-defeated').classList.add('hidden');
+  document.getElementById('boss-status-occupied').classList.add('hidden');
+  document.getElementById('boss-status-ready').classList.add('hidden');
+  document.getElementById('boss-status-battle').classList.add('hidden');
+  
+  document.getElementById('boss-btn-close').classList.add('hidden');
+  document.getElementById('boss-btn-bypass-only').classList.add('hidden');
+  document.getElementById('boss-btn-fight').classList.add('hidden');
+  document.getElementById('boss-btn-bypass').classList.add('hidden');
+  document.getElementById('boss-btn-attack').classList.add('hidden');
+  document.getElementById('boss-btn-forfeit').classList.add('hidden');
+  
+  document.getElementById('boss-modal-title').textContent = `Босс: ${boss.name} (Ячейка ${boss.cell_number})`;
+
+  if (boss.defeated) {
+    document.getElementById('boss-status-defeated').classList.remove('hidden');
+    document.getElementById('boss-victor-name').textContent = boss.defeated_by_username || 'Неизвестно';
+    document.getElementById('boss-btn-close').classList.remove('hidden');
+  } else if (boss.current_fighter_id && boss.current_fighter_id !== state.user.id) {
+    document.getElementById('boss-status-occupied').classList.remove('hidden');
+    document.getElementById('boss-fighter-name').textContent = boss.current_fighter_username || 'Неизвестно';
+    document.getElementById('boss-btn-bypass-only').classList.remove('hidden');
+  } else if (boss.current_fighter_id === state.user.id) {
+    document.getElementById('boss-status-battle').classList.remove('hidden');
+    document.getElementById('boss-btn-attack').classList.remove('hidden');
+    document.getElementById('boss-btn-forfeit').classList.remove('hidden');
+    
+    const stats = getPlayerBattleStats(state.user);
+    document.getElementById('battle-player-element').textContent = translateElement(stats.element);
+    document.getElementById('battle-player-dmg').textContent = stats.dmg;
+    
+    const playerHp = boss.current_fighter_hp;
+    const playerMaxHp = stats.maxHp;
+    const playerPercent = Math.max(0, Math.min(100, (playerHp / playerMaxHp) * 100));
+    document.getElementById('battle-player-hp-bar').style.width = `${playerPercent}%`;
+    document.getElementById('battle-player-hp-text').textContent = `${playerHp} / ${playerMaxHp}`;
+    
+    document.getElementById('battle-boss-name-label').textContent = boss.name;
+    document.getElementById('battle-boss-weakness').textContent = translateElement(boss.weakness);
+    document.getElementById('battle-boss-dmg').textContent = boss.dmg;
+    
+    const bossPercent = Math.max(0, Math.min(100, (boss.hp / boss.max_hp) * 100));
+    document.getElementById('battle-boss-hp-bar').style.width = `${bossPercent}%`;
+    document.getElementById('battle-boss-hp-text').textContent = `${boss.hp} / ${boss.max_hp}`;
+    
+    updateAttackCooldownUI(boss);
+  } else {
+    document.getElementById('boss-status-ready').classList.remove('hidden');
+    document.getElementById('boss-info-name').textContent = boss.name;
+    document.getElementById('boss-info-hp').textContent = boss.max_hp;
+    document.getElementById('boss-info-dmg').textContent = boss.dmg;
+    document.getElementById('boss-info-weakness').textContent = translateElement(boss.weakness);
+    
+    document.getElementById('boss-btn-fight').classList.remove('hidden');
+    document.getElementById('boss-btn-bypass').classList.remove('hidden');
+  }
+}
+
+function translateElement(el) {
+  const map = {
+    water: 'Вода',
+    fire: 'Огонь',
+    earth: 'Земля',
+    wind: 'Ветер'
+  };
+  return map[el] || el;
+}
+
+let attackCooldownInterval = null;
+
+function updateAttackCooldownUI(boss) {
+  if (attackCooldownInterval) {
+    clearInterval(attackCooldownInterval);
+    attackCooldownInterval = null;
+  }
+  
+  const lastAttackStr = state.user.last_boss_attack_time;
+  if (!lastAttackStr) {
+    document.getElementById('battle-cooldown-text').classList.add('hidden');
+    document.getElementById('boss-btn-attack').disabled = false;
+    return;
+  }
+  
+  const cooldownMs = (boss.attack_cooldown_seconds || 300) * 1000;
+  const lastAttackTime = new Date(lastAttackStr).getTime();
+  
+  function updateTimer() {
+    const elapsed = Date.now() - lastAttackTime;
+    const remaining = cooldownMs - elapsed;
+    if (remaining <= 0) {
+      document.getElementById('battle-cooldown-text').classList.add('hidden');
+      document.getElementById('boss-btn-attack').disabled = false;
+      clearInterval(attackCooldownInterval);
+      attackCooldownInterval = null;
+    } else {
+      document.getElementById('battle-cooldown-text').classList.remove('hidden');
+      document.getElementById('boss-btn-attack').disabled = true;
+      const sec = Math.ceil(remaining / 1000);
+      const min = Math.floor(sec / 60);
+      const remSec = sec % 60;
+      document.getElementById('battle-cooldown-time').textContent = `${min}м ${remSec}с`;
+    }
+  }
+  
+  updateTimer();
+  attackCooldownInterval = setInterval(updateTimer, 1000);
+}
+
+function initBossModalEvents() {
+  const modal = document.getElementById('boss-battle-modal');
+  if (!modal) return;
+
+  document.getElementById('boss-btn-close').addEventListener('click', () => {
+    modal.classList.add('hidden');
+    currentOpenedBossCell = null;
+  });
+  
+  document.getElementById('boss-btn-bypass-only').addEventListener('click', () => {
+    modal.classList.add('hidden');
+    currentOpenedBossCell = null;
+  });
+  
+  document.getElementById('boss-btn-bypass').addEventListener('click', () => {
+    modal.classList.add('hidden');
+    currentOpenedBossCell = null;
+  });
+
+  document.getElementById('boss-btn-fight').addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/boss/start-fight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: state.user.id, cellNumber: currentOpenedBossCell })
+      });
+      if (res.ok) {
+        await refreshProfile();
+        await refreshBosses();
+      } else {
+        const data = await res.json();
+        showNotification(data.error || 'Не удалось начать бой', 'error');
+      }
+    } catch (e) {
+      showNotification('Ошибка сети', 'error');
+    }
+  });
+
+  document.getElementById('boss-btn-attack').addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/boss/attack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: state.user.id, cellNumber: currentOpenedBossCell })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showNotification(data.error || 'Ошибка при атаке', 'error');
+        return;
+      }
+      
+      if (data.status === 'victory') {
+        showNotification(`Победа! Вы победили босса и получили ${data.reward} монет!`, 'success');
+        modal.classList.add('hidden');
+        currentOpenedBossCell = null;
+        await refreshProfile();
+        await refreshBosses();
+      } else if (data.status === 'defeat') {
+        showNotification(`Поражение! Вы потеряли 300 монет и отступили назад.`, 'error');
+        modal.classList.add('hidden');
+        currentOpenedBossCell = null;
+        
+        animatePlayerMovement({
+          userId: state.user.id,
+          path: data.path,
+          endCell: data.newCell
+        });
+        
+        await refreshProfile();
+        await refreshBosses();
+      } else {
+        const logEl = document.getElementById('battle-log');
+        let matchText = data.elementMatch ? ' (Критический урон от стихии!)' : '';
+        logEl.textContent = `Вы нанесли ${data.dmgDealt} урона${matchText}. Босс нанес вам ${data.bossDmg} урона.`;
+        await refreshProfile();
+        await refreshBosses();
+      }
+    } catch (e) {
+      showNotification('Ошибка сети', 'error');
+    }
+  });
+
+  document.getElementById('boss-btn-forfeit').addEventListener('click', async () => {
+    try {
+      const res = await fetch('/api/boss/forfeit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: state.user.id, cellNumber: currentOpenedBossCell })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showNotification(`Вы сбежали с поля боя, потеряв 300 монет.`, 'warning');
+        modal.classList.add('hidden');
+        currentOpenedBossCell = null;
+        
+        animatePlayerMovement({
+          userId: state.user.id,
+          path: data.path,
+          endCell: data.newCell
+        });
+        
+        await refreshProfile();
+        await refreshBosses();
+      } else {
+        showNotification(data.error || 'Не удалось сбежать', 'error');
+      }
+    } catch (e) {
+      showNotification('Ошибка сети', 'error');
+    }
+  });
+}
+
+function setupAdminBossConfig() {
+  const bossSelect = document.getElementById('admin-boss-select');
+  if (bossSelect) {
+    bossSelect.addEventListener('change', () => {
+      const cellNum = parseInt(bossSelect.value);
+      const boss = (state.bosses || []).find(b => b.cell_number === cellNum);
+      if (boss) {
+        document.getElementById('admin-boss-hp').value = boss.max_hp;
+        document.getElementById('admin-boss-dmg').value = boss.dmg;
+        document.getElementById('admin-boss-cooldown').value = boss.attack_cooldown_seconds;
+      }
+    });
+  }
+
+  const bossSaveBtn = document.getElementById('admin-boss-save-btn');
+  if (bossSaveBtn) {
+    bossSaveBtn.addEventListener('click', async () => {
+      const cellNum = parseInt(bossSelect.value);
+      const hp = parseInt(document.getElementById('admin-boss-hp').value);
+      const dmg = parseInt(document.getElementById('admin-boss-dmg').value);
+      const cooldown = parseInt(document.getElementById('admin-boss-cooldown').value);
+      
+      try {
+        const res = await fetch('/api/admin/boss/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cellNumber: cellNum, hp, dmg, cooldown })
+        });
+        if (res.ok) {
+          showNotification('Настройки босса сохранены!', 'success');
+          await refreshBosses();
+        } else {
+          const data = await res.json();
+          showNotification(data.error || 'Ошибка при сохранении', 'error');
+        }
+      } catch (err) {
+        showNotification('Ошибка сети', 'error');
+      }
+    });
   }
 }
 
@@ -532,16 +1105,24 @@ function createTileMaterials(i, baseColor) {
   const texture = new THREE.CanvasTexture(canvas);
   texture.needsUpdate = true;
 
+  const isBossCell = (i > 0 && i % 30 === 0);
+  const emissiveColor = isBossCell ? new THREE.Color(baseColor) : new THREE.Color('#000000');
+  const emissiveIntensity = isBossCell ? 0.85 : 0;
+
   const sideMat = new THREE.MeshStandardMaterial({
     color: baseColor,
     roughness: 0.4,
-    metalness: 0.1
+    metalness: 0.1,
+    emissive: emissiveColor,
+    emissiveIntensity: emissiveIntensity
   });
 
   const topMat = new THREE.MeshStandardMaterial({
     map: texture,
     roughness: 0.4,
-    metalness: 0.1
+    metalness: 0.1,
+    emissive: emissiveColor,
+    emissiveIntensity: emissiveIntensity
   });
 
   return [
@@ -934,6 +1515,24 @@ async function initGameComponents() {
     console.error(e);
   }
   try {
+    initBossModalEvents();
+    await refreshBosses();
+    setInterval(() => {
+      refreshBosses();
+    }, 5000);
+  } catch (e) {
+    console.error(e);
+  }
+  try {
+    if (state.user && state.user.is_admin) {
+      setupAdminBossConfig();
+      const bSel = document.getElementById('admin-boss-select');
+      if (bSel) bSel.dispatchEvent(new Event('change'));
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  try {
     await refreshProfile();
   } catch (e) {
     console.error(e);
@@ -970,9 +1569,14 @@ function performSelfMovement(moveData) {
   animatePlayerMovement(moveData);
   setTimeout(() => {
     refreshProfile().then(() => {
-      const cell = state.cells ? state.cells[moveData.endCell] : null;
-      if (cell && cell.type === 'guild_tax') {
-        showGuildTaxModal(cell.value, moveData.endCell);
+      const isBoss = (moveData.endCell > 0 && moveData.endCell % 30 === 0);
+      if (isBoss) {
+        checkAndShowBossModal(moveData.endCell);
+      } else {
+        const cell = state.cells ? state.cells[moveData.endCell] : null;
+        if (cell && cell.type === 'guild_tax') {
+          showGuildTaxModal(cell.value, moveData.endCell);
+        }
       }
     });
     if (moveData.rewardTriggered && moveData.rewardTriggered.type && moveData.rewardTriggered.type !== 'none') {
@@ -996,6 +1600,19 @@ function initSocket() {
   }
   state.socket = io(socketUrl, options);
   state.socket.emit('authenticate', { userId: state.user.id });
+  state.socket.on('bosses_update', (list) => {
+    state.bosses = list;
+    if (state.tileObjects && state.tileObjects.length > 0) {
+      highlightCurrentCell();
+      updateBossMeshes();
+      if (currentOpenedBossCell !== null) {
+        const currentBoss = list.find(b => b.cell_number === currentOpenedBossCell);
+        if (currentBoss) {
+          updateBossModalUI(currentBoss);
+        }
+      }
+    }
+  });
 
   state.socket.on('players_list', (list) => {
     state.players = list;
@@ -1134,6 +1751,14 @@ async function refreshProfile() {
       drawerRemId.textContent = state.user.remanga_user_id ? `ID: ${state.user.remanga_user_id}` : '-';
     }
 
+    const stats = getPlayerBattleStats(state.user);
+    const drawerHp = document.getElementById('drawer-hp');
+    if (drawerHp) drawerHp.textContent = stats.maxHp;
+    const drawerDmg = document.getElementById('drawer-dmg');
+    if (drawerDmg) drawerDmg.textContent = stats.dmg;
+    const drawerElement = document.getElementById('drawer-element');
+    if (drawerElement) drawerElement.textContent = translateElement(stats.element);
+
     updateInventoryUI();
     updateEffectsUI();
     updateHistoryUI();
@@ -1153,6 +1778,11 @@ async function refreshProfile() {
     
     if (document.getElementById('profile-drawer').classList.contains('open')) {
       updateDrawerPreview();
+    }
+    
+    const isBoss = (state.user.current_cell > 0 && state.user.current_cell % 30 === 0);
+    if (isBoss) {
+      checkAndShowBossModal(state.user.current_cell);
     }
 
   } catch (err) {
@@ -2070,13 +2700,18 @@ function buildBoardTiles() {
     const pos = getTilePosition(i);
     
     let color = '#121d33';
+    const isBossCell = (i > 0 && i % 30 === 0);
+    const bossData = (state.bosses || []).find(b => b.cell_number === i);
+    const defeated = bossData ? bossData.defeated : 0;
     if (i === 0) color = '#ffb800';
     else if (i === 299) color = '#00f0ff';
+    else if (isBossCell) color = defeated ? '#00ff33' : '#ff0033';
     else if (cellData.type === 'forward') color = '#2ecc71';
     else if (cellData.type === 'backward') color = '#e74c3c';
     else if (cellData.type === 'obstacle') color = '#e67e22';
 
-    const tileGeo = new THREE.BoxGeometry(2.4, 0.3, 2.4);
+    const size = isBossCell ? 3.8 : 2.4;
+    const tileGeo = new THREE.BoxGeometry(size, 0.3, size);
     const tileMesh = new THREE.Mesh(tileGeo, createTileMaterials(i, color));
     tileMesh.position.set(pos.x, pos.y, pos.z);
     tileMesh.receiveShadow = true;
@@ -2094,6 +2729,7 @@ function buildBoardTiles() {
     }
   }
   highlightCurrentCell();
+  updateBossMeshes();
 }
 
 function updateBoardPlayers() {
@@ -2299,7 +2935,8 @@ function setupUI() {
       hairStyle: document.getElementById('creator-hair-style').value,
       hairColor: document.getElementById('creator-hair-color').value,
       weapon: document.getElementById('creator-weapon').value,
-      wings: document.getElementById('creator-wings').value
+      wings: document.getElementById('creator-wings').value,
+      element: document.getElementById('creator-element').value
     };
 
     try {
@@ -2520,7 +3157,7 @@ function animateDiceRoll(rollValue, callback) {
   const creatorInputs = [
     'creator-skin', 'creator-costume', 'creator-clothes', 
     'creator-hair-style', 'creator-hair-color', 
-    'creator-weapon', 'creator-wings'
+    'creator-weapon', 'creator-wings', 'creator-element'
   ];
   creatorInputs.forEach(id => {
     const el = document.getElementById(id);
@@ -2607,11 +3244,70 @@ function updateCreatorPreview() {
     hairStyle: document.getElementById('creator-hair-style').value,
     hairColor: document.getElementById('creator-hair-color').value,
     weapon: document.getElementById('creator-weapon').value,
-    wings: document.getElementById('creator-wings').value
+    wings: document.getElementById('creator-wings').value,
+    element: document.getElementById('creator-element').value
   };
 
   state.creator.group = create3DCharacterMesh(charData);
   state.creator.scene.add(state.creator.group);
+
+  updateCreatorStatsUI(charData);
+}
+
+function updateCreatorStatsUI(charData) {
+  const baseHp = 100;
+  const baseDmg = 10;
+  let bonusHp = 0;
+  let bonusDmg = 0;
+
+  const weapon = charData.weapon || 'none';
+  if (weapon === 'sword') bonusDmg += 15;
+  else if (weapon === 'staff') { bonusDmg += 10; bonusHp += 20; }
+  else if (weapon === 'shield') { bonusDmg += 5; bonusHp += 30; }
+  else if (weapon === 'axe') bonusDmg += 20;
+  else if (weapon === 'bow') bonusDmg += 12;
+  else if (weapon === 'scythe') bonusDmg += 18;
+  else if (weapon === 'hammer') bonusDmg += 22;
+
+  const costume = charData.costume || 'normal';
+  if (costume === 'armor') bonusHp += 50;
+  else if (costume === 'robe') { bonusHp += 20; bonusDmg += 5; }
+  else if (costume === 'cyber') { bonusHp += 30; bonusDmg += 8; }
+  else if (costume === 'steampunk') { bonusHp += 25; bonusDmg += 6; }
+  else if (costume === 'ninja_suit') { bonusHp += 15; bonusDmg += 12; }
+
+  const totalHp = baseHp + bonusHp;
+  const totalDmg = baseDmg + bonusDmg;
+
+  const statHpEl = document.getElementById('creator-stat-hp');
+  if (statHpEl) statHpEl.textContent = totalHp;
+  const statDmgEl = document.getElementById('creator-stat-dmg');
+  if (statDmgEl) statDmgEl.textContent = totalDmg;
+
+  const element = charData.element || 'water';
+  const elementNames = {
+    water: 'Вода',
+    fire: 'Огонь',
+    earth: 'Земля',
+    wind: 'Ветер'
+  };
+  
+  const elementDescriptions = {
+    water: 'Повышенный урон по боссам: Лев (120 ячейка) и Стрелец (240 ячейка).',
+    fire: 'Повышенный урон по боссам: Рак (90 ячейка) и Скорпион (210 ячейка).',
+    earth: 'Повышенный урон по боссам: Близнецы (60 ячейка) и Весы (180 ячейка).',
+    wind: 'Повышенный урон по боссам: Телец (30 ячейка), Дева (150 ячейка) и Козерог (270 ячейка).'
+  };
+
+  const statElementEl = document.getElementById('creator-stat-element');
+  if (statElementEl) statElementEl.textContent = elementNames[element] || element;
+  const statElementDescEl = document.getElementById('creator-stat-element-desc');
+  if (statElementDescEl) statElementDescEl.textContent = elementDescriptions[element] || '';
+  
+  const helpEl = document.getElementById('creator-element-help');
+  if (helpEl) {
+    helpEl.textContent = elementDescriptions[element] || '';
+  }
 }
 
 function updateOnlineList() {

@@ -70,6 +70,20 @@
           <div id="creator-canvas-container"></div>
         </div>
         <div class="customizer-controls">
+          <div class="creator-stats-panel" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(0, 240, 255, 0.2); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+            <h4 style="margin: 0 0 8px 0; font-size: 12px; color: #00f0ff; text-transform: uppercase; font-family: 'Orbitron', sans-serif;">Характеристики персонажа</h4>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; margin-bottom: 8px;">
+              <div>Здоровье (HP): <span id="creator-stat-hp" style="font-weight: bold; color: #00ff66;">100</span></div>
+              <div>Урон (DMG): <span id="creator-stat-dmg" style="font-weight: bold; color: #ffcc00;">10</span></div>
+            </div>
+            <div style="font-size: 11px; color: #8c9ba5; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 6px;">
+              Стихия: <span id="creator-stat-element" style="font-weight: bold; color: #00f0ff;">Вода</span>
+              <div id="creator-stat-element-desc" style="margin-top: 3px; font-size: 10px; color: #a3b2bc;">
+                Эффективна против боссов: Лев, Стрелец.
+              </div>
+            </div>
+          </div>
+
           <div id="creator-step-1" class="creator-step">
             <h3>Шаг 1: Тело и костюм</h3>
             <div class="form-group">
@@ -79,13 +93,25 @@
             <div class="form-group">
               <label>Тип костюма</label>
               <select id="creator-costume">
-                <option value="normal">Обычный</option>
-                <option value="armor">Рыцарский доспех</option>
-                <option value="robe">Мантия мага</option>
-                <option value="cyber">Кибер-костюм</option>
-                <option value="steampunk">Стимпанк жилет</option>
-                <option value="ninja_suit">Костюм шиноби</option>
+                <option value="normal">Обычный (без бонусов)</option>
+                <option value="armor">Рыцарский доспех (+50 HP)</option>
+                <option value="robe">Мантия мага (+20 HP, +5 DMG)</option>
+                <option value="cyber">Кибер-костюм (+30 HP, +8 DMG)</option>
+                <option value="steampunk">Стимпанк жилет (+25 HP, +6 DMG)</option>
+                <option value="ninja_suit">Костюм шиноби (+15 HP, +12 DMG)</option>
               </select>
+            </div>
+            <div class="form-group">
+              <label>Стихия</label>
+              <select id="creator-element">
+                <option value="water">Вода</option>
+                <option value="fire">Огонь</option>
+                <option value="earth">Земля</option>
+                <option value="wind">Ветер</option>
+              </select>
+              <div id="creator-element-help" style="font-size: 11px; color: #8c9ba5; margin-top: 5px; line-height: 1.4;">
+                Вода наносит повышенный урон боссам: Лев (120 ячейка), Стрелец (240 ячейка).
+              </div>
             </div>
             <div class="form-group">
               <label>Цвет костюма</label>
@@ -129,14 +155,14 @@
             <div class="form-group">
               <label>Оружие</label>
               <select id="creator-weapon">
-                <option value="none">Без оружия</option>
-                <option value="sword">Энергетический меч</option>
-                <option value="staff">Посох мага</option>
-                <option value="shield">Энергетический щит</option>
-                <option value="axe">Боевой топор</option>
-                <option value="bow">Лук</option>
-                <option value="scythe">Коса смерти</option>
-                <option value="hammer">Молот Тора</option>
+                <option value="none">Без оружия (без бонусов)</option>
+                <option value="sword">Энергетический меч (+15 DMG)</option>
+                <option value="staff">Посох мага (+20 HP, +10 DMG)</option>
+                <option value="shield">Энергетический щит (+30 HP, +5 DMG)</option>
+                <option value="axe">Боевой топор (+20 DMG)</option>
+                <option value="bow">Лук (+12 DMG)</option>
+                <option value="scythe">Коса смерти (+18 DMG)</option>
+                <option value="hammer">Молот Тора (+22 DMG)</option>
               </select>
             </div>
             <div class="form-group">
@@ -419,6 +445,23 @@
       <div class="drawer-char-preview">
         <div id="drawer-char-canvas"></div>
         <div class="lock-tag">Персонаж закреплен (изменение заблокировано)</div>
+      </div>
+      <div class="drawer-section">
+        <h3>Характеристики персонажа</h3>
+        <div class="drawer-stats-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
+          <div class="drawer-stat">
+            <span class="stat-label">Здоровье (HP)</span>
+            <span id="drawer-hp" class="stat-value text-green" style="color: #00ff66;">100</span>
+          </div>
+          <div class="drawer-stat">
+            <span class="stat-label">Урон (DMG)</span>
+            <span id="drawer-dmg" class="stat-value text-yellow" style="color: #ffcc00;">10</span>
+          </div>
+          <div class="drawer-stat">
+            <span class="stat-label">Стихия</span>
+            <span id="drawer-element" class="stat-value text-cyan" style="color: #00f0ff; text-transform: capitalize;">-</span>
+          </div>
+        </div>
       </div>
       <div class="drawer-section">
         <h3>Статистика</h3>

@@ -697,6 +697,51 @@ async function loadCells() {
   }
 }
 
+function getPlayerBattleStats(user) {
+  let charData = {};
+  try {
+    charData = typeof user.character_data === 'string' ? JSON.parse(user.character_data) : (user.character_data || {});
+  } catch (e) {
+    charData = {};
+  }
+  const baseHp = 100;
+  const baseDmg = 10;
+  let bonusHp = 0;
+  let bonusDmg = 0;
+
+  const weapon = charData.weapon || 'none';
+  if (weapon === 'sword') bonusDmg += 15;
+  else if (weapon === 'staff') { bonusDmg += 10; bonusHp += 20; }
+  else if (weapon === 'shield') { bonusDmg += 5; bonusHp += 30; }
+  else if (weapon === 'axe') bonusDmg += 20;
+  else if (weapon === 'bow') bonusDmg += 12;
+  else if (weapon === 'scythe') bonusDmg += 18;
+  else if (weapon === 'hammer') bonusDmg += 22;
+
+  const costume = charData.costume || 'normal';
+  if (costume === 'armor') bonusHp += 50;
+  else if (costume === 'robe') { bonusHp += 20; bonusDmg += 5; }
+  else if (costume === 'cyber') { bonusHp += 30; bonusDmg += 8; }
+  else if (costume === 'steampunk') { bonusHp += 25; bonusDmg += 6; }
+  else if (costume === 'ninja_suit') { bonusHp += 15; bonusDmg += 12; }
+
+  return {
+    maxHp: baseHp + bonusHp,
+    dmg: baseDmg + bonusDmg,
+    element: charData.element || 'water'
+  };
+}
+
+function translateElement(el) {
+  const map = {
+    water: 'Вода',
+    fire: 'Огонь',
+    earth: 'Земля',
+    wind: 'Ветер'
+  };
+  return map[el] || el;
+}
+
 async function refreshProfile() {
   try {
     const res = await fetch(`/api/profile/${state.user.id}`);
@@ -778,6 +823,14 @@ async function refreshProfile() {
     if (drawerRemId) {
       drawerRemId.textContent = state.user.remanga_user_id ? `ID: ${state.user.remanga_user_id}` : '-';
     }
+
+    const stats = getPlayerBattleStats(state.user);
+    const drawerHp = document.getElementById('drawer-hp');
+    if (drawerHp) drawerHp.textContent = stats.maxHp;
+    const drawerDmg = document.getElementById('drawer-dmg');
+    if (drawerDmg) drawerDmg.textContent = stats.dmg;
+    const drawerElement = document.getElementById('drawer-element');
+    if (drawerElement) drawerElement.textContent = translateElement(stats.element);
 
     updateInventoryUI();
     updateEffectsUI();
@@ -2103,7 +2156,7 @@ function animateDiceRoll(rollValue, callback) {
   const creatorInputs = [
     'creator-skin', 'creator-costume', 'creator-clothes', 
     'creator-hair-style', 'creator-hair-color', 
-    'creator-weapon', 'creator-wings'
+    'creator-weapon', 'creator-wings', 'creator-element'
   ];
   creatorInputs.forEach(id => {
     const el = document.getElementById(id);
@@ -2190,11 +2243,70 @@ function updateCreatorPreview() {
     hairStyle: document.getElementById('creator-hair-style').value,
     hairColor: document.getElementById('creator-hair-color').value,
     weapon: document.getElementById('creator-weapon').value,
-    wings: document.getElementById('creator-wings').value
+    wings: document.getElementById('creator-wings').value,
+    element: document.getElementById('creator-element').value
   };
 
   state.creator.group = create3DCharacterMesh(charData);
   state.creator.scene.add(state.creator.group);
+
+  updateCreatorStatsUI(charData);
+}
+
+function updateCreatorStatsUI(charData) {
+  const baseHp = 100;
+  const baseDmg = 10;
+  let bonusHp = 0;
+  let bonusDmg = 0;
+
+  const weapon = charData.weapon || 'none';
+  if (weapon === 'sword') bonusDmg += 15;
+  else if (weapon === 'staff') { bonusDmg += 10; bonusHp += 20; }
+  else if (weapon === 'shield') { bonusDmg += 5; bonusHp += 30; }
+  else if (weapon === 'axe') bonusDmg += 20;
+  else if (weapon === 'bow') bonusDmg += 12;
+  else if (weapon === 'scythe') bonusDmg += 18;
+  else if (weapon === 'hammer') bonusDmg += 22;
+
+  const costume = charData.costume || 'normal';
+  if (costume === 'armor') bonusHp += 50;
+  else if (costume === 'robe') { bonusHp += 20; bonusDmg += 5; }
+  else if (costume === 'cyber') { bonusHp += 30; bonusDmg += 8; }
+  else if (costume === 'steampunk') { bonusHp += 25; bonusDmg += 6; }
+  else if (costume === 'ninja_suit') { bonusHp += 15; bonusDmg += 12; }
+
+  const totalHp = baseHp + bonusHp;
+  const totalDmg = baseDmg + bonusDmg;
+
+  const statHpEl = document.getElementById('creator-stat-hp');
+  if (statHpEl) statHpEl.textContent = totalHp;
+  const statDmgEl = document.getElementById('creator-stat-dmg');
+  if (statDmgEl) statDmgEl.textContent = totalDmg;
+
+  const element = charData.element || 'water';
+  const elementNames = {
+    water: 'Вода',
+    fire: 'Огонь',
+    earth: 'Земля',
+    wind: 'Ветер'
+  };
+  
+  const elementDescriptions = {
+    water: 'Повышенный урон по боссам: Лев (120 ячейка) и Стрелец (240 ячейка).',
+    fire: 'Повышенный урон по боссам: Рак (90 ячейка) и Скорпион (210 ячейка).',
+    earth: 'Повышенный урон по боссам: Близнецы (60 ячейка) и Весы (180 ячейка).',
+    wind: 'Повышенный урон по боссам: Телец (30 ячейка), Дева (150 ячейка) и Козерог (270 ячейка).'
+  };
+
+  const statElementEl = document.getElementById('creator-stat-element');
+  if (statElementEl) statElementEl.textContent = elementNames[element] || element;
+  const statElementDescEl = document.getElementById('creator-stat-element-desc');
+  if (statElementDescEl) statElementDescEl.textContent = elementDescriptions[element] || '';
+  
+  const helpEl = document.getElementById('creator-element-help');
+  if (helpEl) {
+    helpEl.textContent = elementDescriptions[element] || '';
+  }
 }
 
 function updateOnlineList() {
