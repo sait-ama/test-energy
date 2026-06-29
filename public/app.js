@@ -3,8 +3,12 @@
 function getAvatarUrl(avatarPath) {
   if (!avatarPath) return '';
   if (avatarPath.startsWith('http')) return avatarPath;
-  if (avatarPath.startsWith('/')) return `https://remanga.org${avatarPath}`;
-  return `https://remanga.org/${avatarPath}`;
+  if (avatarPath.startsWith('/')) {
+    if (avatarPath.startsWith('/media/')) return `https://remanga.org${avatarPath}`;
+    return `https://remanga.org/media${avatarPath}`;
+  }
+  if (avatarPath.startsWith('media/')) return `https://remanga.org/${avatarPath}`;
+  return `https://remanga.org/media/${avatarPath}`;
 }
 
 function loadAvatar(imgEl, fallbackEl, user) {
@@ -2406,7 +2410,7 @@ function updateOnlineList() {
     
     const avatarHtml = `
       <div class="online-avatar">
-        <img src="${tgSrc}" 
+        <img src="${tgSrc}" referrerpolicy="no-referrer"
              onload="this.style.display='block'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';" 
              onerror="if(this.getAttribute('data-tried-remanga')!=='true' && '${remangaSrc}'){this.setAttribute('data-tried-remanga','true');this.src='${remangaSrc}';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex';}" 
              style="display:none; width:100%; height:100%; object-fit:cover; border-radius:50%;">
