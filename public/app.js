@@ -585,6 +585,29 @@ async function checkAndShowBossModal(cellNumber) {
   updateBossModalUI(boss);
 }
 
+function getModelBoundingBox(object) {
+  const box = new THREE.Box3();
+  let hasMesh = false;
+  
+  object.updateMatrixWorld(true);
+  object.traverse((child) => {
+    if (child.isMesh) {
+      hasMesh = true;
+      if (!child.geometry.boundingBox) {
+        child.geometry.computeBoundingBox();
+      }
+      const geomBox = child.geometry.boundingBox.clone();
+      geomBox.applyMatrix4(child.matrixWorld);
+      box.union(geomBox);
+    }
+  });
+  
+  if (!hasMesh) {
+    box.setFromObject(object);
+  }
+  return box;
+}
+
 let bossBattleState = { renderer: null, scene: null, camera: null, animId: null, playerModel: null, bossModel: null, bossMixer: null, bossCellNumber: null };
 
 function cleanupBossBattle() {
@@ -686,7 +709,8 @@ function renderBossBattle3D(boss) {
       if (child.isMesh && (child.name.toLowerCase().includes('grid') || child.name.toLowerCase().includes('floor') || child.name.toLowerCase().includes('ground') || child.name.toLowerCase().includes('sky'))) child.visible = false;
     });
 
-    const box = new THREE.Box3().setFromObject(bossModel);
+    bossModel.updateMatrixWorld(true);
+    const box = getModelBoundingBox(bossModel);
     const size = new THREE.Vector3();
     box.getSize(size);
     const maxDim = Math.max(size.x, size.y, size.z);
@@ -697,7 +721,8 @@ function renderBossBattle3D(boss) {
 
     bossModel.rotation.y = -Math.PI / 2 + customRotation;
 
-    const box2 = new THREE.Box3().setFromObject(bossModel);
+    bossModel.updateMatrixWorld(true);
+    const box2 = getModelBoundingBox(bossModel);
     const center = new THREE.Vector3();
     box2.getCenter(center);
     
@@ -825,7 +850,8 @@ function renderBossPreview3D(boss) {
       if (child.isMesh && (child.name.toLowerCase().includes('grid') || child.name.toLowerCase().includes('floor') || child.name.toLowerCase().includes('ground') || child.name.toLowerCase().includes('sky'))) child.visible = false;
     });
 
-    const box = new THREE.Box3().setFromObject(model);
+    model.updateMatrixWorld(true);
+    const box = getModelBoundingBox(model);
     const size = new THREE.Vector3();
     box.getSize(size);
     const maxDim = Math.max(size.x, size.y, size.z);
@@ -833,10 +859,13 @@ function renderBossPreview3D(boss) {
     const sc = maxDim > 0 ? targetH / maxDim : 1;
     model.scale.set(sc, sc, sc);
 
-    const box2 = new THREE.Box3().setFromObject(model);
+    model.updateMatrixWorld(true);
+    const box2 = getModelBoundingBox(model);
     const center = new THREE.Vector3();
     box2.getCenter(center);
-    model.position.y -= center.y - (box2.max.y - box2.min.y) / 2;
+    model.position.x = -center.x;
+    model.position.z = -center.z;
+    model.position.y = -center.y + (box2.max.y - box2.min.y) / 2;
 
     if (cached.animations && cached.animations.length > 0) {
       mixer = new THREE.AnimationMixer(model);
