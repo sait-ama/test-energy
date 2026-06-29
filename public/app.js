@@ -730,19 +730,46 @@ async function initGameComponents() {
   if (gameInitialized) return;
   gameInitialized = true;
 
-  initSocket();
-  await loadCells();
-  initBoard3D();
-  await refreshProfile();
-  if (state.user.guild_tax_required && state.user.guild_tax_required > (state.user.guild_tax_paid || 0)) {
-    showGuildTaxModal(state.user.guild_tax_required, state.user.current_cell);
+  try {
+    initSocket();
+  } catch (e) {
+    console.error(e);
   }
-  await loadShop();
-  
-  if (state.user.is_admin) {
-    document.getElementById('admin-panel').classList.remove('hidden');
-    loadAdminUsers();
-    loadAdminSettings();
+  try {
+    await loadCells();
+  } catch (e) {
+    console.error(e);
+  }
+  try {
+    initBoard3D();
+  } catch (e) {
+    console.error(e);
+  }
+  try {
+    await refreshProfile();
+  } catch (e) {
+    console.error(e);
+  }
+  try {
+    if (state.user && state.user.guild_tax_required && state.user.guild_tax_required > (state.user.guild_tax_paid || 0)) {
+      showGuildTaxModal(state.user.guild_tax_required, state.user.current_cell);
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  try {
+    await loadShop();
+  } catch (e) {
+    console.error(e);
+  }
+  try {
+    if (state.user && state.user.is_admin) {
+      document.getElementById('admin-panel').classList.remove('hidden');
+      loadAdminUsers();
+      loadAdminSettings();
+    }
+  } catch (e) {
+    console.error(e);
   }
 }
 
@@ -1594,6 +1621,7 @@ function initBoard3D() {
   state.boardControls = controls;
 
   buildBoardTiles();
+  updateBoardPlayers();
   layoutBoardElements();
 
   const raycaster = new THREE.Raycaster();
@@ -1891,7 +1919,12 @@ function updateBoardPlayers() {
     if (state.boardPlayers.has(idStr)) {
       const entry = state.boardPlayers.get(idStr);
       if (!entry.animating) {
-        entry.mesh.position.set(pos.x, pos.y, pos.z);
+        if (idStr === String(state.user?.id) && state.diceRolling) {
+          // Keep player mesh at their current board position
+        } else {
+          entry.mesh.position.set(pos.x, pos.y, pos.z);
+          entry.currentCell = player.current_cell;
+        }
       }
     } else {
       const charData = player.character_data || getDefaultCharData();
@@ -2575,7 +2608,7 @@ function updateInventoryUI() {
             div.className = 'inventory-item card-item-container';
             div.innerHTML = `
               <div class="card-item-cover-wrapper" style="text-align: center; margin-bottom: 8px;">
-                <img class="card-item-cover" src="${item.description}" alt="${item.name}" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';">
+                <img class="card-item-cover" referrerpolicy="no-referrer" src="${item.description}" alt="${item.name}" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';">
               </div>
               <div class="card-item-name" style="text-align: center; font-size: 11px; font-weight: 700; color: #00f0ff;">${item.name}</div>
               ${cellText}
@@ -3089,7 +3122,7 @@ window.editUserModal = async (userId, oldBalance, oldCell, isAdmin, name, taxReq
           if (item.item_type === 'remanga_card') {
             itemDiv.innerHTML = `
               <div style="text-align: center;">
-                <img src="${item.description}" style="width: 50px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2);" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';">
+                <img src="${item.description}" referrerpolicy="no-referrer" style="width: 50px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2);" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';">
               </div>
               <div style="font-weight: bold; color: #00f0ff; text-align: center; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${item.name}</div>
               <div style="font-size: 9px; color: #8c9ba5; text-align: center;">Ячейка: ${item.origin_cell_number || '-'}</div>
@@ -3206,7 +3239,7 @@ function showCellInfoTag(cellIndex) {
       html += `<div style="font-size: 11px; color: #ffffff; margin-bottom: 6px;">${cell.reward_name}</div>`;
       if (cell.reward_detail) {
         html += `<div style="text-align: center;">
-          <img src="${cell.reward_detail}" alt="${cell.reward_name}" style="max-width: 100%; height: auto; max-height: 180px; border-radius: 4px; box-shadow: 0 0 10px rgba(0,240,255,0.4); border: 1px solid rgba(0,240,255,0.2);">
+          <img src="${cell.reward_detail}" referrerpolicy="no-referrer" alt="${cell.reward_name}" style="max-width: 100%; height: auto; max-height: 180px; border-radius: 4px; box-shadow: 0 0 10px rgba(0,240,255,0.4); border: 1px solid rgba(0,240,255,0.2);">
         </div>`;
       }
     } else if (cell.reward_type === 'premium') {
@@ -3244,7 +3277,7 @@ function showRewardPopup(reward) {
       <div style="font-size: 14px; color: #ffffff; margin-bottom: 10px;">Вы получили карту:</div>
       <div style="font-size: 16px; font-weight: 700; color: #00f0ff; margin-bottom: 15px;">${reward.name}</div>
       <div style="text-align: center;">
-        <img src="${reward.detail}" alt="${reward.name}" style="max-width: 100%; height: auto; max-height: 250px; border-radius: 8px; box-shadow: 0 0 20px rgba(0,240,255,0.5); border: 1px solid rgba(0,240,255,0.3);">
+        <img src="${reward.detail}" referrerpolicy="no-referrer" alt="${reward.name}" style="max-width: 100%; height: auto; max-height: 250px; border-radius: 8px; box-shadow: 0 0 20px rgba(0,240,255,0.5); border: 1px solid rgba(0,240,255,0.3);">
       </div>
     `;
   } else {
@@ -3316,7 +3349,7 @@ function showRewardChoiceModal(reward) {
     descText = `Эта карта предметов будет добавлена в ваш инвентарь наград.<br><br>`;
     if (reward.detail) {
       descText += `<div style="text-align: center; margin-bottom: 15px;">
-        <img src="${reward.detail}" alt="${reward.name}" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';" style="max-width: 100%; height: auto; max-height: 180px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,240,255,0.4); border: 1px solid rgba(0,240,255,0.2);">
+        <img src="${reward.detail}" referrerpolicy="no-referrer" alt="${reward.name}" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';" style="max-width: 100%; height: auto; max-height: 180px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,240,255,0.4); border: 1px solid rgba(0,240,255,0.2);">
       </div>`;
     }
   } else {
