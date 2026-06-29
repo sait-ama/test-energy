@@ -659,6 +659,10 @@ function renderBossBattle3D(boss) {
 
   let bossMixer = null;
 
+  const bossData = (state.bosses || []).find(b => b.cell_number === boss.cell_number);
+  const customScale = (bossData && bossData.custom_scale !== null && bossData.custom_scale !== undefined) ? bossData.custom_scale : 1.0;
+  const customRotation = (bossData && bossData.custom_rotation !== null && bossData.custom_rotation !== undefined) ? bossData.custom_rotation : 0.0;
+
   if (cached) {
     const bossModel = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cached) : cached.clone();
 
@@ -687,15 +691,19 @@ function renderBossBattle3D(boss) {
     box.getSize(size);
     const maxDim = Math.max(size.x, size.y, size.z);
     const targetH = 1.6;
-    const sc = maxDim > 0 ? targetH / maxDim : 1;
+    let sc = maxDim > 0 ? targetH / maxDim : 1;
+    sc *= customScale;
     bossModel.scale.set(sc, sc, sc);
+
+    bossModel.rotation.y = -Math.PI / 2 + customRotation;
 
     const box2 = new THREE.Box3().setFromObject(bossModel);
     const center = new THREE.Vector3();
     box2.getCenter(center);
     
-    bossModel.position.set(1.0, -center.y + (box2.max.y - box2.min.y) / 2, 0);
-    bossModel.rotation.y = -Math.PI / 2;
+    bossModel.position.x = 1.0 - center.x;
+    bossModel.position.z = 0 - center.z;
+    bossModel.position.y = -box2.min.y;
 
     if (cached.animations && cached.animations.length > 0) {
       bossMixer = new THREE.AnimationMixer(bossModel);
@@ -706,9 +714,8 @@ function renderBossBattle3D(boss) {
     scene.add(bossModel);
     bossBattleState.bossModel = bossModel;
   } else {
-    const fallback = create3DBossMesh(bossIndex >= 0 ? bossIndex : 0, false);
+    const fallback = create3DBossMesh(bossIndex >= 0 ? bossIndex : 0, false, -Math.PI / 2 + customRotation, customScale);
     fallback.position.set(1.0, 0, 0);
-    fallback.rotation.y = -Math.PI / 2;
     scene.add(fallback);
     bossBattleState.bossModel = fallback;
   }
