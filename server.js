@@ -2248,7 +2248,7 @@ let localtunnelUrl = '';
 
 async function startLocalTunnel() {
   try {
-    const tunnel = await localtunnel({ port: 3000 });
+    const tunnel = await localtunnel({ port: 3000, local_host: '127.0.0.1' });
     localtunnelUrl = tunnel.url;
     console.log(`Localtunnel запущен: ${localtunnelUrl}`);
     tunnel.on('close', () => {
