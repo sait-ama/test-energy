@@ -144,7 +144,7 @@ setInterval(() => {
 
 async function broadcastPlayersList() {
   try {
-    const users = await allQuery('SELECT id, tg_username, tg_first_name, remanga_username, remanga_avatar, current_cell, character_data, wins FROM users');
+    const users = await allQuery('SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, current_cell, character_data, wins FROM users');
     const effects = await allQuery('SELECT * FROM active_effects');
     const now = new Date();
 
@@ -165,6 +165,7 @@ async function broadcastPlayersList() {
 
       return {
         id: user.id,
+        tg_id: user.tg_id,
         tg_username: user.tg_username,
         tg_first_name: user.tg_first_name,
         remanga_username: user.remanga_username,
@@ -197,10 +198,11 @@ io.on('connection', (socket) => {
     userId = data.userId;
     socket.join(`user_${userId}`);
     
-    const user = await getQuery('SELECT id, tg_username, tg_first_name, remanga_username, remanga_avatar, current_cell, character_data FROM users WHERE id = ?', [userId]);
+    const user = await getQuery('SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, current_cell, character_data FROM users WHERE id = ?', [userId]);
     if (user) {
       onlineUsers.set(String(userId), {
         id: user.id,
+        tg_id: user.tg_id,
         tg_username: user.tg_username,
         tg_first_name: user.tg_first_name,
         remanga_username: user.remanga_username,
