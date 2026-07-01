@@ -7,7 +7,13 @@ export const config = {
 export default async function handler(req, res) {
   let backendUrl = '';
   try {
-    const binRes = await fetch('https://extendsclass.com/api/json-storage/bin/ffaabaf?nocache=' + Date.now(), { cache: 'no-store' });
+    const binRes = await fetch('https://extendsclass.com/api/json-storage/bin/ffaabaf?nocache=' + Date.now(), {
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
     if (binRes.ok) {
       const data = await binRes.json();
       backendUrl = data.backendUrl;
