@@ -271,6 +271,12 @@ function loadBossModels() {
       cachedBossGLTF[modelFile] = gltf.scene;
       cachedBossGLTF[index] = gltf.scene;
       updateBossMeshes();
+      if (currentOpenedBossCell === cellNum) {
+        const currentBoss = (state.bosses || []).find(b => b.cell_number === cellNum);
+        if (currentBoss) {
+          renderBossPreview3D(currentBoss);
+        }
+      }
     }, undefined, (err) => {
       console.error(`[BOSS MODEL] Failed to load model ${index}: ${url}`, err);
     });
@@ -940,7 +946,23 @@ function updateBossModalUI(boss) {
         if (parts.length >= 2) {
           cardImgBlock.classList.remove('hidden');
           cardImgBlock.style.display = 'flex';
-          document.getElementById('boss-reward-card-cover').src = parts[0];
+          const coverImg = document.getElementById('boss-reward-card-cover');
+          coverImg.dataset.src = parts[0];
+          coverImg.dataset.retries = '0';
+          if (!coverImg.previousElementSibling) {
+            const spinner = document.createElement('div');
+            spinner.className = 'image-loader-spinner';
+            spinner.style.position = 'absolute';
+            spinner.style.width = '20px';
+            spinner.style.height = '20px';
+            spinner.style.border = '2px solid rgba(0,240,255,0.1)';
+            spinner.style.borderRadius = '50%';
+            spinner.style.borderTopColor = '#00f0ff';
+            spinner.style.animation = 'spin 1s linear infinite';
+            coverImg.parentNode.insertBefore(spinner, coverImg);
+          }
+          coverImg.style.opacity = '0';
+          coverImg.src = parts[0];
           document.getElementById('boss-reward-card-name').textContent = parts[1];
           document.getElementById('boss-reward-card-char').textContent = parts[2] || '';
         } else {
@@ -1434,6 +1456,8 @@ const state = {
   boardCamera: null,
   boardRenderer: null,
   boardControls: null,
+  boardAnimId: null,
+  boardResizeObserver: null,
   boardPlayers: new Map(),
   tileObjects: [],
   floatingIcons: [],
@@ -3139,8 +3163,34 @@ function updateFloatingIcons() {
   }
 }
 
-function initBoard3D() {
+function cleanupBoard3D() {
+  if (state.boardAnimId) {
+    cancelAnimationFrame(state.boardAnimId);
+    state.boardAnimId = null;
+  }
+  if (state.boardResizeObserver) {
+    state.boardResizeObserver.disconnect();
+    state.boardResizeObserver = null;
+  }
+  if (state.boardRenderer) {
+    try {
+      state.boardRenderer.dispose();
+    } catch (e) {}
+    state.boardRenderer = null;
+  }
   const container = document.getElementById('board-canvas-container');
+  if (container) {
+    container.innerHTML = '';
+  }
+  state.boardScene = null;
+  state.boardCamera = null;
+  state.boardControls = null;
+}
+
+function initBoard3D() {
+  cleanupBoard3D();
+  const container = document.getElementById('board-canvas-container');
+  if (!container) return;
   const width = container.clientWidth;
   const height = container.clientHeight;
 
@@ -3181,6 +3231,14 @@ function initBoard3D() {
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.shadowMap.enabled = true;
   container.appendChild(renderer.domElement);
+
+  renderer.domElement.addEventListener('webglcontextlost', (event) => {
+    event.preventDefault();
+    console.warn('WebGL context lost on board canvas. Re-initializing...');
+    setTimeout(() => {
+      initBoard3D();
+    }, 1000);
+  }, false);
 
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
@@ -3338,7 +3396,8 @@ function initBoard3D() {
   });
 
   const animate = () => {
-    requestAnimationFrame(animate);
+    if (state.boardRenderer !== renderer) return;
+    state.boardAnimId = requestAnimationFrame(animate);
     
     const time = performance.now() * 0.003;
     if (state.floatingIcons) {
@@ -3482,6 +3541,13 @@ function initBoard3D() {
       }
     }
 
+    if (isNaN(camera.position.x) || isNaN(camera.position.y) || isNaN(camera.position.z) ||
+        isNaN(controls.target.x) || isNaN(controls.target.y) || isNaN(controls.target.z)) {
+      const fallbackPos = getTilePosition(state.user ? state.user.current_cell : 0);
+      camera.position.set(fallbackPos.x, fallbackPos.y + 15, fallbackPos.z + 20);
+      controls.target.set(fallbackPos.x, fallbackPos.y, fallbackPos.z);
+      controls.update();
+    }
     if (camera.position.y < 3) camera.position.y = 3;
     if (controls.target.y < 0) controls.target.y = 0;
     controls.update();
@@ -3489,7 +3555,7 @@ function initBoard3D() {
   };
   animate();
 
-  const resizeObserver = new ResizeObserver(() => {
+  state.boardResizeObserver = new ResizeObserver(() => {
     if (!container.clientWidth) return;
     const w = container.clientWidth;
     const h = container.clientHeight;
@@ -4041,6 +4107,11 @@ function initCreator3D() {
 }
 
 function destroyCreator3D() {
+  if (state.creator.renderer) {
+    try {
+      state.creator.renderer.dispose();
+    } catch (e) {}
+  }
   const container = document.getElementById('creator-canvas-container');
   if (container) container.innerHTML = '';
   state.creator = {
