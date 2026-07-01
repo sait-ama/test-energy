@@ -1,6 +1,42 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
+  <script>
+    window.addEventListener('error', function(e) {
+      const errorDiv = document.createElement('div');
+      errorDiv.style.position = 'fixed';
+      errorDiv.style.top = '10px';
+      errorDiv.style.left = '10px';
+      errorDiv.style.right = '10px';
+      errorDiv.style.background = 'rgba(231, 76, 60, 0.95)';
+      errorDiv.style.color = '#fff';
+      errorDiv.style.padding = '15px';
+      errorDiv.style.borderRadius = '8px';
+      errorDiv.style.zIndex = '99999';
+      errorDiv.style.fontFamily = 'monospace';
+      errorDiv.style.fontSize = '12px';
+      errorDiv.style.boxShadow = '0 0 20px rgba(0,0,0,0.5)';
+      errorDiv.innerHTML = '<strong>JS Error:</strong> ' + e.message + ' <br>at ' + e.filename + ':' + e.lineno;
+      document.body.appendChild(errorDiv);
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      const errorDiv = document.createElement('div');
+      errorDiv.style.position = 'fixed';
+      errorDiv.style.top = '10px';
+      errorDiv.style.left = '10px';
+      errorDiv.style.right = '10px';
+      errorDiv.style.background = 'rgba(231, 76, 60, 0.95)';
+      errorDiv.style.color = '#fff';
+      errorDiv.style.padding = '15px';
+      errorDiv.style.borderRadius = '8px';
+      errorDiv.style.zIndex = '99999';
+      errorDiv.style.fontFamily = 'monospace';
+      errorDiv.style.fontSize = '12px';
+      errorDiv.style.boxShadow = '0 0 20px rgba(0,0,0,0.5)';
+      errorDiv.innerHTML = '<strong>Unhandled Rejection:</strong> ' + e.reason;
+      document.body.appendChild(errorDiv);
+    });
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Eternal Watchers Event</title>
@@ -829,6 +865,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=1.1.1"></script>
+  <script src="app.js?v=1.1.2"></script>
 </body>
 </html>
