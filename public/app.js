@@ -268,6 +268,14 @@ function loadBossModels() {
     }
 
     loader.load(url, (gltf) => {
+      gltf.scene.traverse((child) => {
+        if (child.isSkinnedMesh && child.skeleton && child.skeleton.bones && child.skeleton.bones.length > 50) {
+          child.isSkinnedMesh = false;
+          child.skeleton = null;
+          child.bindMatrix = null;
+          child.bindMatrixInverse = null;
+        }
+      });
       cachedBossGLTF[modelFile] = gltf.scene;
       cachedBossGLTF[index] = gltf.scene;
       updateBossMeshes();
