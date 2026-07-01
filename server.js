@@ -2421,6 +2421,43 @@ let cloudflaredUrl = '';
 let cloudflaredProcess = null;
 let localtunnelUrl = '';
 let localtunnelInstance = null;
+let sshUrl = '';
+let sshProcess = null;
+
+function startSshTunnel() {
+  if (sshProcess) {
+    try {
+      sshProcess.kill();
+    } catch (e) {}
+    sshUrl = '';
+  }
+  sshProcess = spawn('ssh', ['-o', 'StrictHostKeyChecking=no', '-R', '80:localhost:3000', 'nokey@localhost.run']);
+
+  sshProcess.stdout.on('data', (data) => {
+    const text = data.toString();
+    if (text.includes('lhr.life')) {
+      const match = text.match(/https:\/\/[a-z0-9-.]+\.lhr\.life/i);
+      if (match) {
+        sshUrl = match[0];
+      }
+    }
+  });
+
+  sshProcess.stderr.on('data', (data) => {
+    const text = data.toString();
+    if (text.includes('lhr.life')) {
+      const match = text.match(/https:\/\/[a-z0-9-.]+\.lhr\.life/i);
+      if (match) {
+        sshUrl = match[0];
+      }
+    }
+  });
+
+  sshProcess.on('close', () => {
+    sshUrl = '';
+    setTimeout(startSshTunnel, 10000);
+  });
+}
 
 async function startLocalTunnel() {
   if (localtunnelInstance) {
@@ -2501,7 +2538,7 @@ async function publishBackendUrl() {
   }
 
   if (!backendUrl) {
-    backendUrl = cloudflaredUrl || localtunnelUrl;
+    backendUrl = cloudflaredUrl || sshUrl || localtunnelUrl;
   }
 
   if (backendUrl && backendUrl !== lastPublishedUrl) {
@@ -2521,6 +2558,7 @@ async function publishBackendUrl() {
 
 function startPublishingLoop() {
   startCloudflareTunnel();
+  startSshTunnel();
   startLocalTunnel();
   publishBackendUrl();
   setInterval(publishBackendUrl, 10000);
