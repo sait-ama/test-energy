@@ -3835,7 +3835,9 @@ function setupUI() {
       state.user = data.user;
       localStorage.setItem('ew_event_user', JSON.stringify(data.user));
       showNotification('Персонаж успешно создан и закреплен!', 'success');
-      checkOnboardingStage(state.user);
+      setTimeout(() => {
+        location.reload();
+      }, 500);
     } catch (err) {
       showNotification(err.message || 'Ошибка при сохранении персонажа', 'error');
     }
@@ -3866,6 +3868,19 @@ function setupUI() {
     document.getElementById('profile-drawer').classList.remove('open');
     updateBodyScrollLock();
   });
+
+  const slotCostume = document.getElementById('slot-costume');
+  if (slotCostume) {
+    slotCostume.addEventListener('click', () => openEqPanel('costume'));
+  }
+  const slotWeapon = document.getElementById('slot-weapon');
+  if (slotWeapon) {
+    slotWeapon.addEventListener('click', () => openEqPanel('weapon'));
+  }
+  const closeEqPanelBtn = document.getElementById('eq-panel-close-btn');
+  if (closeEqPanelBtn) {
+    closeEqPanelBtn.addEventListener('click', closeEqPanel);
+  }
 
   const mobileOpenProfileBtn = document.getElementById('mobile-open-profile-btn');
   if (mobileOpenProfileBtn) {
@@ -4193,10 +4208,10 @@ function updateCreatorStatsUI(charData) {
   };
   
   const elementDescriptions = {
-    water: 'Повышенный урон по боссам: Лев (120 ячейка) и Стрелец (240 ячейка).',
-    fire: 'Повышенный урон по боссам: Рак (90 ячейка) и Скорпион (210 ячейка).',
-    earth: 'Повышенный урон по боссам: Близнецы (60 ячейка) и Весы (180 ячейка).',
-    wind: 'Повышенный урон по боссам: Телец (30 ячейка), Дева (150 ячейка) и Козерог (270 ячейка).'
+    water: 'Повышенный урон по боссам: (120 ячейка) и (240 ячейка).',
+    fire: 'Повышенный урон по боссам: (90 ячейка) и (210 ячейка).',
+    earth: 'Повышенный урон по боссам: (60 ячейка) и (180 ячейка).',
+    wind: 'Повышенный урон по боссам: (30 ячейка), (150 ячейка) и (270 ячейка).'
   };
 
   const statElementEl = document.getElementById('creator-stat-element');
@@ -4480,9 +4495,63 @@ window.equipItem = async (itemKey, category) => {
 };
 
 async function updateDrawerEquipment() {
-  const costumesEl = document.getElementById('drawer-eq-costumes');
-  const weaponsEl = document.getElementById('drawer-eq-weapons');
-  if (!costumesEl || !weaponsEl || !state.user) return;
+  if (!state.user) return;
+  try {
+    const res = await fetch(`/api/equipment/inventory?userId=${state.user.id}`);
+    const data = await res.json();
+
+    const charData = state.user.character_data || {};
+    const currentWeapon = charData.weapon || 'none';
+    const currentCostume = charData.costume || 'normal';
+
+    const starterCostumes = [
+      { key: 'normal', name: 'Обычный', desc: 'без бонусов' },
+      { key: 'armor', name: 'Рыцарский доспех', desc: '+100 HP' },
+      { key: 'robe', name: 'Мантия мага', desc: '+20 HP, +10 DMG' }
+    ];
+    const starterWeapons = [
+      { key: 'none', name: 'Без оружия', desc: 'без бонусов' },
+      { key: 'sword', name: 'Энерг. меч', desc: '+20 DMG' },
+      { key: 'staff', name: 'Посох мага', desc: '+10 HP, +10 DMG' },
+      { key: 'shield', name: 'Энерг. щит', desc: '+30 HP, +5 DMG' }
+    ];
+
+    const activeW = starterWeapons.find(w => w.key === currentWeapon);
+    const activeC = starterCostumes.find(c => c.key === currentCostume);
+    
+    const shopWeapons = [
+      { key: 'axe', name: 'Боевой топор', desc: '+40 DMG' },
+      { key: 'bow', name: 'Лук', desc: '+50 HP, +20 DMG' },
+      { key: 'scythe', name: 'Коса смерти', desc: '+20 HP, +30 DMG' },
+      { key: 'hammer', name: 'Молот Тора', desc: '+100 HP, +80 DMG' }
+    ];
+    const shopCostumes = [
+      { key: 'cyber', name: 'Кибер-костюм', desc: '+30 HP, +5 DMG' },
+      { key: 'steampunk', name: 'Стимпанк жилет', desc: '+55 HP, +10 DMG' },
+      { key: 'ninja_suit', name: 'Костюм шиноби', desc: '+200 HP, +30 DMG' }
+    ];
+
+    const weaponName = activeW ? activeW.name : (shopWeapons.find(w => w.key === currentWeapon)?.name || 'Неизвестно');
+    const costumeName = activeC ? activeC.name : (shopCostumes.find(c => c.key === currentCostume)?.name || 'Неизвестно');
+
+    const slotCostumeValueEl = document.getElementById('slot-costume-value');
+    const slotWeaponValueEl = document.getElementById('slot-weapon-value');
+    if (slotCostumeValueEl) slotCostumeValueEl.textContent = costumeName;
+    if (slotWeaponValueEl) slotWeaponValueEl.textContent = weaponName;
+
+  } catch (err) {}
+}
+
+async function openEqPanel(category) {
+  const panel = document.getElementById('drawer-eq-select-panel');
+  const title = document.getElementById('eq-panel-title');
+  const listEl = document.getElementById('eq-panel-list');
+  if (!panel || !title || !listEl || !state.user) return;
+
+  title.textContent = category === 'costume' ? 'Выбор костюма' : 'Выбор оружия';
+  listEl.innerHTML = '';
+  panel.classList.remove('hidden');
+  setTimeout(() => panel.classList.add('open'), 10);
 
   try {
     const res = await fetch(`/api/equipment/inventory?userId=${state.user.id}`);
@@ -4504,50 +4573,81 @@ async function updateDrawerEquipment() {
       { key: 'shield', name: 'Энерг. щит', desc: '+30 HP, +5 DMG' }
     ];
 
-    const ownedCostumes = (data.items || []).filter(i => i.item_category === 'costume');
-    const ownedWeapons = (data.items || []).filter(i => i.item_category === 'weapon');
+    if (category === 'costume') {
+      const startingCKey = data.startingCostume || 'normal';
+      const startOption = starterCostumes.find(c => c.key === startingCKey);
+      
+      const options = [];
+      if (startOption) {
+        options.push(startOption);
+      }
+      
+      const ownedCostumes = (data.items || []).filter(i => i.item_category === 'costume');
+      ownedCostumes.forEach(c => {
+        options.push({
+          key: c.item_key,
+          name: c.name,
+          desc: `+${c.bonus_hp} HP, +${c.bonus_dmg} DMG`
+        });
+      });
 
-    const eqBtnStyle = (isActive) =>
-      `cursor: pointer; padding: 6px 8px; border-radius: 6px; font-size: 10px; border: 1px solid ${isActive ? '#00f0ff' : 'rgba(255,255,255,0.1)'}; background: ${isActive ? 'rgba(0,240,255,0.15)' : 'rgba(255,255,255,0.03)'}; color: ${isActive ? '#00f0ff' : '#a3b2bc'}; transition: all 0.2s; text-align: left;`;
+      options.forEach(opt => {
+        const active = currentCostume === opt.key;
+        const btn = document.createElement('button');
+        btn.className = `eq-select-btn ${active ? 'active' : ''}`;
+        btn.innerHTML = `
+          <div style="font-weight: 700; color: #fff; font-size: 12px; margin-bottom: 2px;">${opt.name}</div>
+          <div style="font-size: 10px; color: #8c9ba5;">${opt.desc}</div>
+        `;
+        btn.onclick = async () => {
+          await equipItem(opt.key, 'costume');
+          closeEqPanel();
+        };
+        listEl.appendChild(btn);
+      });
 
-    costumesEl.innerHTML = '';
-    starterCostumes.forEach(c => {
-      const active = currentCostume === c.key;
-      const btn = document.createElement('div');
-      btn.style.cssText = eqBtnStyle(active);
-      btn.innerHTML = `<div style="font-weight:600;color:${active ? '#00f0ff' : '#fff'};font-size:11px;">${c.name}</div><div style="font-size:9px;color:#8c9ba5;">${c.desc}</div>`;
-      btn.onclick = () => equipItem(c.key, 'costume');
-      costumesEl.appendChild(btn);
-    });
-    ownedCostumes.forEach(c => {
-      const active = currentCostume === c.item_key;
-      const btn = document.createElement('div');
-      btn.style.cssText = eqBtnStyle(active);
-      const desc = `+${c.bonus_hp} HP, +${c.bonus_dmg} DMG`;
-      btn.innerHTML = `<div style="font-weight:600;color:${active ? '#00f0ff' : '#fff'};font-size:11px;">${c.name}</div><div style="font-size:9px;color:#8c9ba5;">${desc}</div>`;
-      btn.onclick = () => equipItem(c.item_key, 'costume');
-      costumesEl.appendChild(btn);
-    });
+    } else {
+      const startingWKey = data.startingWeapon || 'none';
+      const startOption = starterWeapons.find(w => w.key === startingWKey);
+      
+      const options = [];
+      if (startOption) {
+        options.push(startOption);
+      }
+      
+      const ownedWeapons = (data.items || []).filter(i => i.item_category === 'weapon');
+      ownedWeapons.forEach(w => {
+        options.push({
+          key: w.item_key,
+          name: w.name,
+          desc: `+${w.bonus_hp} HP, +${w.bonus_dmg} DMG`
+        });
+      });
 
-    weaponsEl.innerHTML = '';
-    starterWeapons.forEach(w => {
-      const active = currentWeapon === w.key;
-      const btn = document.createElement('div');
-      btn.style.cssText = eqBtnStyle(active);
-      btn.innerHTML = `<div style="font-weight:600;color:${active ? '#ffcc00' : '#fff'};font-size:11px;">${w.name}</div><div style="font-size:9px;color:#8c9ba5;">${w.desc}</div>`;
-      btn.onclick = () => equipItem(w.key, 'weapon');
-      weaponsEl.appendChild(btn);
-    });
-    ownedWeapons.forEach(w => {
-      const active = currentWeapon === w.item_key;
-      const btn = document.createElement('div');
-      btn.style.cssText = eqBtnStyle(active);
-      const desc = `+${w.bonus_hp} HP, +${w.bonus_dmg} DMG`;
-      btn.innerHTML = `<div style="font-weight:600;color:${active ? '#ffcc00' : '#fff'};font-size:11px;">${w.name}</div><div style="font-size:9px;color:#8c9ba5;">${desc}</div>`;
-      btn.onclick = () => equipItem(w.item_key, 'weapon');
-      weaponsEl.appendChild(btn);
-    });
+      options.forEach(opt => {
+        const active = currentWeapon === opt.key;
+        const btn = document.createElement('button');
+        btn.className = `eq-select-btn ${active ? 'active weapon' : ''}`;
+        btn.innerHTML = `
+          <div style="font-weight: 700; color: #fff; font-size: 12px; margin-bottom: 2px;">${opt.name}</div>
+          <div style="font-size: 10px; color: #8c9ba5;">${opt.desc}</div>
+        `;
+        btn.onclick = async () => {
+          await equipItem(opt.key, 'weapon');
+          closeEqPanel();
+        };
+        listEl.appendChild(btn);
+      });
+    }
   } catch (err) {}
+}
+
+function closeEqPanel() {
+  const panel = document.getElementById('drawer-eq-select-panel');
+  if (panel) {
+    panel.classList.remove('open');
+    setTimeout(() => panel.classList.add('hidden'), 300);
+  }
 }
 
 function updateDrawerStats() {

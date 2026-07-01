@@ -608,7 +608,12 @@ app.post('/api/character/save', async (req, res) => {
     }
 
     const charString = JSON.stringify(characterData);
-    await runQuery('UPDATE users SET character_data = ? WHERE id = ?', [charString, userId]);
+    const startWeapon = characterData.weapon || 'none';
+    const startCostume = characterData.costume || 'normal';
+    await runQuery(
+      'UPDATE users SET character_data = ?, equipped_weapon = ?, equipped_costume = ?, starting_weapon = ?, starting_costume = ? WHERE id = ?',
+      [charString, startWeapon, startCostume, startWeapon, startCostume, userId]
+    );
     
     await runQuery(
       'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
@@ -1580,8 +1585,38 @@ app.get('/api/equipment/inventory', async (req, res) => {
   if (!userId) return res.status(400).json({ error: 'Missing userId' });
   try {
     const items = await allQuery('SELECT * FROM equipment_inventory WHERE user_id = ?', [userId]);
-    const user = await getQuery('SELECT equipped_weapon, equipped_costume FROM users WHERE id = ?', [userId]);
-    res.json({ items, equippedWeapon: user ? user.equipped_weapon : null, equippedCostume: user ? user.equipped_costume : null });
+    const user = await getQuery('SELECT equipped_weapon, equipped_costume, starting_weapon, starting_costume, character_data FROM users WHERE id = ?', [userId]);
+    
+    let startingWeapon = 'none';
+    let startingCostume = 'normal';
+    
+    if (user) {
+      if (user.starting_weapon) {
+        startingWeapon = user.starting_weapon;
+      } else {
+        try {
+          const parsed = JSON.parse(user.character_data);
+          startingWeapon = parsed.weapon || 'none';
+        } catch(e) {}
+      }
+      
+      if (user.starting_costume) {
+        startingCostume = user.starting_costume;
+      } else {
+        try {
+          const parsed = JSON.parse(user.character_data);
+          startingCostume = parsed.costume || 'normal';
+        } catch(e) {}
+      }
+    }
+    
+    res.json({ 
+      items, 
+      equippedWeapon: user ? user.equipped_weapon : null, 
+      equippedCostume: user ? user.equipped_costume : null,
+      startingWeapon,
+      startingCostume
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -1598,21 +1633,40 @@ app.post('/api/equipment/equip', async (req, res) => {
     let charData = {};
     try { charData = user.character_data ? JSON.parse(user.character_data) : {}; } catch(e) { charData = {}; }
 
-    const starterWeapons = ['none', 'sword', 'staff', 'shield'];
-    const starterCostumes = ['normal', 'armor', 'robe'];
-
     if (category === 'weapon') {
-      if (itemKey && !starterWeapons.includes(itemKey)) {
-        const owned = await getQuery('SELECT id FROM equipment_inventory WHERE user_id = ? AND item_key = ?', [userId, itemKey]);
-        if (!owned) return res.status(400).json({ error: 'У вас нет этого оружия' });
+      let allowed = false;
+      let startW = user.starting_weapon;
+      if (!startW) {
+        try { startW = JSON.parse(user.character_data).weapon; } catch(e){}
       }
+      startW = startW || 'none';
+
+      if (itemKey === startW || itemKey === 'none') {
+        allowed = true;
+      } else {
+        const owned = await getQuery('SELECT id FROM equipment_inventory WHERE user_id = ? AND item_key = ?', [userId, itemKey]);
+        if (owned) allowed = true;
+      }
+      if (!allowed) return res.status(400).json({ error: 'Это оружие вам недоступно' });
+
       charData.weapon = itemKey || 'none';
       await runQuery('UPDATE users SET equipped_weapon = ?, character_data = ? WHERE id = ?', [itemKey || null, JSON.stringify(charData), userId]);
     } else if (category === 'costume') {
-      if (itemKey && !starterCostumes.includes(itemKey)) {
-        const owned = await getQuery('SELECT id FROM equipment_inventory WHERE user_id = ? AND item_key = ?', [userId, itemKey]);
-        if (!owned) return res.status(400).json({ error: 'У вас нет этого костюма' });
+      let allowed = false;
+      let startC = user.starting_costume;
+      if (!startC) {
+        try { startC = JSON.parse(user.character_data).costume; } catch(e){}
       }
+      startC = startC || 'normal';
+
+      if (itemKey === startC || itemKey === 'normal') {
+        allowed = true;
+      } else {
+        const owned = await getQuery('SELECT id FROM equipment_inventory WHERE user_id = ? AND item_key = ?', [userId, itemKey]);
+        if (owned) allowed = true;
+      }
+      if (!allowed) return res.status(400).json({ error: 'Этот костюм вам недоступен' });
+
       charData.costume = itemKey || 'normal';
       await runQuery('UPDATE users SET equipped_costume = ?, character_data = ? WHERE id = ?', [itemKey || null, JSON.stringify(charData), userId]);
     } else {

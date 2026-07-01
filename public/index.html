@@ -594,9 +594,25 @@
           <span id="drawer-remanga-id" class="sub-value">-</span>
         </div>
       </div>
-      <div class="drawer-char-preview">
+      <div class="drawer-char-preview" style="position: relative;">
         <div id="drawer-char-canvas"></div>
-        <div class="lock-tag">Персонаж закреплен (изменение заблокировано)</div>
+        <div class="equipped-slots-container">
+          <div class="equipped-slot" id="slot-costume">
+            <span class="slot-label">Костюм</span>
+            <span class="slot-value" id="slot-costume-value">Обычный</span>
+          </div>
+          <div class="equipped-slot" id="slot-weapon">
+            <span class="slot-label">Оружие</span>
+            <span class="slot-value" id="slot-weapon-value">Без оружия</span>
+          </div>
+        </div>
+        <div id="drawer-eq-select-panel" class="eq-select-panel hidden">
+          <div class="eq-panel-header">
+            <span id="eq-panel-title">Выбор экипировки</span>
+            <button class="eq-panel-close" id="eq-panel-close-btn">&times;</button>
+          </div>
+          <div id="eq-panel-list" class="eq-panel-grid"></div>
+        </div>
       </div>
       <div class="drawer-section">
         <h3>Характеристики персонажа</h3>
@@ -632,19 +648,7 @@
         <h3>Ваши предметы</h3>
         <div id="drawer-inventory-list" class="inventory-grid"></div>
       </div>
-      <div class="drawer-section">
-        <h3>Экипировка</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-          <div>
-            <div style="font-size: 12px; font-weight: 600; color: #00f0ff; margin-bottom: 8px; text-align: center;">🛡️ Шмотки</div>
-            <div id="drawer-eq-costumes" style="display: flex; flex-direction: column; gap: 6px;"></div>
-          </div>
-          <div>
-            <div style="font-size: 12px; font-weight: 600; color: #ffcc00; margin-bottom: 8px; text-align: center;">⚔️ Оружия</div>
-            <div id="drawer-eq-weapons" style="display: flex; flex-direction: column; gap: 6px;"></div>
-          </div>
-        </div>
-      </div>
+
       <div class="drawer-section">
         <h3>Активные эффекты</h3>
         <div id="drawer-effects-list" class="effects-list"></div>

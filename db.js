@@ -35,6 +35,8 @@ export function initDb() {
       db.run(`ALTER TABLE users ADD COLUMN guild_tax_paid INTEGER DEFAULT 0`, () => {});
       db.run(`ALTER TABLE users ADD COLUMN equipped_weapon TEXT DEFAULT NULL`, () => {});
       db.run(`ALTER TABLE users ADD COLUMN equipped_costume TEXT DEFAULT NULL`, () => {});
+      db.run(`ALTER TABLE users ADD COLUMN starting_weapon TEXT DEFAULT NULL`, () => {});
+      db.run(`ALTER TABLE users ADD COLUMN starting_costume TEXT DEFAULT NULL`, () => {});
 
       db.run(`
         CREATE TABLE IF NOT EXISTS equipment_inventory (
