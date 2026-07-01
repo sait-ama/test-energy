@@ -50,6 +50,7 @@ export default async function handler(req, res) {
         chunks.push(chunk);
       }
       fetchOptions.body = Buffer.concat(chunks);
+      headers['content-length'] = fetchOptions.body.length.toString();
     }
 
     const targetRes = await fetch(targetUrl, fetchOptions);
