@@ -923,7 +923,8 @@ async function getShopPrices() {
     const rows = await allQuery("SELECT key, value FROM settings WHERE key LIKE 'price_%'");
     const prices = { ...defaults };
     rows.forEach(row => {
-      prices[row.key] = parseInt(row.value) || defaults[row.key];
+      const parsed = parseInt(row.value);
+      prices[row.key] = isNaN(parsed) ? (defaults[row.key] || 0) : parsed;
     });
     return prices;
   } catch (err) {

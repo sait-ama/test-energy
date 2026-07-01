@@ -1209,6 +1209,8 @@ function initBossModalEvents() {
           : 'Поражение! Вы потеряли 300 монет и отступили назад.';
         showNotification(msg, 'error');
         hideBossModal();
+        await refreshProfile();
+        await refreshBosses();
       } else {
         const logEl = document.getElementById('battle-log');
         let matchText = data.elementMatch ? ' (Критический урон от стихии!)' : '';
@@ -2392,6 +2394,9 @@ function performSelfMovement(moveData) {
         showRewardPopup(moveData.rewardTriggered);
       }
     }
+    if (state.boardScene) {
+      updateBoardPlayers();
+    }
   }, moveData.path.length * 300 + 500);
 }
 
@@ -2485,6 +2490,9 @@ function initSocket() {
 
   state.socket.on('settings_update', () => {
     loadShop();
+    if (state.activeShopTab === 'equipment') {
+      renderEquipmentShop();
+    }
   });
 }
 
@@ -3230,6 +3238,7 @@ function cleanupBoard3D() {
   if (container) {
     container.innerHTML = '';
   }
+  state.boardPlayers.clear();
   state.boardScene = null;
   state.boardCamera = null;
   state.boardControls = null;
@@ -3693,6 +3702,8 @@ function updateBoardPlayers() {
         state.boardScene.add(mesh);
         entry.mesh = mesh;
         entry.charDataString = newCharDataStr;
+      } else if (!state.boardScene.children.includes(entry.mesh)) {
+        state.boardScene.add(entry.mesh);
       }
 
       if (!entry.animating) {
@@ -3723,6 +3734,9 @@ function updateBoardPlayers() {
 
 function animatePlayerMovement(moveData) {
   const idStr = String(moveData.userId);
+  if (!state.boardPlayers.has(idStr)) {
+    updateBoardPlayers();
+  }
   const playerObj = state.boardPlayers.get(idStr);
   if (!playerObj) return;
 
