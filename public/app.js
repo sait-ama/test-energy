@@ -3633,9 +3633,23 @@ function updateBoardPlayers() {
 
     if (state.boardPlayers.has(idStr)) {
       const entry = state.boardPlayers.get(idStr);
+      
+      const newCharData = player.character_data || getDefaultCharData();
+      const newCharDataStr = JSON.stringify(newCharData);
+      const oldCharDataStr = entry.charDataString || '';
+
+      if (oldCharDataStr !== newCharDataStr) {
+        state.boardScene.remove(entry.mesh);
+        const mesh = create3DCharacterMesh(newCharData);
+        mesh.position.copy(entry.mesh.position);
+        mesh.rotation.copy(entry.mesh.rotation);
+        state.boardScene.add(mesh);
+        entry.mesh = mesh;
+        entry.charDataString = newCharDataStr;
+      }
+
       if (!entry.animating) {
         if (idStr === String(state.user?.id) && state.diceRolling) {
-          // Keep player mesh at their current board position
         } else {
           entry.mesh.position.set(pos.x, pos.y, pos.z);
           entry.currentCell = player.current_cell;
@@ -3650,7 +3664,8 @@ function updateBoardPlayers() {
       state.boardPlayers.set(idStr, {
         mesh: mesh,
         animating: false,
-        currentCell: player.current_cell
+        currentCell: player.current_cell,
+        charDataString: JSON.stringify(charData)
       });
     }
   }
