@@ -3,6 +3,9 @@
 <head>
   <script>
     window.addEventListener('error', function(e) {
+      if (e.message && (e.message.includes('ResizeObserver') || e.message.includes('Script error.'))) {
+        return;
+      }
       const errorDiv = document.createElement('div');
       errorDiv.style.position = 'fixed';
       errorDiv.style.top = '10px';

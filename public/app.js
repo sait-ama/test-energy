@@ -1038,6 +1038,15 @@ function updateBossModalUI(boss) {
     document.getElementById('boss-btn-fight').classList.remove('hidden');
     document.getElementById('boss-btn-bypass').classList.remove('hidden');
   }
+
+  if (state.user && state.user.current_cell !== boss.cell_number) {
+    document.getElementById('boss-btn-bypass-only').classList.add('hidden');
+    document.getElementById('boss-btn-fight').classList.add('hidden');
+    document.getElementById('boss-btn-bypass').classList.add('hidden');
+    document.getElementById('boss-btn-attack').classList.add('hidden');
+    document.getElementById('boss-btn-forfeit').classList.add('hidden');
+    document.getElementById('boss-btn-close').classList.remove('hidden');
+  }
 }
 
 function translateElement(el) {
