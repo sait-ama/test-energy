@@ -329,12 +329,25 @@ function create3DBossMesh(index, defeated, faceAngle, customScale) {
 
     if (defeated) {
       model.traverse((child) => {
-        if (child.isMesh) {
-          child.material = child.material.clone();
-          child.material.transparent = true;
-          child.material.opacity = 0.35;
-          if (child.material.color) {
-            child.material.color.set('#555555');
+        if (child.isMesh && child.material) {
+          const makeDefeated = (mat) => {
+            if (!mat) return mat;
+            try {
+              const m = mat.clone();
+              m.transparent = true;
+              m.opacity = 0.35;
+              if (m.color && typeof m.color.set === 'function') {
+                m.color.set('#555555');
+              }
+              return m;
+            } catch (e) {
+              return mat;
+            }
+          };
+          if (Array.isArray(child.material)) {
+            child.material = child.material.map(makeDefeated);
+          } else {
+            child.material = makeDefeated(child.material);
           }
         }
       });
@@ -3152,12 +3165,12 @@ function initBoard3D() {
   if (savedCam) {
     try {
       const parsed = JSON.parse(savedCam);
-      cameraX = parsed.x;
-      cameraY = parsed.y;
-      cameraZ = parsed.z;
-      targetX = parsed.tx;
-      targetY = parsed.ty;
-      targetZ = parsed.tz;
+      if (typeof parsed.x === 'number' && !isNaN(parsed.x)) cameraX = parsed.x;
+      if (typeof parsed.y === 'number' && !isNaN(parsed.y)) cameraY = parsed.y;
+      if (typeof parsed.z === 'number' && !isNaN(parsed.z)) cameraZ = parsed.z;
+      if (typeof parsed.tx === 'number' && !isNaN(parsed.tx)) targetX = parsed.tx;
+      if (typeof parsed.ty === 'number' && !isNaN(parsed.ty)) targetY = parsed.ty;
+      if (typeof parsed.tz === 'number' && !isNaN(parsed.tz)) targetZ = parsed.tz;
     } catch (e) {}
   }
 
@@ -3443,19 +3456,29 @@ function initBoard3D() {
         const forward = new THREE.Vector3();
         camera.getWorldDirection(forward);
         forward.y = 0;
-        forward.normalize();
+        if (forward.lengthSq() > 0.0001) {
+          forward.normalize();
+        } else {
+          forward.set(0, 0, -1);
+        }
 
         const right = new THREE.Vector3();
         right.crossVectors(forward, camera.up);
         right.y = 0;
-        right.normalize();
+        if (right.lengthSq() > 0.0001) {
+          right.normalize();
+        } else {
+          right.set(1, 0, 0);
+        }
 
         const direction = new THREE.Vector3();
         direction.addScaledVector(forward, -moveZ);
         direction.addScaledVector(right, moveX);
 
-        camera.position.add(direction);
-        controls.target.add(direction);
+        if (!isNaN(direction.x) && !isNaN(direction.y) && !isNaN(direction.z)) {
+          camera.position.add(direction);
+          controls.target.add(direction);
+        }
       }
     }
 
