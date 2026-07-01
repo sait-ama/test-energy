@@ -1810,7 +1810,14 @@ function layoutBoardElements() {
   for (const player of (state.players || [])) {
     const idStr = String(player.id);
     const pObj = state.boardPlayers.get(idStr);
-    const cell = (pObj && pObj.animating && pObj.currentCell !== undefined) ? pObj.currentCell : player.current_cell;
+    let cell = player.current_cell;
+    if (pObj) {
+      if (pObj.animating && pObj.currentCell !== undefined) {
+        cell = pObj.currentCell;
+      } else if (idStr === String(state.user?.id) && state.diceRolling && pObj.currentCell !== undefined) {
+        cell = pObj.currentCell;
+      }
+    }
     if (cell >= 0 && cell < 300) {
       if (!cellPlayerIndex[cell]) cellPlayerIndex[cell] = [];
       cellPlayerIndex[cell].push(idStr);
