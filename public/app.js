@@ -246,6 +246,8 @@ function getBossRotation(index) {
   return [0, 0, 0];
 }
 
+const loadingBossModels = new Set();
+
 function loadBossModels() {
   if (typeof THREE.GLTFLoader === 'undefined') return;
   const loader = new THREE.GLTFLoader();
@@ -267,24 +269,45 @@ function loadBossModels() {
       return;
     }
 
+    if (loadingBossModels.has(modelFile)) {
+      return;
+    }
+    loadingBossModels.add(modelFile);
+
     loader.load(url, (gltf) => {
+      const meshesToReplace = [];
       gltf.scene.traverse((child) => {
         if (child.isSkinnedMesh && child.skeleton && child.skeleton.bones && child.skeleton.bones.length > 50) {
-          child.isSkinnedMesh = false;
-          child.skeleton = null;
-          child.bindMatrix = null;
-          child.bindMatrixInverse = null;
-          if (child.material) {
-            if (Array.isArray(child.material)) {
-              child.material.forEach(m => { m.skinning = false; });
-            } else {
-              child.material.skinning = false;
-            }
-          }
+          meshesToReplace.push(child);
         }
       });
+
+      for (const skinnedMesh of meshesToReplace) {
+        const parent = skinnedMesh.parent;
+        if (parent) {
+          const newMesh = new THREE.Mesh(skinnedMesh.geometry, skinnedMesh.material);
+          newMesh.name = skinnedMesh.name;
+          newMesh.position.copy(skinnedMesh.position);
+          newMesh.rotation.copy(skinnedMesh.rotation);
+          newMesh.scale.copy(skinnedMesh.scale);
+          newMesh.castShadow = skinnedMesh.castShadow;
+          newMesh.receiveShadow = skinnedMesh.receiveShadow;
+          if (newMesh.material) {
+            if (Array.isArray(newMesh.material)) {
+              newMesh.material.forEach(m => { m.skinning = false; });
+            } else {
+              newMesh.material.skinning = false;
+            }
+          }
+          parent.add(newMesh);
+          parent.remove(skinnedMesh);
+        }
+      }
+
       cachedBossGLTF[modelFile] = gltf.scene;
       cachedBossGLTF[index] = gltf.scene;
+      loadingBossModels.delete(modelFile);
+      
       updateBossMeshes();
       if (currentOpenedBossCell === cellNum) {
         const currentBoss = (state.bosses || []).find(b => b.cell_number === cellNum);
@@ -294,6 +317,7 @@ function loadBossModels() {
         }
       }
     }, undefined, (err) => {
+      loadingBossModels.delete(modelFile);
       console.error(`[BOSS MODEL] Failed to load model ${index}: ${url}`, err);
     });
   });
