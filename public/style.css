@@ -1861,3 +1861,8 @@ body.scroll-locked {
   overflow: hidden !important;
   height: 100vh !important;
 }
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

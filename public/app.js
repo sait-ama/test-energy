@@ -5264,6 +5264,32 @@ function showConfirm(message) {
   });
 }
 
+window.handleRewardImageError = function(img, originalUrl) {
+  if (!img.dataset.retries) img.dataset.retries = '0';
+  let retries = parseInt(img.dataset.retries);
+  if (retries < 5) {
+    retries++;
+    img.dataset.retries = String(retries);
+    const spinner = document.createElement('div');
+    spinner.className = 'image-loader-spinner';
+    spinner.style.position = 'absolute';
+    spinner.style.width = '30px';
+    spinner.style.height = '30px';
+    spinner.style.border = '3px solid rgba(0,240,255,0.1)';
+    spinner.style.borderRadius = '50%';
+    spinner.style.borderTopColor = '#00f0ff';
+    spinner.style.animation = 'spin 1s linear infinite';
+    img.parentNode.insertBefore(spinner, img);
+    img.style.opacity = '0';
+    setTimeout(() => {
+      img.src = originalUrl + (originalUrl.includes('?') ? '&' : '?') + 'retry=' + Date.now();
+    }, 2000);
+  } else {
+    img.src = 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';
+    img.style.opacity = '1';
+  }
+};
+
 function showRewardChoiceModal(reward) {
   state.pendingReward = reward;
   document.getElementById('reward-choice-name').textContent = reward.name;
@@ -5276,8 +5302,13 @@ function showRewardChoiceModal(reward) {
   if (reward.type === 'card') {
     descText = `Эта карта предметов будет добавлена в ваш инвентарь наград.<br><br>`;
     if (reward.detail) {
-      descText += `<div style="text-align: center; margin-bottom: 15px;">
-        <img src="${reward.detail}" referrerpolicy="no-referrer" alt="${reward.name}" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';" style="max-width: 100%; height: auto; max-height: 180px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,240,255,0.4); border: 1px solid rgba(0,240,255,0.2);">
+      descText += `<div style="text-align: center; margin-bottom: 15px; position: relative; min-height: 120px; display: flex; align-items: center; justify-content: center;">
+        <div class="image-loader-spinner" style="position: absolute; width: 30px; height: 30px; border: 3px solid rgba(0,240,255,0.1); border-radius: 50%; border-top-color: #00f0ff; animation: spin 1s linear infinite;"></div>
+        <img src="${reward.detail}" referrerpolicy="no-referrer" alt="${reward.name}" 
+          onload="if(this.previousElementSibling)this.previousElementSibling.remove(); this.style.opacity='1';"
+          onerror="if(this.previousElementSibling)this.previousElementSibling.remove(); handleRewardImageError(this, '${reward.detail}');" 
+          style="max-width: 100%; height: auto; max-height: 180px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,240,255,0.4); border: 1px solid rgba(0,240,255,0.2); opacity: 0; transition: opacity 0.3s;"
+        >
       </div>`;
     }
   } else {
@@ -5595,4 +5626,10 @@ async function casinoSpin() {
   }
 
   requestAnimationFrame(animateSpin);
+}
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
 }
