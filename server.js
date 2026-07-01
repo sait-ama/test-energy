@@ -9,7 +9,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { initDb, runQuery, getQuery, allQuery } from './db.js';
 import { startGuildScanner, runGuildScan } from './scanner.js';
-import localtunnel from 'localtunnel';
+import { spawn } from 'child_process';
 
 try {
   const envPath = path.resolve(process.cwd(), '.env');
@@ -2244,22 +2244,48 @@ app.post('/api/inventory/remove-reward', async (req, res) => {
 });
 
 let lastPublishedUrl = '';
-let localtunnelUrl = '';
+let cloudflaredUrl = '';
+let cloudflaredProcess = null;
 
-async function startLocalTunnel() {
-  try {
-    const tunnel = await localtunnel({ port: 3000, local_host: '127.0.0.1' });
-    localtunnelUrl = tunnel.url;
-    console.log(`Localtunnel запущен: ${localtunnelUrl}`);
-    tunnel.on('close', () => {
-      localtunnelUrl = '';
-      console.log('Localtunnel закрыт. Перезапуск...');
-      setTimeout(startLocalTunnel, 5000);
-    });
-  } catch (err) {
-    console.error('Ошибка запуска Localtunnel:', err.message);
-    setTimeout(startLocalTunnel, 5000);
+function startCloudflareTunnel() {
+  if (cloudflaredProcess) {
+    try {
+      cloudflaredProcess.kill();
+    } catch (e) {}
   }
+
+  const logFile = path.resolve(process.cwd(), 'cloudflared.log');
+  if (fs.existsSync(logFile)) {
+    try {
+      fs.unlinkSync(logFile);
+    } catch (e) {}
+  }
+
+  cloudflaredProcess = spawn('cloudflared', ['tunnel', '--url', 'http://127.0.0.1:3000', '--logfile', logFile]);
+
+  const interval = setInterval(() => {
+    if (!fs.existsSync(logFile)) return;
+    try {
+      const content = fs.readFileSync(logFile, 'utf-8');
+      const lines = content.split('\n');
+      for (const line of lines) {
+        if (line.includes('trycloudflare.com')) {
+          const match = line.match(/https:\/\/[a-z0-9-]+\.trycloudflare\.com/i);
+          if (match) {
+            cloudflaredUrl = match[0];
+            clearInterval(interval);
+            break;
+          }
+        }
+      }
+    } catch (e) {}
+  }, 1000);
+
+  cloudflaredProcess.on('close', () => {
+    clearInterval(interval);
+    cloudflaredUrl = '';
+    setTimeout(startCloudflareTunnel, 5000);
+  });
 }
 
 async function publishBackendUrl() {
@@ -2275,17 +2301,15 @@ async function publishBackendUrl() {
           backendUrl = tunnel.public_url;
         }
       }
-    } catch (e) {
-    }
+    } catch (e) {}
   }
 
   if (!backendUrl) {
-    backendUrl = localtunnelUrl;
+    backendUrl = cloudflaredUrl;
   }
 
   if (backendUrl && backendUrl !== lastPublishedUrl) {
     try {
-      console.log(`Публикация адреса сервера... URL: ${backendUrl}`);
       const res = await fetch('https://extendsclass.com/api/json-storage/bin/ffaabaf', {
         method: 'PUT',
         headers: { 'content-type': 'application/json' },
@@ -2293,19 +2317,14 @@ async function publishBackendUrl() {
       });
       const data = await res.json();
       if (data && data.status === 0) {
-        console.log('Адрес бэкенда успешно опубликован в облачном хранилище!');
         lastPublishedUrl = backendUrl;
-      } else {
-        console.error('Не удалось опубликовать адрес в облачном хранилище:', data);
       }
-    } catch (err) {
-      console.error('Ошибка при публикации адреса бэкенда:', err.message);
-    }
+    } catch (err) {}
   }
 }
 
 function startPublishingLoop() {
-  startLocalTunnel();
+  startCloudflareTunnel();
   publishBackendUrl();
   setInterval(publishBackendUrl, 10000);
 }
