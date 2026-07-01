@@ -136,6 +136,9 @@ export function initDb() {
         db.run(`ALTER TABLE bosses ADD COLUMN position_offset_z REAL DEFAULT 0`, () => {});
         db.run(`ALTER TABLE bosses ADD COLUMN custom_rotation REAL DEFAULT NULL`, () => {});
         db.run(`ALTER TABLE bosses ADD COLUMN custom_scale REAL DEFAULT 1.0`, () => {});
+        db.run(`ALTER TABLE bosses ADD COLUMN crit_chance INTEGER DEFAULT 0`, () => {
+          db.run(`UPDATE bosses SET crit_chance = 20 WHERE cell_number >= 150`, () => {});
+        });
         db.run(`ALTER TABLE bosses ADD COLUMN model_file TEXT DEFAULT ''`, () => {
           db.run(`UPDATE bosses SET model_file = 'Duck.glb' WHERE cell_number = 30 AND (model_file IS NULL OR model_file = '')`, () => {});
           db.run(`UPDATE bosses SET model_file = 'aion_boss_rigged_character_3d_model.glb' WHERE cell_number = 60 AND (model_file IS NULL OR model_file = '')`, () => {});

@@ -910,7 +910,14 @@ async function getShopPrices() {
     price_pusher: 200,
     price_cure: 100,
     price_slowness: 180,
-    price_double_roll: 300
+    price_double_roll: 300,
+    price_eq_axe: 500,
+    price_eq_bow: 600,
+    price_eq_scythe: 700,
+    price_eq_hammer: 2000,
+    price_eq_cyber: 400,
+    price_eq_steampunk: 800,
+    price_eq_ninja: 3000
   };
   try {
     const rows = await allQuery("SELECT key, value FROM settings WHERE key LIKE 'price_%'");
@@ -1257,13 +1264,22 @@ app.post('/api/boss/attack', async (req, res) => {
       });
     }
     
-    const bossDmg = boss.dmg;
-    const newPlayerHp = Math.max(0, boss.current_fighter_hp - bossDmg);
+    const critChance = boss.crit_chance !== undefined && boss.crit_chance !== null ? boss.crit_chance : 0;
+    const isCrit = Math.random() * 100 < critChance;
+    
+    let bossDmg = boss.dmg;
+    let finalPlayerHp = boss.current_fighter_hp - bossDmg;
+    if (isCrit) {
+      bossDmg = boss.current_fighter_hp;
+      finalPlayerHp = 0;
+    }
+    const newPlayerHp = Math.max(0, finalPlayerHp);
     
     if (newPlayerHp <= 0) {
       const loss = 300;
       const newBalance = user.balance - loss;
-      const newCell = Math.max(0, user.current_cell - 5);
+      const pushbackAmount = Math.floor(Math.random() * 6) + 5;
+      const newCell = Math.max(0, user.current_cell - pushbackAmount);
       
       const path = [];
       for (let c = user.current_cell - 1; c >= newCell; c--) {
@@ -1280,9 +1296,13 @@ app.post('/api/boss/attack', async (req, res) => {
         [newCell, newBalance, user.id]
       );
       
+      const detailMsg = isCrit
+        ? `Поражение от босса ${boss.name} (Критический удар)! Потеряно ${loss} монет, откат на ячейку ${newCell}.`
+        : `Поражение от босса ${boss.name}! Потеряно ${loss} монет, откат на ячейку ${newCell}.`;
+      
       await runQuery(
         'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
-        [user.id, 'boss_defeat', `Поражение от босса ${boss.name}! Потеряно ${loss} монет, откат на ячейку ${newCell}.`, now.toISOString()]
+        [user.id, 'boss_defeat', detailMsg, now.toISOString()]
       );
       
       const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
@@ -1316,7 +1336,8 @@ app.post('/api/boss/attack', async (req, res) => {
         newCell,
         newBalance,
         path,
-        elementMatch
+        elementMatch,
+        isCrit
       });
     }
     
@@ -1359,7 +1380,8 @@ app.post('/api/boss/forfeit', async (req, res) => {
     
     const loss = 300;
     const newBalance = user.balance - loss;
-    const newCell = Math.max(0, user.current_cell - 5);
+    const pushbackAmount = Math.floor(Math.random() * 6) + 5;
+    const newCell = Math.max(0, user.current_cell - pushbackAmount);
     
     const path = [];
     for (let c = user.current_cell - 1; c >= newCell; c--) {
@@ -1427,14 +1449,14 @@ app.get('/api/boss-models', async (req, res) => {
 });
 
 app.post('/api/admin/boss/update', checkAdmin, async (req, res) => {
-  const { cellNumber, hp, dmg, cooldown, reward, rewardType, rewardDetail, name, modelFile } = req.body;
+  const { cellNumber, hp, dmg, cooldown, reward, rewardType, rewardDetail, name, modelFile, critChance } = req.body;
   if (!cellNumber || hp === undefined || dmg === undefined || cooldown === undefined) {
     return res.status(400).json({ error: 'Missing parameters' });
   }
   try {
     await runQuery(
-      'UPDATE bosses SET name = ?, max_hp = ?, hp = ?, dmg = ?, attack_cooldown_seconds = ?, reward_coins = ?, reward_type = ?, reward_detail = ?, model_file = ? WHERE cell_number = ?',
-      [name || '', hp, hp, dmg, cooldown, reward || 0, rewardType || 'coins', rewardDetail || '', modelFile || '', cellNumber]
+      'UPDATE bosses SET name = ?, max_hp = ?, hp = ?, dmg = ?, attack_cooldown_seconds = ?, reward_coins = ?, reward_type = ?, reward_detail = ?, model_file = ?, crit_chance = ? WHERE cell_number = ?',
+      [name || '', hp, hp, dmg, cooldown, reward || 0, rewardType || 'coins', rewardDetail || '', modelFile || '', critChance !== undefined ? parseInt(critChance) : 0, cellNumber]
     );
     
     const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
@@ -2125,6 +2147,27 @@ app.post('/api/admin/settings/update', checkAdmin, async (req, res) => {
     }
     if (price_remove_reward !== undefined) {
       await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_remove_reward', ?)", [String(price_remove_reward)]);
+    }
+    if (req.body.price_eq_axe !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_eq_axe', ?)", [String(req.body.price_eq_axe)]);
+    }
+    if (req.body.price_eq_bow !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_eq_bow', ?)", [String(req.body.price_eq_bow)]);
+    }
+    if (req.body.price_eq_scythe !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_eq_scythe', ?)", [String(req.body.price_eq_scythe)]);
+    }
+    if (req.body.price_eq_hammer !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_eq_hammer', ?)", [String(req.body.price_eq_hammer)]);
+    }
+    if (req.body.price_eq_cyber !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_eq_cyber', ?)", [String(req.body.price_eq_cyber)]);
+    }
+    if (req.body.price_eq_steampunk !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_eq_steampunk', ?)", [String(req.body.price_eq_steampunk)]);
+    }
+    if (req.body.price_eq_ninja !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_eq_ninja', ?)", [String(req.body.price_eq_ninja)]);
     }
     if (io) {
       io.emit('settings_update');

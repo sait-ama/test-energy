@@ -475,6 +475,35 @@
               <label>Стоимость удаления награды из инвентаря</label>
               <input type="number" id="admin-price-remove-reward" min="0">
             </div>
+            <h3 style="margin-top: 20px; font-size: 11px; text-transform: uppercase; color: #ffcc00; font-weight: 600;">Цены на экипировку</h3>
+            <div class="form-group">
+              <label>Боевой топор (Axe)</label>
+              <input type="number" id="admin-price-eq_axe" min="0">
+            </div>
+            <div class="form-group">
+              <label>Лук (Bow)</label>
+              <input type="number" id="admin-price-eq_bow" min="0">
+            </div>
+            <div class="form-group">
+              <label>Коса смерти (Scythe)</label>
+              <input type="number" id="admin-price-eq_scythe" min="0">
+            </div>
+            <div class="form-group">
+              <label>Молот Тора (Hammer)</label>
+              <input type="number" id="admin-price-eq_hammer" min="0">
+            </div>
+            <div class="form-group">
+              <label>Кибер-костюм (Cyber Costume)</label>
+              <input type="number" id="admin-price-eq_cyber" min="0">
+            </div>
+            <div class="form-group">
+              <label>Стимпанк жилет (Steampunk Vest)</label>
+              <input type="number" id="admin-price-eq_steampunk" min="0">
+            </div>
+            <div class="form-group">
+              <label>Костюм шиноби (Ninja Suit)</label>
+              <input type="number" id="admin-price-eq_ninja" min="0">
+            </div>
             <button id="save-settings-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Сохранить настройки</button>
           </div>
 
@@ -513,6 +542,10 @@
             <div class="form-group">
               <label>Кд ударов игрока (сек)</label>
               <input type="number" id="admin-boss-cooldown" min="0">
+            </div>
+            <div class="form-group">
+              <label>Шанс крита (%)</label>
+              <input type="number" id="admin-boss-crit" min="0" max="100" value="0">
             </div>
             <div class="form-group">
               <label>Награда за победу (монеты)</label>

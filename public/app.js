@@ -1204,7 +1204,10 @@ function initBossModalEvents() {
         await refreshProfile();
         await refreshBosses();
       } else if (data.status === 'defeat') {
-        showNotification(`Поражение! Вы потеряли 300 монет и отступили назад.`, 'error');
+        const msg = data.isCrit
+          ? 'Смертельный критический удар босса! Вы потеряли 300 монет и отступили назад.'
+          : 'Поражение! Вы потеряли 300 монет и отступили назад.';
+        showNotification(msg, 'error');
         hideBossModal();
       } else {
         const logEl = document.getElementById('battle-log');
@@ -1264,6 +1267,7 @@ function setupAdminBossConfig() {
       document.getElementById('admin-boss-hp').value = boss.max_hp;
       document.getElementById('admin-boss-dmg').value = boss.dmg;
       document.getElementById('admin-boss-cooldown').value = boss.attack_cooldown_seconds;
+      document.getElementById('admin-boss-crit').value = boss.crit_chance || 0;
       document.getElementById('admin-boss-reward').value = boss.reward_coins || 500;
       const rtEl = document.getElementById('admin-boss-reward-type');
       if (rtEl) rtEl.value = boss.reward_type || 'coins';
@@ -1359,6 +1363,7 @@ function setupAdminBossConfig() {
       const hp = parseInt(document.getElementById('admin-boss-hp').value);
       const dmg = parseInt(document.getElementById('admin-boss-dmg').value);
       const cooldown = parseInt(document.getElementById('admin-boss-cooldown').value);
+      const critChance = parseInt(document.getElementById('admin-boss-crit').value) || 0;
       const reward = parseInt(document.getElementById('admin-boss-reward').value);
       const rewardType = document.getElementById('admin-boss-reward-type').value;
       const rewardDetail = document.getElementById('admin-boss-reward-detail').value;
@@ -1367,7 +1372,7 @@ function setupAdminBossConfig() {
         const res = await fetch('/api/admin/boss/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cellNumber: cellNum, name, modelFile, hp, dmg, cooldown, reward, rewardType, rewardDetail, requesterUserId: state.user.id })
+          body: JSON.stringify({ cellNumber: cellNum, name, modelFile, hp, dmg, cooldown, reward, rewardType, rewardDetail, critChance, requesterUserId: state.user.id })
         });
         if (res.ok) {
           showNotification('Настройки босса сохранены!', 'success');
@@ -5133,6 +5138,14 @@ function setupAdminTabs() {
         const slownessEl = document.getElementById('admin-price-slowness');
         const doubleRollEl = document.getElementById('admin-price-double_roll');
         const removeRewardEl = document.getElementById('admin-price-remove-reward');
+        
+        const eqAxeEl = document.getElementById('admin-price-eq_axe');
+        const eqBowEl = document.getElementById('admin-price-eq_bow');
+        const eqScytheEl = document.getElementById('admin-price-eq_scythe');
+        const eqHammerEl = document.getElementById('admin-price-eq_hammer');
+        const eqCyberEl = document.getElementById('admin-price-eq_cyber');
+        const eqSteampunkEl = document.getElementById('admin-price-eq_steampunk');
+        const eqNinjaEl = document.getElementById('admin-price-eq_ninja');
 
         const dice_cooldown = cooldownEl ? (parseInt(cooldownEl.value) || 0) : 0;
         const price_shield = shieldEl ? (parseInt(shieldEl.value) || 0) : 0;
@@ -5142,6 +5155,14 @@ function setupAdminTabs() {
         const price_slowness = slownessEl ? (parseInt(slownessEl.value) || 0) : 0;
         const price_double_roll = doubleRollEl ? (parseInt(doubleRollEl.value) || 0) : 0;
         const price_remove_reward = removeRewardEl ? (parseInt(removeRewardEl.value) || 0) : 0;
+
+        const price_eq_axe = eqAxeEl ? (parseInt(eqAxeEl.value) || 0) : 0;
+        const price_eq_bow = eqBowEl ? (parseInt(eqBowEl.value) || 0) : 0;
+        const price_eq_scythe = eqScytheEl ? (parseInt(eqScytheEl.value) || 0) : 0;
+        const price_eq_hammer = eqHammerEl ? (parseInt(eqHammerEl.value) || 0) : 0;
+        const price_eq_cyber = eqCyberEl ? (parseInt(eqCyberEl.value) || 0) : 0;
+        const price_eq_steampunk = eqSteampunkEl ? (parseInt(eqSteampunkEl.value) || 0) : 0;
+        const price_eq_ninja = eqNinjaEl ? (parseInt(eqNinjaEl.value) || 0) : 0;
 
         if (!state.user) throw new Error('Пользователь не авторизован');
 
@@ -5157,6 +5178,13 @@ function setupAdminTabs() {
             price_slowness,
             price_double_roll,
             price_remove_reward,
+            price_eq_axe,
+            price_eq_bow,
+            price_eq_scythe,
+            price_eq_hammer,
+            price_eq_cyber,
+            price_eq_steampunk,
+            price_eq_ninja,
             requesterUserId: state.user.id
           })
         });
@@ -5195,7 +5223,14 @@ async function loadAdminSettings() {
       'admin-price-cure',
       'admin-price-slowness',
       'admin-price-double_roll',
-      'admin-price-remove-reward'
+      'admin-price-remove-reward',
+      'admin-price-eq_axe',
+      'admin-price-eq_bow',
+      'admin-price-eq_scythe',
+      'admin-price-eq_hammer',
+      'admin-price-eq_cyber',
+      'admin-price-eq_steampunk',
+      'admin-price-eq_ninja'
     ];
     if (activeEl && settingsInputs.includes(activeEl.id)) {
       return;
@@ -5214,6 +5249,14 @@ async function loadAdminSettings() {
     const price_double_roll = data.settings.find(s => s.key === 'price_double_roll') || { value: '300' };
     const price_remove_reward = data.settings.find(s => s.key === 'price_remove_reward') || { value: '100' };
 
+    const price_eq_axe = data.settings.find(s => s.key === 'price_eq_axe') || { value: '500' };
+    const price_eq_bow = data.settings.find(s => s.key === 'price_eq_bow') || { value: '600' };
+    const price_eq_scythe = data.settings.find(s => s.key === 'price_eq_scythe') || { value: '700' };
+    const price_eq_hammer = data.settings.find(s => s.key === 'price_eq_hammer') || { value: '2000' };
+    const price_eq_cyber = data.settings.find(s => s.key === 'price_eq_cyber') || { value: '400' };
+    const price_eq_steampunk = data.settings.find(s => s.key === 'price_eq_steampunk') || { value: '800' };
+    const price_eq_ninja = data.settings.find(s => s.key === 'price_eq_ninja') || { value: '3000' };
+
     document.getElementById('admin-price-shield').value = price_shield.value;
     document.getElementById('admin-price-freeze').value = price_freeze.value;
     document.getElementById('admin-price-pusher').value = price_pusher.value;
@@ -5221,6 +5264,14 @@ async function loadAdminSettings() {
     document.getElementById('admin-price-slowness').value = price_slowness.value;
     document.getElementById('admin-price-double_roll').value = price_double_roll.value;
     document.getElementById('admin-price-remove-reward').value = price_remove_reward.value;
+
+    document.getElementById('admin-price-eq_axe').value = price_eq_axe.value;
+    document.getElementById('admin-price-eq_bow').value = price_eq_bow.value;
+    document.getElementById('admin-price-eq_scythe').value = price_eq_scythe.value;
+    document.getElementById('admin-price-eq_hammer').value = price_eq_hammer.value;
+    document.getElementById('admin-price-eq_cyber').value = price_eq_cyber.value;
+    document.getElementById('admin-price-eq_steampunk').value = price_eq_steampunk.value;
+    document.getElementById('admin-price-eq_ninja').value = price_eq_ninja.value;
   } catch (err) {
   }
 }
