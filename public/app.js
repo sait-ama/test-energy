@@ -1427,7 +1427,7 @@ function setupAdminBossConfig() {
   loadBossPositionFields();
 }
 
-let backendUrl = '';
+let backendUrl = 'https://patrina-unlusty-vince.ngrok-free.dev';
 
 async function resolveBackendUrl() {
   const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
