@@ -683,7 +683,13 @@ function renderBossBattle3D(boss) {
 
   const bossData = (state.bosses || []).find(b => b.cell_number === boss.cell_number);
   const customScale = (bossData && bossData.custom_scale !== null && bossData.custom_scale !== undefined) ? bossData.custom_scale : 1.0;
-  const customRotation = (bossData && bossData.custom_rotation !== null && bossData.custom_rotation !== undefined) ? bossData.custom_rotation : 0.0;
+  const pos = getTilePosition(boss.cell_number);
+  const prevPos = getTilePosition(Math.max(0, boss.cell_number - 1));
+  const dx = prevPos.x - pos.x;
+  const dz = prevPos.z - pos.z;
+  const autoAngle = Math.atan2(dx, dz);
+  const customRotationVal = (bossData && bossData.custom_rotation !== null && bossData.custom_rotation !== undefined) ? bossData.custom_rotation : autoAngle;
+  const customRotation = customRotationVal - autoAngle;
 
   if (cached) {
     const bossModel = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cached) : cached.clone();
