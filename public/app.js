@@ -274,6 +274,13 @@ function loadBossModels() {
           child.skeleton = null;
           child.bindMatrix = null;
           child.bindMatrixInverse = null;
+          if (child.material) {
+            if (Array.isArray(child.material)) {
+              child.material.forEach(m => { m.skinning = false; });
+            } else {
+              child.material.skinning = false;
+            }
+          }
         }
       });
       cachedBossGLTF[modelFile] = gltf.scene;
@@ -282,7 +289,8 @@ function loadBossModels() {
       if (currentOpenedBossCell === cellNum) {
         const currentBoss = (state.bosses || []).find(b => b.cell_number === cellNum);
         if (currentBoss) {
-          renderBossPreview3D(currentBoss);
+          bossBattleState.bossCellNumber = null;
+          updateBossModalUI(currentBoss);
         }
       }
     }, undefined, (err) => {
@@ -957,8 +965,9 @@ function updateBossModalUI(boss) {
           const coverImg = document.getElementById('boss-reward-card-cover');
           coverImg.dataset.src = parts[0];
           coverImg.dataset.retries = '0';
-          if (!coverImg.previousElementSibling) {
-            const spinner = document.createElement('div');
+          let spinner = coverImg.previousElementSibling;
+          if (!spinner || !spinner.classList.contains('image-loader-spinner')) {
+            spinner = document.createElement('div');
             spinner.className = 'image-loader-spinner';
             spinner.style.position = 'absolute';
             spinner.style.width = '20px';
@@ -969,8 +978,27 @@ function updateBossModalUI(boss) {
             spinner.style.animation = 'spin 1s linear infinite';
             coverImg.parentNode.insertBefore(spinner, coverImg);
           }
+          coverImg.onload = () => {
+            const prev = coverImg.previousElementSibling;
+            if (prev && prev.classList.contains('image-loader-spinner')) {
+              prev.remove();
+            }
+            coverImg.style.opacity = '1';
+          };
+          coverImg.onerror = () => {
+            const prev = coverImg.previousElementSibling;
+            if (prev && prev.classList.contains('image-loader-spinner')) {
+              prev.remove();
+            }
+            if (typeof window.handleRewardImageError === 'function') {
+              window.handleRewardImageError(coverImg, coverImg.dataset.src || coverImg.src);
+            }
+          };
           coverImg.style.opacity = '0';
           coverImg.src = parts[0];
+          if (coverImg.complete) {
+            coverImg.onload();
+          }
           document.getElementById('boss-reward-card-name').textContent = parts[1];
           document.getElementById('boss-reward-card-char').textContent = parts[2] || '';
         } else {
@@ -1075,14 +1103,6 @@ function initBossModalEvents() {
       const data = await res.json();
       if (res.ok) {
         hideBossModal();
-        if (data.path && data.path.length > 0) {
-          animatePlayerMovement({ userId: state.user.id, path: data.path, endCell: data.endCell });
-        }
-        await refreshProfile();
-        await refreshBosses();
-        if (data.bossEncounter) {
-          showPendingBossModal(data.bossEncounter);
-        }
       } else {
         showNotification(data.error || 'Ошибка', 'error');
       }
@@ -1101,14 +1121,6 @@ function initBossModalEvents() {
       const data = await res.json();
       if (res.ok) {
         hideBossModal();
-        if (data.path && data.path.length > 0) {
-          animatePlayerMovement({ userId: state.user.id, path: data.path, endCell: data.endCell });
-        }
-        await refreshProfile();
-        await refreshBosses();
-        if (data.bossEncounter) {
-          showPendingBossModal(data.bossEncounter);
-        }
       } else {
         showNotification(data.error || 'Ошибка', 'error');
       }
@@ -1161,15 +1173,6 @@ function initBossModalEvents() {
       } else if (data.status === 'defeat') {
         showNotification(`Поражение! Вы потеряли 300 монет и отступили назад.`, 'error');
         hideBossModal();
-        
-        animatePlayerMovement({
-          userId: state.user.id,
-          path: data.path,
-          endCell: data.newCell
-        });
-        
-        await refreshProfile();
-        await refreshBosses();
       } else {
         const logEl = document.getElementById('battle-log');
         let matchText = data.elementMatch ? ' (Критический урон от стихии!)' : '';
@@ -1193,15 +1196,6 @@ function initBossModalEvents() {
       if (res.ok) {
         showNotification(`Вы сбежали с поля боя, потеряв 300 монет.`, 'warning');
         hideBossModal();
-        
-        animatePlayerMovement({
-          userId: state.user.id,
-          path: data.path,
-          endCell: data.newCell
-        });
-        
-        await refreshProfile();
-        await refreshBosses();
       } else {
         showNotification(data.error || 'Не удалось сбежать', 'error');
       }
