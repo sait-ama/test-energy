@@ -36,6 +36,31 @@
       errorDiv.innerHTML = '<strong>Unhandled Rejection:</strong> ' + e.reason;
       document.body.appendChild(errorDiv);
     });
+    window.handleRewardImageError = function(img, originalUrl) {
+      if (!img.dataset.retries) img.dataset.retries = '0';
+      let retries = parseInt(img.dataset.retries);
+      if (retries < 5) {
+        retries++;
+        img.dataset.retries = String(retries);
+        const spinner = document.createElement('div');
+        spinner.className = 'image-loader-spinner';
+        spinner.style.position = 'absolute';
+        spinner.style.width = '20px';
+        spinner.style.height = '20px';
+        spinner.style.border = '2px solid rgba(0,240,255,0.1)';
+        spinner.style.borderRadius = '50%';
+        spinner.style.borderTopColor = '#00f0ff';
+        spinner.style.animation = 'spin 1s linear infinite';
+        img.parentNode.insertBefore(spinner, img);
+        img.style.opacity = '0';
+        setTimeout(() => {
+          img.src = originalUrl + (originalUrl.includes('?') ? '&' : '?') + 'retry=' + Date.now();
+        }, 2000);
+      } else {
+        img.src = 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';
+        img.style.opacity = '1';
+      }
+    };
   </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -868,6 +893,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=1.1.3"></script>
+  <script src="app.js?v=1.1.4"></script>
 </body>
 </html>

@@ -3237,7 +3237,7 @@ function initBoard3D() {
     console.warn('WebGL context lost on board canvas. Re-initializing...');
     setTimeout(() => {
       initBoard3D();
-    }, 1000);
+    }, 50);
   }, false);
 
   const controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -3565,7 +3565,7 @@ function initBoard3D() {
     camera.updateProjectionMatrix();
     renderer.setSize(w, h);
   });
-  resizeObserver.observe(container);
+  state.boardResizeObserver.observe(container);
 }
 
 function buildBoardTiles() {
