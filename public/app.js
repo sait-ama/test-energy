@@ -100,20 +100,20 @@ function getPlayerBattleStats(user) {
   let bonusDmg = 0;
 
   const weapon = charData.weapon || 'none';
-  if (weapon === 'sword') bonusDmg += 15;
-  else if (weapon === 'staff') { bonusDmg += 10; bonusHp += 20; }
+  if (weapon === 'sword') bonusDmg += 20;
+  else if (weapon === 'staff') { bonusDmg += 10; bonusHp += 10; }
   else if (weapon === 'shield') { bonusDmg += 5; bonusHp += 30; }
-  else if (weapon === 'axe') bonusDmg += 20;
-  else if (weapon === 'bow') bonusDmg += 12;
-  else if (weapon === 'scythe') bonusDmg += 18;
-  else if (weapon === 'hammer') bonusDmg += 22;
+  else if (weapon === 'axe') bonusDmg += 40;
+  else if (weapon === 'bow') { bonusDmg += 20; bonusHp += 50; }
+  else if (weapon === 'scythe') { bonusDmg += 30; bonusHp += 20; }
+  else if (weapon === 'hammer') { bonusDmg += 80; bonusHp += 100; }
 
   const costume = charData.costume || 'normal';
-  if (costume === 'armor') bonusHp += 50;
-  else if (costume === 'robe') { bonusHp += 20; bonusDmg += 5; }
-  else if (costume === 'cyber') { bonusHp += 30; bonusDmg += 8; }
-  else if (costume === 'steampunk') { bonusHp += 25; bonusDmg += 6; }
-  else if (costume === 'ninja_suit') { bonusHp += 15; bonusDmg += 12; }
+  if (costume === 'armor') bonusHp += 100;
+  else if (costume === 'robe') { bonusHp += 20; bonusDmg += 10; }
+  else if (costume === 'cyber') { bonusHp += 30; bonusDmg += 5; }
+  else if (costume === 'steampunk') { bonusHp += 55; bonusDmg += 10; }
+  else if (costume === 'ninja_suit') { bonusHp += 200; bonusDmg += 30; }
 
   return {
     maxHp: baseHp + bonusHp,
@@ -2538,6 +2538,7 @@ async function refreshProfile() {
     
     if (document.getElementById('profile-drawer').classList.contains('open')) {
       updateDrawerPreview();
+      updateDrawerEquipment();
     }
     
     const isBoss = (state.user.current_cell > 0 && state.user.current_cell % 30 === 0) || state.user.current_cell === 299;
@@ -3856,6 +3857,7 @@ function setupUI() {
     const drawer = document.getElementById('profile-drawer');
     drawer.classList.add('open');
     updateDrawerPreview();
+    updateDrawerEquipment();
     refreshProfile();
     updateBodyScrollLock();
   });
@@ -3871,6 +3873,7 @@ function setupUI() {
       const drawer = document.getElementById('profile-drawer');
       drawer.classList.add('open');
       updateDrawerPreview();
+      updateDrawerEquipment();
       refreshProfile();
       updateBodyScrollLock();
     });
@@ -3903,6 +3906,10 @@ function setupUI() {
         document.getElementById('shop-items-list').classList.add('hidden');
         document.getElementById('casino-section').classList.remove('hidden');
         initCasinoWheel();
+      } else if (state.activeShopTab === 'equipment') {
+        document.getElementById('shop-items-list').classList.remove('hidden');
+        document.getElementById('casino-section').classList.add('hidden');
+        renderEquipmentShop();
       } else {
         document.getElementById('shop-items-list').classList.remove('hidden');
         document.getElementById('casino-section').classList.add('hidden');
@@ -4154,20 +4161,20 @@ function updateCreatorStatsUI(charData) {
   let bonusDmg = 0;
 
   const weapon = charData.weapon || 'none';
-  if (weapon === 'sword') bonusDmg += 15;
-  else if (weapon === 'staff') { bonusDmg += 10; bonusHp += 20; }
+  if (weapon === 'sword') bonusDmg += 20;
+  else if (weapon === 'staff') { bonusDmg += 10; bonusHp += 10; }
   else if (weapon === 'shield') { bonusDmg += 5; bonusHp += 30; }
-  else if (weapon === 'axe') bonusDmg += 20;
-  else if (weapon === 'bow') bonusDmg += 12;
-  else if (weapon === 'scythe') bonusDmg += 18;
-  else if (weapon === 'hammer') bonusDmg += 22;
+  else if (weapon === 'axe') bonusDmg += 40;
+  else if (weapon === 'bow') { bonusDmg += 20; bonusHp += 50; }
+  else if (weapon === 'scythe') { bonusDmg += 30; bonusHp += 20; }
+  else if (weapon === 'hammer') { bonusDmg += 80; bonusHp += 100; }
 
   const costume = charData.costume || 'normal';
-  if (costume === 'armor') bonusHp += 50;
-  else if (costume === 'robe') { bonusHp += 20; bonusDmg += 5; }
-  else if (costume === 'cyber') { bonusHp += 30; bonusDmg += 8; }
-  else if (costume === 'steampunk') { bonusHp += 25; bonusDmg += 6; }
-  else if (costume === 'ninja_suit') { bonusHp += 15; bonusDmg += 12; }
+  if (costume === 'armor') bonusHp += 100;
+  else if (costume === 'robe') { bonusHp += 20; bonusDmg += 10; }
+  else if (costume === 'cyber') { bonusHp += 30; bonusDmg += 5; }
+  else if (costume === 'steampunk') { bonusHp += 55; bonusDmg += 10; }
+  else if (costume === 'ninja_suit') { bonusHp += 200; bonusDmg += 30; }
 
   const totalHp = baseHp + bonusHp;
   const totalDmg = baseDmg + bonusDmg;
@@ -4374,6 +4381,186 @@ window.buyItem = async (itemId) => {
     showNotification(err.message, 'error');
   }
 };
+
+async function renderEquipmentShop() {
+  const container = document.getElementById('shop-items-list');
+  if (!container) return;
+  container.innerHTML = '<div class="info-note">Загрузка...</div>';
+
+  try {
+    const res = await fetch('/api/equipment/shop');
+    const data = await res.json();
+    const eqRes = state.user ? await fetch(`/api/equipment/inventory?userId=${state.user.id}`) : null;
+    const eqData = eqRes ? await eqRes.json() : { items: [] };
+    const ownedKeys = (eqData.items || []).map(i => i.item_key);
+
+    container.innerHTML = '';
+
+    const weapons = data.items.filter(i => i.category === 'weapon');
+    const costumes = data.items.filter(i => i.category === 'costume');
+
+    const weaponHeader = document.createElement('div');
+    weaponHeader.style.cssText = 'font-size: 14px; font-weight: 700; color: #ffcc00; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 1px solid rgba(255,204,0,0.2);';
+    weaponHeader.textContent = '⚔️ Оружие';
+    container.appendChild(weaponHeader);
+
+    weapons.forEach(item => {
+      const owned = ownedKeys.includes(item.key);
+      const card = document.createElement('div');
+      card.className = 'shop-item-card';
+      card.innerHTML = `
+        <h3>${item.name}</h3>
+        <p>${item.description}</p>
+        <div class="shop-item-footer">
+          <span class="shop-item-cost">${item.cost} монет</span>
+          ${owned ? '<span style="color: #00ff66; font-size: 11px; font-weight: 600;">✓ Куплено</span>' : `<button class="btn btn-secondary btn-sm" onclick="buyEquipment('${item.id}')">Купить</button>`}
+        </div>
+      `;
+      container.appendChild(card);
+    });
+
+    const costumeHeader = document.createElement('div');
+    costumeHeader.style.cssText = 'font-size: 14px; font-weight: 700; color: #00f0ff; margin: 15px 0 10px 0; padding-bottom: 5px; border-bottom: 1px solid rgba(0,240,255,0.2);';
+    costumeHeader.textContent = '🛡️ Костюмы';
+    container.appendChild(costumeHeader);
+
+    costumes.forEach(item => {
+      const owned = ownedKeys.includes(item.key);
+      const card = document.createElement('div');
+      card.className = 'shop-item-card';
+      card.innerHTML = `
+        <h3>${item.name}</h3>
+        <p>${item.description}</p>
+        <div class="shop-item-footer">
+          <span class="shop-item-cost">${item.cost} монет</span>
+          ${owned ? '<span style="color: #00ff66; font-size: 11px; font-weight: 600;">✓ Куплено</span>' : `<button class="btn btn-secondary btn-sm" onclick="buyEquipment('${item.id}')">Купить</button>`}
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  } catch (err) {
+    container.innerHTML = '<div class="info-note">Ошибка загрузки магазина</div>';
+  }
+}
+
+window.buyEquipment = async (itemId) => {
+  try {
+    const res = await fetch('/api/equipment/buy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: state.user.id, itemId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    showNotification('Экипировка куплена!', 'success');
+    refreshProfile();
+    if (state.activeShopTab === 'equipment') renderEquipmentShop();
+  } catch (err) {
+    showNotification(err.message, 'error');
+  }
+};
+
+window.equipItem = async (itemKey, category) => {
+  try {
+    const res = await fetch('/api/equipment/equip', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: state.user.id, itemKey, category })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+    state.user.character_data = data.character_data;
+    showNotification('Экипировка изменена!', 'success');
+    updateDrawerPreview();
+    updateDrawerEquipment();
+    updateDrawerStats();
+  } catch (err) {
+    showNotification(err.message, 'error');
+  }
+};
+
+async function updateDrawerEquipment() {
+  const costumesEl = document.getElementById('drawer-eq-costumes');
+  const weaponsEl = document.getElementById('drawer-eq-weapons');
+  if (!costumesEl || !weaponsEl || !state.user) return;
+
+  try {
+    const res = await fetch(`/api/equipment/inventory?userId=${state.user.id}`);
+    const data = await res.json();
+
+    const charData = state.user.character_data || {};
+    const currentWeapon = charData.weapon || 'none';
+    const currentCostume = charData.costume || 'normal';
+
+    const starterCostumes = [
+      { key: 'normal', name: 'Обычный', desc: 'без бонусов' },
+      { key: 'armor', name: 'Рыцарский доспех', desc: '+100 HP' },
+      { key: 'robe', name: 'Мантия мага', desc: '+20 HP, +10 DMG' }
+    ];
+    const starterWeapons = [
+      { key: 'none', name: 'Без оружия', desc: 'без бонусов' },
+      { key: 'sword', name: 'Энерг. меч', desc: '+20 DMG' },
+      { key: 'staff', name: 'Посох мага', desc: '+10 HP, +10 DMG' },
+      { key: 'shield', name: 'Энерг. щит', desc: '+30 HP, +5 DMG' }
+    ];
+
+    const ownedCostumes = (data.items || []).filter(i => i.item_category === 'costume');
+    const ownedWeapons = (data.items || []).filter(i => i.item_category === 'weapon');
+
+    const eqBtnStyle = (isActive) =>
+      `cursor: pointer; padding: 6px 8px; border-radius: 6px; font-size: 10px; border: 1px solid ${isActive ? '#00f0ff' : 'rgba(255,255,255,0.1)'}; background: ${isActive ? 'rgba(0,240,255,0.15)' : 'rgba(255,255,255,0.03)'}; color: ${isActive ? '#00f0ff' : '#a3b2bc'}; transition: all 0.2s; text-align: left;`;
+
+    costumesEl.innerHTML = '';
+    starterCostumes.forEach(c => {
+      const active = currentCostume === c.key;
+      const btn = document.createElement('div');
+      btn.style.cssText = eqBtnStyle(active);
+      btn.innerHTML = `<div style="font-weight:600;color:${active ? '#00f0ff' : '#fff'};font-size:11px;">${c.name}</div><div style="font-size:9px;color:#8c9ba5;">${c.desc}</div>`;
+      btn.onclick = () => equipItem(c.key, 'costume');
+      costumesEl.appendChild(btn);
+    });
+    ownedCostumes.forEach(c => {
+      const active = currentCostume === c.item_key;
+      const btn = document.createElement('div');
+      btn.style.cssText = eqBtnStyle(active);
+      const desc = `+${c.bonus_hp} HP, +${c.bonus_dmg} DMG`;
+      btn.innerHTML = `<div style="font-weight:600;color:${active ? '#00f0ff' : '#fff'};font-size:11px;">${c.name}</div><div style="font-size:9px;color:#8c9ba5;">${desc}</div>`;
+      btn.onclick = () => equipItem(c.item_key, 'costume');
+      costumesEl.appendChild(btn);
+    });
+
+    weaponsEl.innerHTML = '';
+    starterWeapons.forEach(w => {
+      const active = currentWeapon === w.key;
+      const btn = document.createElement('div');
+      btn.style.cssText = eqBtnStyle(active);
+      btn.innerHTML = `<div style="font-weight:600;color:${active ? '#ffcc00' : '#fff'};font-size:11px;">${w.name}</div><div style="font-size:9px;color:#8c9ba5;">${w.desc}</div>`;
+      btn.onclick = () => equipItem(w.key, 'weapon');
+      weaponsEl.appendChild(btn);
+    });
+    ownedWeapons.forEach(w => {
+      const active = currentWeapon === w.item_key;
+      const btn = document.createElement('div');
+      btn.style.cssText = eqBtnStyle(active);
+      const desc = `+${w.bonus_hp} HP, +${w.bonus_dmg} DMG`;
+      btn.innerHTML = `<div style="font-weight:600;color:${active ? '#ffcc00' : '#fff'};font-size:11px;">${w.name}</div><div style="font-size:9px;color:#8c9ba5;">${desc}</div>`;
+      btn.onclick = () => equipItem(w.item_key, 'weapon');
+      weaponsEl.appendChild(btn);
+    });
+  } catch (err) {}
+}
+
+function updateDrawerStats() {
+  if (!state.user) return;
+  const stats = getPlayerBattleStats(state.user);
+  const hpEl = document.getElementById('drawer-hp');
+  const dmgEl = document.getElementById('drawer-dmg');
+  const elemEl = document.getElementById('drawer-element');
+  if (hpEl) hpEl.textContent = stats.maxHp;
+  if (dmgEl) dmgEl.textContent = stats.dmg;
+  const elementNames = { water: 'Вода', fire: 'Огонь', earth: 'Земля', wind: 'Ветер' };
+  if (elemEl) elemEl.textContent = elementNames[stats.element] || stats.element;
+}
 
 function updateInventoryUI() {
   const mainInv = document.getElementById('inventory-list');

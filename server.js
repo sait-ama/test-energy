@@ -146,7 +146,7 @@ setInterval(() => {
 
 async function broadcastPlayersList() {
   try {
-    const users = await allQuery('SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, current_cell, character_data, wins FROM users');
+    const users = await allQuery('SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, current_cell, character_data, wins, equipped_weapon, equipped_costume FROM users');
     const effects = await allQuery('SELECT * FROM active_effects');
     const now = new Date();
 
@@ -174,6 +174,8 @@ async function broadcastPlayersList() {
         remanga_avatar: user.remanga_avatar,
         current_cell: user.current_cell,
         character_data: parsedChar,
+        equipped_weapon: user.equipped_weapon || null,
+        equipped_costume: user.equipped_costume || null,
         isOnline: onlineUsers.has(String(user.id)),
         effects: userEffects.map(e => ({ type: e.type, name: e.name, expires_at: e.expires_at }))
       };
@@ -929,20 +931,20 @@ function getPlayerBattleStats(user) {
   let bonusDmg = 0;
 
   const weapon = charData.weapon || 'none';
-  if (weapon === 'sword') bonusDmg += 15;
-  else if (weapon === 'staff') { bonusDmg += 10; bonusHp += 20; }
+  if (weapon === 'sword') bonusDmg += 20;
+  else if (weapon === 'staff') { bonusDmg += 10; bonusHp += 10; }
   else if (weapon === 'shield') { bonusDmg += 5; bonusHp += 30; }
-  else if (weapon === 'axe') bonusDmg += 20;
-  else if (weapon === 'bow') bonusDmg += 12;
-  else if (weapon === 'scythe') bonusDmg += 18;
-  else if (weapon === 'hammer') bonusDmg += 22;
+  else if (weapon === 'axe') bonusDmg += 40;
+  else if (weapon === 'bow') { bonusDmg += 20; bonusHp += 50; }
+  else if (weapon === 'scythe') { bonusDmg += 30; bonusHp += 20; }
+  else if (weapon === 'hammer') { bonusDmg += 80; bonusHp += 100; }
 
   const costume = charData.costume || 'normal';
-  if (costume === 'armor') bonusHp += 50;
-  else if (costume === 'robe') { bonusHp += 20; bonusDmg += 5; }
-  else if (costume === 'cyber') { bonusHp += 30; bonusDmg += 8; }
-  else if (costume === 'steampunk') { bonusHp += 25; bonusDmg += 6; }
-  else if (costume === 'ninja_suit') { bonusHp += 15; bonusDmg += 12; }
+  if (costume === 'armor') bonusHp += 100;
+  else if (costume === 'robe') { bonusHp += 20; bonusDmg += 10; }
+  else if (costume === 'cyber') { bonusHp += 30; bonusDmg += 5; }
+  else if (costume === 'steampunk') { bonusHp += 55; bonusDmg += 10; }
+  else if (costume === 'ninja_suit') { bonusHp += 200; bonusDmg += 30; }
 
   return {
     maxHp: baseHp + bonusHp,
@@ -1511,6 +1513,122 @@ app.get('/api/shop', async (req, res) => {
     }
   ];
   res.json({ items });
+});
+
+app.get('/api/equipment/shop', async (req, res) => {
+  const prices = await getShopPrices();
+  const items = [
+    { id: 'eq_axe', category: 'weapon', key: 'axe', name: 'Боевой топор', description: '+40 DMG', bonusHp: 0, bonusDmg: 40, cost: prices.price_eq_axe || 500 },
+    { id: 'eq_bow', category: 'weapon', key: 'bow', name: 'Лук', description: '+50 HP, +20 DMG', bonusHp: 50, bonusDmg: 20, cost: prices.price_eq_bow || 600 },
+    { id: 'eq_scythe', category: 'weapon', key: 'scythe', name: 'Коса смерти', description: '+20 HP, +30 DMG', bonusHp: 20, bonusDmg: 30, cost: prices.price_eq_scythe || 700 },
+    { id: 'eq_hammer', category: 'weapon', key: 'hammer', name: 'Молот Тора', description: '+100 HP, +80 DMG', bonusHp: 100, bonusDmg: 80, cost: prices.price_eq_hammer || 2000 },
+    { id: 'eq_cyber', category: 'costume', key: 'cyber', name: 'Кибер-костюм', description: '+30 HP, +5 DMG', bonusHp: 30, bonusDmg: 5, cost: prices.price_eq_cyber || 400 },
+    { id: 'eq_steampunk', category: 'costume', key: 'steampunk', name: 'Стимпанк жилет', description: '+55 HP, +10 DMG', bonusHp: 55, bonusDmg: 10, cost: prices.price_eq_steampunk || 800 },
+    { id: 'eq_ninja', category: 'costume', key: 'ninja_suit', name: 'Костюм шиноби', description: '+200 HP, +30 DMG', bonusHp: 200, bonusDmg: 30, cost: prices.price_eq_ninja || 3000 }
+  ];
+  res.json({ items });
+});
+
+app.post('/api/equipment/buy', async (req, res) => {
+  const { userId, itemId } = req.body;
+  if (!userId || !itemId) return res.status(400).json({ error: 'Missing parameters' });
+
+  const allItems = {
+    eq_axe: { key: 'axe', category: 'weapon', name: 'Боевой топор', bonusHp: 0, bonusDmg: 40, cost: 500 },
+    eq_bow: { key: 'bow', category: 'weapon', name: 'Лук', bonusHp: 50, bonusDmg: 20, cost: 600 },
+    eq_scythe: { key: 'scythe', category: 'weapon', name: 'Коса смерти', bonusHp: 20, bonusDmg: 30, cost: 700 },
+    eq_hammer: { key: 'hammer', category: 'weapon', name: 'Молот Тора', bonusHp: 100, bonusDmg: 80, cost: 2000 },
+    eq_cyber: { key: 'cyber', category: 'costume', name: 'Кибер-костюм', bonusHp: 30, bonusDmg: 5, cost: 400 },
+    eq_steampunk: { key: 'steampunk', category: 'costume', name: 'Стимпанк жилет', bonusHp: 55, bonusDmg: 10, cost: 800 },
+    eq_ninja: { key: 'ninja_suit', category: 'costume', name: 'Костюм шиноби', bonusHp: 200, bonusDmg: 30, cost: 3000 }
+  };
+
+  const prices = await getShopPrices();
+  const item = allItems[itemId];
+  if (!item) return res.status(400).json({ error: 'Товар не найден' });
+
+  const priceKey = `price_${itemId}`;
+  const cost = prices[priceKey] || item.cost;
+
+  try {
+    const user = await getQuery('SELECT balance FROM users WHERE id = ?', [userId]);
+    if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
+    if (user.balance < cost) return res.status(400).json({ error: 'Недостаточно монет' });
+
+    const existing = await getQuery('SELECT id FROM equipment_inventory WHERE user_id = ? AND item_key = ?', [userId, item.key]);
+    if (existing) return res.status(400).json({ error: 'У вас уже есть этот предмет' });
+
+    const newBalance = user.balance - cost;
+    await runQuery('UPDATE users SET balance = ? WHERE id = ?', [newBalance, userId]);
+    await runQuery(
+      'INSERT INTO equipment_inventory (user_id, item_key, item_category, name, bonus_hp, bonus_dmg) VALUES (?, ?, ?, ?, ?, ?)',
+      [userId, item.key, item.category, item.name, item.bonusHp, item.bonusDmg]
+    );
+    await runQuery(
+      'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+      [userId, 'buy_equipment', `Куплено: ${item.name} за ${cost} монет`, new Date().toISOString()]
+    );
+
+    res.json({ success: true, balance: newBalance });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/equipment/inventory', async (req, res) => {
+  const { userId } = req.query;
+  if (!userId) return res.status(400).json({ error: 'Missing userId' });
+  try {
+    const items = await allQuery('SELECT * FROM equipment_inventory WHERE user_id = ?', [userId]);
+    const user = await getQuery('SELECT equipped_weapon, equipped_costume FROM users WHERE id = ?', [userId]);
+    res.json({ items, equippedWeapon: user ? user.equipped_weapon : null, equippedCostume: user ? user.equipped_costume : null });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/equipment/equip', async (req, res) => {
+  const { userId, itemKey, category } = req.body;
+  if (!userId || !category) return res.status(400).json({ error: 'Missing parameters' });
+
+  try {
+    const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
+
+    let charData = {};
+    try { charData = user.character_data ? JSON.parse(user.character_data) : {}; } catch(e) { charData = {}; }
+
+    const starterWeapons = ['none', 'sword', 'staff', 'shield'];
+    const starterCostumes = ['normal', 'armor', 'robe'];
+
+    if (category === 'weapon') {
+      if (itemKey && !starterWeapons.includes(itemKey)) {
+        const owned = await getQuery('SELECT id FROM equipment_inventory WHERE user_id = ? AND item_key = ?', [userId, itemKey]);
+        if (!owned) return res.status(400).json({ error: 'У вас нет этого оружия' });
+      }
+      charData.weapon = itemKey || 'none';
+      await runQuery('UPDATE users SET equipped_weapon = ?, character_data = ? WHERE id = ?', [itemKey || null, JSON.stringify(charData), userId]);
+    } else if (category === 'costume') {
+      if (itemKey && !starterCostumes.includes(itemKey)) {
+        const owned = await getQuery('SELECT id FROM equipment_inventory WHERE user_id = ? AND item_key = ?', [userId, itemKey]);
+        if (!owned) return res.status(400).json({ error: 'У вас нет этого костюма' });
+      }
+      charData.costume = itemKey || 'normal';
+      await runQuery('UPDATE users SET equipped_costume = ?, character_data = ? WHERE id = ?', [itemKey || null, JSON.stringify(charData), userId]);
+    } else {
+      return res.status(400).json({ error: 'Неверная категория' });
+    }
+
+    if (onlineUsers.has(String(userId))) {
+      const cached = onlineUsers.get(String(userId));
+      cached.character_data = charData;
+    }
+    await broadcastPlayersList();
+
+    res.json({ success: true, character_data: charData });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/casino/spin', async (req, res) => {

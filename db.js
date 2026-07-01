@@ -33,6 +33,21 @@ export function initDb() {
 
       db.run(`ALTER TABLE users ADD COLUMN guild_tax_required INTEGER DEFAULT 0`, () => {});
       db.run(`ALTER TABLE users ADD COLUMN guild_tax_paid INTEGER DEFAULT 0`, () => {});
+      db.run(`ALTER TABLE users ADD COLUMN equipped_weapon TEXT DEFAULT NULL`, () => {});
+      db.run(`ALTER TABLE users ADD COLUMN equipped_costume TEXT DEFAULT NULL`, () => {});
+
+      db.run(`
+        CREATE TABLE IF NOT EXISTS equipment_inventory (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER,
+          item_key TEXT,
+          item_category TEXT,
+          name TEXT,
+          bonus_hp INTEGER DEFAULT 0,
+          bonus_dmg INTEGER DEFAULT 0,
+          FOREIGN KEY(user_id) REFERENCES users(id)
+        )
+      `);
 
       db.run(`
         CREATE TABLE IF NOT EXISTS cells (
