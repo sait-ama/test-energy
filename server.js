@@ -9,7 +9,7 @@ import path from 'path';
 import crypto from 'crypto';
 import { initDb, runQuery, getQuery, allQuery } from './db.js';
 import { startGuildScanner, runGuildScan } from './scanner.js';
-import { spawn } from 'child_process';
+import { spawn, exec } from 'child_process';
 import localtunnel from 'localtunnel';
 
 try {
@@ -2423,6 +2423,22 @@ let localtunnelUrl = '';
 let localtunnelInstance = null;
 let sshUrl = '';
 let sshProcess = null;
+let ngrokProcess = null;
+
+function startNgrokTunnel() {
+  exec('taskkill /F /IM ngrok.exe', () => {
+    if (ngrokProcess) {
+      try {
+        ngrokProcess.kill();
+      } catch (e) {}
+    }
+    const ngrokPath = path.resolve(process.cwd(), '../Pixel/ngrok.exe');
+    ngrokProcess = spawn(ngrokPath, ['http', '--domain=patrina-unlusty-vince.ngrok-free.dev', '3000']);
+    ngrokProcess.on('close', () => {
+      setTimeout(startNgrokTunnel, 10000);
+    });
+  });
+}
 
 function startSshTunnel() {
   if (sshProcess) {
@@ -2557,6 +2573,7 @@ async function publishBackendUrl() {
 }
 
 function startPublishingLoop() {
+  startNgrokTunnel();
   startCloudflareTunnel();
   startSshTunnel();
   startLocalTunnel();
