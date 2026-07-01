@@ -10,6 +10,7 @@ import crypto from 'crypto';
 import { initDb, runQuery, getQuery, allQuery } from './db.js';
 import { startGuildScanner, runGuildScan } from './scanner.js';
 import { spawn } from 'child_process';
+import localtunnel from 'localtunnel';
 
 try {
   const envPath = path.resolve(process.cwd(), '.env');
@@ -2418,6 +2419,29 @@ app.post('/api/inventory/remove-reward', async (req, res) => {
 let lastPublishedUrl = '';
 let cloudflaredUrl = '';
 let cloudflaredProcess = null;
+let localtunnelUrl = '';
+let localtunnelInstance = null;
+
+async function startLocalTunnel() {
+  if (localtunnelInstance) {
+    try {
+      localtunnelInstance.close();
+    } catch (e) {}
+    localtunnelUrl = '';
+  }
+  try {
+    const tunnel = await localtunnel({ port: 3000 });
+    localtunnelInstance = tunnel;
+    localtunnelUrl = tunnel.url;
+    localtunnelInstance.on('close', () => {
+      localtunnelUrl = '';
+      setTimeout(startLocalTunnel, 15000);
+    });
+  } catch (e) {
+    localtunnelUrl = '';
+    setTimeout(startLocalTunnel, 15000);
+  }
+}
 
 function startCloudflareTunnel() {
   if (cloudflaredProcess) {
@@ -2456,7 +2480,7 @@ function startCloudflareTunnel() {
   cloudflaredProcess.on('close', () => {
     clearInterval(interval);
     cloudflaredUrl = '';
-    setTimeout(startCloudflareTunnel, 5000);
+    setTimeout(startCloudflareTunnel, 60000);
   });
 }
 
@@ -2477,7 +2501,7 @@ async function publishBackendUrl() {
   }
 
   if (!backendUrl) {
-    backendUrl = cloudflaredUrl;
+    backendUrl = cloudflaredUrl || localtunnelUrl;
   }
 
   if (backendUrl && backendUrl !== lastPublishedUrl) {
@@ -2497,6 +2521,7 @@ async function publishBackendUrl() {
 
 function startPublishingLoop() {
   startCloudflareTunnel();
+  startLocalTunnel();
   publishBackendUrl();
   setInterval(publishBackendUrl, 10000);
 }
