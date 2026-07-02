@@ -53,7 +53,7 @@ function highlightCurrentCell() {
     const tileMesh = state.tileObjects[i];
     if (!tileMesh || !tileMesh.material) continue;
     const materials = Array.isArray(tileMesh.material) ? tileMesh.material : [tileMesh.material];
-    
+
     const isBossCell = (i > 0 && i % 30 === 0) || i === 299;
     const bossData = (state.bosses || []).find(b => b.cell_number === i);
     const defeated = bossData ? bossData.defeated : 0;
@@ -164,8 +164,8 @@ function updateBossMeshes() {
     const dx = prevPos.x - pos.x;
     const dz = prevPos.z - pos.z;
     const autoAngle = Math.atan2(dx, dz);
-    const angle = (bossData && bossData.custom_rotation !== null && bossData.custom_rotation !== undefined) 
-      ? bossData.custom_rotation 
+    const angle = (bossData && bossData.custom_rotation !== null && bossData.custom_rotation !== undefined)
+      ? bossData.custom_rotation
       : autoAngle;
     const customScale = (bossData && bossData.custom_scale !== null && bossData.custom_scale !== undefined) ? bossData.custom_scale : 1.0;
     const bossMesh = create3DBossMesh(idx, defeated, angle, customScale);
@@ -307,7 +307,7 @@ function loadBossModels() {
       cachedBossGLTF[modelFile] = gltf.scene;
       cachedBossGLTF[index] = gltf.scene;
       loadingBossModels.delete(modelFile);
-      
+
       updateBossMeshes();
       if (currentOpenedBossCell === cellNum) {
         const currentBoss = (state.bosses || []).find(b => b.cell_number === cellNum);
@@ -327,7 +327,7 @@ function create3DBossMesh(index, defeated, faceAngle, customScale) {
   if (cachedBossGLTF[index]) {
     const group = new THREE.Group();
     const model = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cachedBossGLTF[index]) : cachedBossGLTF[index].clone();
-    
+
     const hiddenNodes = [];
     model.traverse((child) => {
       if (child.isLight || child.isCamera || child.isHelper) {
@@ -335,9 +335,9 @@ function create3DBossMesh(index, defeated, faceAngle, customScale) {
         hiddenNodes.push(child);
       }
       if (child.isMesh && (
-        child.name.toLowerCase().includes('grid') || 
-        child.name.toLowerCase().includes('helper') || 
-        child.name.toLowerCase().includes('floor') || 
+        child.name.toLowerCase().includes('grid') ||
+        child.name.toLowerCase().includes('helper') ||
+        child.name.toLowerCase().includes('floor') ||
         child.name.toLowerCase().includes('ground') ||
         child.name.toLowerCase().includes('sky')
       )) {
@@ -398,7 +398,7 @@ function create3DBossMesh(index, defeated, faceAngle, customScale) {
         }
       });
     }
-    
+
     group.add(model);
     const scaleMultiplier = (customScale !== undefined && customScale !== null) ? parseFloat(customScale) : 1.0;
     const finalScale = isNaN(scaleMultiplier) ? 1.0 : scaleMultiplier;
@@ -411,7 +411,7 @@ function create3DBossMesh(index, defeated, faceAngle, customScale) {
   const transparentVal = defeated;
   const mainColor = defeated ? '#555555' : getBossColor(index);
   const accentColor = defeated ? '#777777' : getBossAccentColor(index);
-  
+
   const mainMat = new THREE.MeshStandardMaterial({
     color: mainColor,
     roughness: 0.5,
@@ -419,7 +419,7 @@ function create3DBossMesh(index, defeated, faceAngle, customScale) {
     transparent: transparentVal,
     opacity: opacityVal
   });
-  
+
   const accMat = new THREE.MeshStandardMaterial({
     color: accentColor,
     roughness: 0.4,
@@ -627,7 +627,7 @@ async function checkAndShowBossModal(cellNumber) {
 function getModelBoundingBox(object) {
   const box = new THREE.Box3();
   let hasMesh = false;
-  
+
   object.updateMatrixWorld(true);
   object.traverse((child) => {
     if (child.isMesh) {
@@ -640,7 +640,7 @@ function getModelBoundingBox(object) {
       box.union(geomBox);
     }
   });
-  
+
   if (!hasMesh) {
     box.setFromObject(object);
   }
@@ -706,8 +706,8 @@ function renderBossBattle3D(boss) {
   gridHelper.position.y = 0.01;
   scene.add(gridHelper);
 
-  const charData = (state.user && state.user.character_data) 
-    ? state.user.character_data 
+  const charData = (state.user && state.user.character_data)
+    ? state.user.character_data
     : getDefaultCharData();
   const playerMesh = create3DCharacterMesh(charData);
   playerMesh.position.set(-1.0, 0, 0);
@@ -750,7 +750,7 @@ function renderBossBattle3D(boss) {
     const box2 = getModelBoundingBox(bossModel);
     const center = new THREE.Vector3();
     box2.getCenter(center);
-    
+
     bossModel.position.x = 1.0 - center.x;
     bossModel.position.z = 0 - center.z;
     bossModel.position.y = 0;
@@ -781,11 +781,11 @@ function renderBossBattle3D(boss) {
     bossBattleState.animId = requestAnimationFrame(animate);
     const delta = clock.getDelta();
     const time = performance.now() * 0.003;
-    
+
     if (bossBattleState.bossMixer) {
       bossBattleState.bossMixer.update(delta);
     }
-    
+
     if (bossBattleState.playerModel) {
       bossBattleState.playerModel.position.y = Math.sin(time * 2) * 0.05;
     }
@@ -917,14 +917,14 @@ function updateBossModalUI(boss) {
   document.getElementById('boss-status-occupied').classList.add('hidden');
   document.getElementById('boss-status-ready').classList.add('hidden');
   document.getElementById('boss-status-battle').classList.add('hidden');
-  
+
   document.getElementById('boss-btn-close').classList.add('hidden');
   document.getElementById('boss-btn-bypass-only').classList.add('hidden');
   document.getElementById('boss-btn-fight').classList.add('hidden');
   document.getElementById('boss-btn-bypass').classList.add('hidden');
   document.getElementById('boss-btn-attack').classList.add('hidden');
   document.getElementById('boss-btn-forfeit').classList.add('hidden');
-  
+
   document.getElementById('boss-modal-title').textContent = `Босс: ${boss.name} (Ячейка ${boss.cell_number})`;
 
   if (boss.defeated) {
@@ -946,25 +946,25 @@ function updateBossModalUI(boss) {
         renderBossBattle3D(boss);
       }, 0);
     }
-    
+
     const stats = getPlayerBattleStats(state.user);
     document.getElementById('battle-player-element').textContent = translateElement(stats.element);
     document.getElementById('battle-player-dmg').textContent = stats.dmg;
-    
+
     const playerHp = boss.current_fighter_hp;
     const playerMaxHp = stats.maxHp;
     const playerPercent = Math.max(0, Math.min(100, (playerHp / playerMaxHp) * 100));
     document.getElementById('battle-player-hp-bar').style.width = `${playerPercent}%`;
     document.getElementById('battle-player-hp-text').textContent = `${playerHp} / ${playerMaxHp}`;
-    
+
     document.getElementById('battle-boss-name-label').textContent = boss.name;
     document.getElementById('battle-boss-weakness').textContent = translateElement(boss.weakness);
     document.getElementById('battle-boss-dmg').textContent = boss.dmg;
-    
+
     const bossPercent = Math.max(0, Math.min(100, (boss.hp / boss.max_hp) * 100));
     document.getElementById('battle-boss-hp-bar').style.width = `${bossPercent}%`;
     document.getElementById('battle-boss-hp-text').textContent = `${boss.hp} / ${boss.max_hp}`;
-    
+
     updateAttackCooldownUI(boss);
   } else {
     document.getElementById('boss-status-ready').classList.remove('hidden');
@@ -974,7 +974,7 @@ function updateBossModalUI(boss) {
     document.getElementById('boss-info-weakness').textContent = translateElement(boss.weakness);
     const rewardText = formatBossReward(boss);
     document.getElementById('boss-info-reward').textContent = rewardText;
-    
+
     document.getElementById('boss-preview-hp').textContent = boss.max_hp;
     document.getElementById('boss-preview-dmg').textContent = boss.dmg;
     renderBossPreview3D(boss);
@@ -1082,17 +1082,17 @@ function updateAttackCooldownUI(boss) {
     clearInterval(attackCooldownInterval);
     attackCooldownInterval = null;
   }
-  
+
   const lastAttackStr = state.user.last_boss_attack_time;
   if (!lastAttackStr) {
     document.getElementById('battle-cooldown-text').classList.add('hidden');
     document.getElementById('boss-btn-attack').disabled = false;
     return;
   }
-  
+
   const cooldownMs = (boss.attack_cooldown_seconds || 300) * 1000;
   const lastAttackTime = new Date(lastAttackStr).getTime();
-  
+
   function updateTimer() {
     const elapsed = Date.now() - lastAttackTime;
     const remaining = cooldownMs - elapsed;
@@ -1110,7 +1110,7 @@ function updateAttackCooldownUI(boss) {
       document.getElementById('battle-cooldown-time').textContent = `${min}м ${remSec}с`;
     }
   }
-  
+
   updateTimer();
   attackCooldownInterval = setInterval(updateTimer, 1000);
 }
@@ -1129,7 +1129,7 @@ function initBossModalEvents() {
   document.getElementById('boss-btn-close').addEventListener('click', () => {
     hideBossModal();
   });
-  
+
   document.getElementById('boss-btn-bypass-only').addEventListener('click', async () => {
     try {
       const res = await fetch('/api/boss/skip', {
@@ -1147,7 +1147,7 @@ function initBossModalEvents() {
       showNotification('Ошибка сети', 'error');
     }
   });
-  
+
   document.getElementById('boss-btn-bypass').addEventListener('click', async () => {
     try {
       const res = await fetch('/api/boss/skip', {
@@ -1197,7 +1197,7 @@ function initBossModalEvents() {
         showNotification(data.error || 'Ошибка при атаке', 'error');
         return;
       }
-      
+
       if (data.status === 'victory') {
         let msg = `Победа! Вы победили босса и получили ${data.reward} монет!`;
         if (data.rewardCard) {
@@ -1261,7 +1261,7 @@ function setupAdminBossConfig() {
         modelSelect.appendChild(opt);
       });
     }
-  }).catch(() => {});
+  }).catch(() => { });
 
   const loadBossFields = () => {
     const cellNum = parseInt(bossSelect.value);
@@ -1373,7 +1373,7 @@ function setupAdminBossConfig() {
       const reward = parseInt(document.getElementById('admin-boss-reward').value);
       const rewardType = document.getElementById('admin-boss-reward-type').value;
       const rewardDetail = document.getElementById('admin-boss-reward-detail').value;
-      
+
       try {
         const res = await fetch('/api/admin/boss/update', {
           method: 'POST',
@@ -1463,7 +1463,7 @@ async function resolveBackendUrl() {
 
   try {
     const binUrl = 'https://extendsclass.com/api/json-storage/bin/ffaabaf?nocache=' + Date.now();
-    
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6000);
 
@@ -1595,7 +1595,7 @@ function proxyTouchEvent(e, targetElement) {
       if (prop === 'touches') return filteredTouches;
       if (prop === 'targetTouches') return filteredTargetTouches;
       if (prop === 'changedTouches') return filteredChangedTouches;
-      
+
       const val = target[prop];
       if (typeof val === 'function') {
         return val.bind(target);
@@ -1608,10 +1608,10 @@ function proxyTouchEvent(e, targetElement) {
 const originalAddEvent = EventTarget.prototype.addEventListener;
 const originalRemoveEvent = EventTarget.prototype.removeEventListener;
 
-EventTarget.prototype.addEventListener = function(type, listener, options) {
+EventTarget.prototype.addEventListener = function (type, listener, options) {
   if (type.startsWith('touch')) {
     const self = this;
-    const wrapped = function(e) {
+    const wrapped = function (e) {
       listener(proxyTouchEvent(e, self));
     };
     if (!listener._wrappedListeners) {
@@ -1624,7 +1624,7 @@ EventTarget.prototype.addEventListener = function(type, listener, options) {
   }
 };
 
-EventTarget.prototype.removeEventListener = function(type, listener, options) {
+EventTarget.prototype.removeEventListener = function (type, listener, options) {
   if (type.startsWith('touch') && listener._wrappedListeners) {
     const idx = listener._wrappedListeners.findIndex(x => x.target === this);
     if (idx !== -1) {
@@ -1654,23 +1654,23 @@ function initJoystick() {
   function updateJoystickPosition(touch) {
     let dx = touch.clientX - startX;
     let dy = touch.clientY - startY;
-    
+
     const distance = Math.sqrt(dx * dx + dy * dy);
-    
+
     if (distance > maxDistance) {
       dx = (dx / distance) * maxDistance;
       dy = (dy / distance) * maxDistance;
     }
-    
+
     dot.style.transform = `translate(${dx}px, ${dy}px)`;
-    
+
     joystickInput.x = dx / maxDistance;
     joystickInput.y = dy / maxDistance;
   }
 
   function handleStart(e) {
     if (active) return;
-    
+
     let touch = null;
     if (e.changedTouches && e.changedTouches.length > 0) {
       touch = e.changedTouches[0];
@@ -1691,28 +1691,28 @@ function initJoystick() {
 
   function handleMove(e) {
     if (!active) return;
-    
+
     let touch = null;
     if (e.touches && touchId !== null) {
       touch = Array.from(e.touches).find(t => t.identifier === touchId);
     } else if (!e.touches) {
       touch = e;
     }
-    
+
     if (!touch) return;
     updateJoystickPosition(touch);
   }
 
   function handleEnd(e) {
     if (!active) return;
-    
+
     let ended = false;
     if (e.changedTouches && touchId !== null) {
       ended = Array.from(e.changedTouches).some(t => t.identifier === touchId);
     } else if (!e.changedTouches) {
       ended = true;
     }
-    
+
     if (ended) {
       active = false;
       touchId = null;
@@ -1725,7 +1725,7 @@ function initJoystick() {
   container.addEventListener('touchstart', handleStart, { passive: true });
   container.addEventListener('touchmove', handleMove, { passive: false });
   container.addEventListener('touchend', handleEnd, { passive: true });
-  
+
   container.addEventListener('mousedown', handleStart);
   window.addEventListener('mousemove', handleMove);
   window.addEventListener('mouseup', handleEnd);
@@ -1748,7 +1748,7 @@ function getTilePosition(index) {
   const row = Math.floor(index / GRID_COLS);
   const rem = index % GRID_COLS;
   const col = (row % 2 === 0) ? rem : (GRID_COLS - 1 - rem);
-  
+
   return {
     x: (col - GRID_COLS / 2) * TILE_SPACING,
     y: 0,
@@ -1835,7 +1835,7 @@ function layoutBoardElements() {
       tile.position.set(pos.x, pos.y, pos.z);
       tile.scale.set(scales[i], 1, scales[i]);
     }
-    
+
     const icon = state.floatingIcons[i];
     if (icon) {
       const pos = positions[i];
@@ -2245,7 +2245,7 @@ async function startTelegramBotAuth() {
     if (newWindow) {
       try {
         newWindow.close();
-      } catch (e) {}
+      } catch (e) { }
     }
     showNotification(err.message, 'error');
     resetTgAuthButton();
@@ -2272,7 +2272,7 @@ function showWizardStep(stepNumber) {
     step1.classList.add('hidden');
     step2.classList.add('hidden');
     step3.classList.add('hidden');
-    
+
     document.getElementById(`creator-step-${stepNumber}`).classList.remove('hidden');
     title.textContent = `Создание персонажа (Шаг ${stepNumber} из 3)`;
   }
@@ -2506,7 +2506,7 @@ async function loadCells() {
     const data = await res.json();
     state.cells = data.cells;
   } catch (err) {
-    
+
   }
 }
 
@@ -2520,7 +2520,7 @@ async function refreshProfile() {
     }
     if (!res.ok) throw new Error();
     const data = await res.json();
-    
+
     state.user = data.user;
     state.inventory = data.inventory;
     state.activeEffects = data.activeEffects;
@@ -2594,12 +2594,12 @@ async function refreshProfile() {
         claimBtn.classList.add('hidden');
       }
     }
-    
+
     if (document.getElementById('profile-drawer').classList.contains('open')) {
       updateDrawerPreview();
       updateDrawerEquipment();
     }
-    
+
     if (data.pendingBoss && !data.pendingBoss.defeated) {
       showPendingBossModal(data.pendingBoss);
     } else {
@@ -2610,7 +2610,7 @@ async function refreshProfile() {
     }
 
   } catch (err) {
-    
+
   }
 }
 
@@ -2703,7 +2703,7 @@ function updateDrawerPreview() {
   if (!state.drawerPreview.scene) {
     initDrawerPreview3D();
   }
-  
+
   if (state.drawerPreview.group) {
     state.drawerPreview.scene.remove(state.drawerPreview.group);
   }
@@ -2772,7 +2772,7 @@ function create3DCharacterMesh(data) {
     const skirt = new THREE.Mesh(skirtGeo, clothMat);
     skirt.position.y = 0.19;
     group.add(skirt);
-    
+
     const collarGeo = new THREE.CylinderGeometry(0.32, 0.35, 0.1, 12);
     const collar = new THREE.Mesh(collarGeo, new THREE.MeshStandardMaterial({ color: '#7f8c8d', roughness: 0.8 }));
     collar.position.y = 0.8;
@@ -3155,7 +3155,7 @@ function createFloatingIconMesh(cellData) {
   if (cellData.claimed_by_user_id !== null && cellData.claimed_by_user_id !== undefined) {
     return null;
   }
-  
+
   if (cellData.type === 'forward') {
     const coneGeo = new THREE.ConeGeometry(0.12, 0.35, 4);
     const coneMat = new THREE.MeshBasicMaterial({ color: '#2ecc71' });
@@ -3163,7 +3163,7 @@ function createFloatingIconMesh(cellData) {
     cone.rotation.x = Math.PI / 2;
     return cone;
   }
-  
+
   if (cellData.type === 'backward') {
     const coneGeo = new THREE.ConeGeometry(0.12, 0.35, 4);
     const coneMat = new THREE.MeshBasicMaterial({ color: '#e74c3c' });
@@ -3171,14 +3171,14 @@ function createFloatingIconMesh(cellData) {
     cone.rotation.x = -Math.PI / 2;
     return cone;
   }
-  
+
   if (cellData.type === 'obstacle') {
     const boxGeo = new THREE.BoxGeometry(0.2, 0.2, 0.2);
     const boxMat = new THREE.MeshBasicMaterial({ color: '#e67e22' });
     const box = new THREE.Mesh(boxGeo, boxMat);
     return box;
   }
-  
+
   if (cellData.reward_type === 'currency') {
     const coinGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.04, 8);
     const coinMat = new THREE.MeshStandardMaterial({ color: '#ffb800', metalness: 0.9, roughness: 0.1 });
@@ -3186,21 +3186,21 @@ function createFloatingIconMesh(cellData) {
     coin.rotation.x = Math.PI / 2;
     return coin;
   }
-  
+
   if (cellData.reward_type === 'card') {
     const cardGeo = new THREE.BoxGeometry(0.12, 0.24, 0.02);
     const cardMat = new THREE.MeshBasicMaterial({ color: '#00f0ff' });
     const card = new THREE.Mesh(cardGeo, cardMat);
     return card;
   }
-  
+
   if (cellData.reward_type === 'premium') {
     const diamondGeo = new THREE.OctahedronGeometry(0.14);
     const diamondMat = new THREE.MeshBasicMaterial({ color: '#e056fd' });
     const diamond = new THREE.Mesh(diamondGeo, diamondMat);
     return diamond;
   }
-  
+
   return null;
 }
 
@@ -3235,7 +3235,7 @@ function cleanupBoard3D() {
   if (state.boardRenderer) {
     try {
       state.boardRenderer.dispose();
-    } catch (e) {}
+    } catch (e) { }
     state.boardRenderer = null;
   }
   const container = document.getElementById('board-canvas-container');
@@ -3282,7 +3282,7 @@ function initBoard3D() {
       if (typeof parsed.tx === 'number' && !isNaN(parsed.tx)) targetX = parsed.tx;
       if (typeof parsed.ty === 'number' && !isNaN(parsed.ty)) targetY = parsed.ty;
       if (typeof parsed.tz === 'number' && !isNaN(parsed.tz)) targetZ = parsed.tz;
-    } catch (e) {}
+    } catch (e) { }
   }
 
   camera.position.set(cameraX, cameraY, cameraZ);
@@ -3380,7 +3380,7 @@ function initBoard3D() {
       while (obj && obj.parent && obj.parent !== scene) {
         obj = obj.parent;
       }
-      
+
       let clickedPlayer = null;
       for (const [id, playerObj] of state.boardPlayers.entries()) {
         if (playerObj.mesh === obj) {
@@ -3450,7 +3450,7 @@ function initBoard3D() {
       hideCellInfoTag();
       clearTimeout(state.cellInfoTimeout);
     }
-    
+
     state.taggedPlayer = null;
     document.getElementById('username-tag').classList.add('hidden');
     clearTimeout(state.usernameTimeout);
@@ -3459,7 +3459,7 @@ function initBoard3D() {
   const animate = () => {
     if (state.boardRenderer !== renderer) return;
     state.boardAnimId = requestAnimationFrame(animate);
-    
+
     const time = performance.now() * 0.003;
     if (state.floatingIcons) {
       state.floatingIcons.forEach(icon => {
@@ -3498,13 +3498,13 @@ function initBoard3D() {
 
       tag.style.left = `${clampedX}px`;
       tag.style.top = `${clampedY}px`;
-      
+
       let html = `<div style="font-weight:700; color:#00f0ff;">${state.taggedPlayer.player.tg_first_name}</div>`;
       if (state.taggedPlayer.player.remanga_username) {
         html += `<div style="font-size:10px; color:#ffb800; margin-top:2px;">Remanga: ${state.taggedPlayer.player.remanga_username}</div>`;
       }
       html += `<div style="font-size:9px; color:#8c9ba5; margin-top:2px;">Ячейка: ${state.taggedPlayer.player.current_cell}</div>`;
-      
+
       const statusColor = state.taggedPlayer.player.isOnline ? '#2ecc71' : '#95a5a6';
       const statusText = state.taggedPlayer.player.isOnline ? 'В сети' : 'Не в сети';
       html += `<div style="font-size:9px; display:flex; align-items:center; justify-content:center; gap:4px; margin-top:2px; color:${statusColor};">
@@ -3603,7 +3603,7 @@ function initBoard3D() {
     }
 
     if (isNaN(camera.position.x) || isNaN(camera.position.y) || isNaN(camera.position.z) ||
-        isNaN(controls.target.x) || isNaN(controls.target.y) || isNaN(controls.target.z)) {
+      isNaN(controls.target.x) || isNaN(controls.target.y) || isNaN(controls.target.z)) {
       const fallbackPos = getTilePosition(state.user ? state.user.current_cell : 0);
       camera.position.set(fallbackPos.x, fallbackPos.y + 15, fallbackPos.z + 20);
       controls.target.set(fallbackPos.x, fallbackPos.y, fallbackPos.z);
@@ -3631,18 +3631,18 @@ function initBoard3D() {
 
 function buildBoardTiles() {
   state.tileObjects = [];
-  
+
   if (state.floatingIcons) {
     state.floatingIcons.forEach(icon => {
       if (icon) state.boardScene.remove(icon);
     });
   }
   state.floatingIcons = [];
-  
+
   for (let i = 0; i < 300; i++) {
     const cellData = state.cells[i] || { type: 'normal' };
     const pos = getTilePosition(i);
-    
+
     let color = '#121d33';
     const isBossCell = (i > 0 && i % 30 === 0) || i === 299;
     const bossData = (state.bosses || []).find(b => b.cell_number === i);
@@ -3660,7 +3660,7 @@ function buildBoardTiles() {
     tileMesh.receiveShadow = true;
     state.boardScene.add(tileMesh);
     state.tileObjects.push(tileMesh);
-    
+
     const iconMesh = createFloatingIconMesh(cellData);
     if (iconMesh) {
       iconMesh.position.set(pos.x, 1.2, pos.z);
@@ -3693,7 +3693,7 @@ function updateBoardPlayers() {
 
     if (state.boardPlayers.has(idStr)) {
       const entry = state.boardPlayers.get(idStr);
-      
+
       const newCharData = player.character_data || getDefaultCharData();
       const newCharDataStr = JSON.stringify(newCharData);
       const oldCharDataStr = entry.charDataString || '';
@@ -3722,7 +3722,7 @@ function updateBoardPlayers() {
       const mesh = create3DCharacterMesh(charData);
       mesh.position.set(pos.x, pos.y, pos.z);
       state.boardScene.add(mesh);
-      
+
       state.boardPlayers.set(idStr, {
         mesh: mesh,
         animating: false,
@@ -3752,18 +3752,18 @@ function animatePlayerMovement(moveData) {
   }
 
   let step = 0;
-  
+
   function hopNext() {
     if (step >= path.length) {
       playerObj.animating = false;
       playerObj.currentCell = moveData.endCell;
-      
+
       const currentPositions = updateTilePositions().positions;
       const finalPos = getTilePositionOfCell(moveData.endCell, currentPositions);
-      
+
       playerObj.mesh.position.set(finalPos.x, finalPos.y, finalPos.z);
       layoutBoardElements();
-      
+
       if (moveData.userId === state.user.id) {
         state.user.current_cell = moveData.endCell;
         highlightCurrentCell();
@@ -3781,7 +3781,7 @@ function animatePlayerMovement(moveData) {
     function updateHop(now) {
       const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      
+
       const currentPositions = updateTilePositions().positions;
       const startCellPos = step === 0 ? getTilePositionOfCell(playerObj.currentCell, currentPositions) : getTilePositionOfCell(path[step - 1], currentPositions);
       const endCellPos = getTilePositionOfCell(path[step], currentPositions);
@@ -3890,7 +3890,7 @@ function setupUI() {
 
   document.getElementById('confirm-char-yes').addEventListener('click', async () => {
     document.getElementById('confirm-char-modal').classList.add('hidden');
-    
+
     const charData = {
       skinColor: document.getElementById('creator-skin').value,
       costume: document.getElementById('creator-costume').value,
@@ -4060,7 +4060,7 @@ function setupUI() {
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
-        
+
         document.getElementById('admin-cell-rew-name').value = `Карта: ${data.title} (${data.characterName})`;
         document.getElementById('admin-cell-rew-detail').value = data.cover;
         showNotification('Карта найдена и заполнена!', 'success');
@@ -4070,44 +4070,44 @@ function setupUI() {
     });
   }
 
-function animateDiceRoll(rollValue, callback) {
-  const overlay = document.getElementById('dice-overlay');
-  const cube = document.getElementById('dice-cube');
-  const resultText = document.getElementById('dice-result-text');
+  function animateDiceRoll(rollValue, callback) {
+    const overlay = document.getElementById('dice-overlay');
+    const cube = document.getElementById('dice-cube');
+    const resultText = document.getElementById('dice-result-text');
 
-  resultText.textContent = 'Бросаем кубик...';
-  overlay.classList.remove('hidden');
-  cube.style.transition = 'none';
-  cube.style.transform = 'rotateX(0deg) rotateY(0deg) rotateZ(0deg)';
-  cube.classList.add('spinning');
-
-  setTimeout(() => {
-    cube.classList.remove('spinning');
-    cube.style.transition = 'transform 1.2s cubic-bezier(0.25, 1, 0.5, 1)';
-    
-    let targetX = 0;
-    let targetY = 0;
-
-    switch (rollValue) {
-      case 1: targetX = 0; targetY = 0; break;
-      case 6: targetX = 0; targetY = 180; break;
-      case 2: targetX = 0; targetY = -90; break;
-      case 5: targetX = 0; targetY = 90; break;
-      case 3: targetX = -90; targetY = 0; break;
-      case 4: targetX = 90; targetY = 0; break;
-    }
-
-    cube.style.transform = `rotateX(${targetX + 720}deg) rotateY(${targetY + 720}deg)`;
+    resultText.textContent = 'Бросаем кубик...';
+    overlay.classList.remove('hidden');
+    cube.style.transition = 'none';
+    cube.style.transform = 'rotateX(0deg) rotateY(0deg) rotateZ(0deg)';
+    cube.classList.add('spinning');
 
     setTimeout(() => {
-      resultText.textContent = `Выпало число: ${rollValue}`;
+      cube.classList.remove('spinning');
+      cube.style.transition = 'transform 1.2s cubic-bezier(0.25, 1, 0.5, 1)';
+
+      let targetX = 0;
+      let targetY = 0;
+
+      switch (rollValue) {
+        case 1: targetX = 0; targetY = 0; break;
+        case 6: targetX = 0; targetY = 180; break;
+        case 2: targetX = 0; targetY = -90; break;
+        case 5: targetX = 0; targetY = 90; break;
+        case 3: targetX = -90; targetY = 0; break;
+        case 4: targetX = 90; targetY = 0; break;
+      }
+
+      cube.style.transform = `rotateX(${targetX + 720}deg) rotateY(${targetY + 720}deg)`;
+
       setTimeout(() => {
-        overlay.classList.add('hidden');
-        if (callback) callback();
-      }, 1000);
+        resultText.textContent = `Выпало число: ${rollValue}`;
+        setTimeout(() => {
+          overlay.classList.add('hidden');
+          if (callback) callback();
+        }, 1000);
+      }, 1200);
     }, 1200);
-  }, 1200);
-}
+  }
 
   document.getElementById('roll-dice-btn').addEventListener('click', async () => {
     try {
@@ -4152,8 +4152,8 @@ function animateDiceRoll(rollValue, callback) {
   });
 
   const creatorInputs = [
-    'creator-skin', 'creator-costume', 'creator-clothes', 
-    'creator-hair-style', 'creator-hair-color', 
+    'creator-skin', 'creator-costume', 'creator-clothes',
+    'creator-hair-style', 'creator-hair-color',
     'creator-weapon', 'creator-wings', 'creator-element'
   ];
   creatorInputs.forEach(id => {
@@ -4174,7 +4174,7 @@ function initCreator3D() {
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#030509');
-  
+
   const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10);
   camera.position.set(0, 0.7, 2.2);
 
@@ -4219,7 +4219,7 @@ function destroyCreator3D() {
   if (state.creator.renderer) {
     try {
       state.creator.renderer.dispose();
-    } catch (e) {}
+    } catch (e) { }
   }
   const container = document.getElementById('creator-canvas-container');
   if (container) container.innerHTML = '';
@@ -4293,7 +4293,7 @@ function updateCreatorStatsUI(charData) {
     earth: 'Земля',
     wind: 'Ветер'
   };
-  
+
   const elementDescriptions = {
     water: 'Повышенный урон по боссам: (120 ячейка) и (240 ячейка).',
     fire: 'Повышенный урон по боссам: (90 ячейка) и (210 ячейка).',
@@ -4305,7 +4305,7 @@ function updateCreatorStatsUI(charData) {
   if (statElementEl) statElementEl.textContent = elementNames[element] || element;
   const statElementDescEl = document.getElementById('creator-stat-element-desc');
   if (statElementDescEl) statElementDescEl.textContent = elementDescriptions[element] || '';
-  
+
   const helpEl = document.getElementById('creator-element-help');
   if (helpEl) {
     helpEl.textContent = elementDescriptions[element] || '';
@@ -4322,18 +4322,18 @@ function updateOnlineList() {
     const item = document.createElement('div');
     item.className = 'online-user-item';
     item.style.cursor = 'pointer';
-    
+
     if (state.taggedPlayer && String(state.taggedPlayer.player.id) === String(player.id)) {
       item.classList.add('selected');
     }
-    
+
     item.addEventListener('click', () => {
       const idStr = String(player.id);
       const playerObj = state.boardPlayers.get(idStr);
       if (playerObj) {
         state.taggedPlayer = { player: player, mesh: playerObj.mesh };
         smoothCameraFocus(playerObj.mesh.position);
-        
+
         // Re-render list to show selected state styling
         document.querySelectorAll('.online-user-item').forEach(el => el.classList.remove('selected'));
         item.classList.add('selected');
@@ -4343,7 +4343,7 @@ function updateOnlineList() {
     const tgSrc = `/api/tg-avatar/${player.tg_id}`;
     const remangaSrc = player.remanga_avatar ? getAvatarUrl(player.remanga_avatar) : '';
     const fallbackText = (player.tg_first_name || 'EW').substring(0, 2).toUpperCase();
-    
+
     const avatarHtml = `
       <div class="online-avatar">
         <img src="${tgSrc}" referrerpolicy="no-referrer"
@@ -4377,7 +4377,7 @@ function addMovementLog(moveData) {
   if (!container) return;
   const msg = document.createElement('div');
   msg.className = 'log-message';
-  
+
   if (moveData.forced) {
     msg.innerHTML = `<span class="text-gold">${moveData.tg_username || 'Игрок'}</span> отброшен назад на ячейку <span class="text-cyan">${moveData.endCell}</span>`;
   } else if (moveData.roll === 0) {
@@ -4388,7 +4388,7 @@ function addMovementLog(moveData) {
 
   container.appendChild(msg);
   container.scrollTop = container.scrollHeight;
-  
+
   if (container.children.length > 30) {
     container.removeChild(container.firstChild);
   }
@@ -4408,7 +4408,7 @@ function updateDiceButton() {
   const check = () => {
     const now = new Date();
     const cooldown = new Date(state.user.dice_cooldown_until);
-    
+
     if (cooldown <= now) {
       btn.disabled = false;
       timerDiv.textContent = 'Готов к броску';
@@ -4433,7 +4433,7 @@ async function loadShop() {
     state.shopItems = data.items;
     renderShopItems();
   } catch (err) {
-    
+
   }
 }
 
@@ -4605,7 +4605,7 @@ async function updateDrawerEquipment() {
 
     const activeW = starterWeapons.find(w => w.key === currentWeapon);
     const activeC = starterCostumes.find(c => c.key === currentCostume);
-    
+
     const shopWeapons = [
       { key: 'axe', name: 'Боевой топор', desc: '+40 DMG' },
       { key: 'bow', name: 'Лук', desc: '+50 HP, +20 DMG' },
@@ -4626,7 +4626,7 @@ async function updateDrawerEquipment() {
     if (slotCostumeValueEl) slotCostumeValueEl.textContent = costumeName;
     if (slotWeaponValueEl) slotWeaponValueEl.textContent = weaponName;
 
-  } catch (err) {}
+  } catch (err) { }
 }
 
 async function openEqPanel(category) {
@@ -4663,12 +4663,12 @@ async function openEqPanel(category) {
     if (category === 'costume') {
       const startingCKey = data.startingCostume || 'normal';
       const startOption = starterCostumes.find(c => c.key === startingCKey);
-      
+
       const options = [];
       if (startOption) {
         options.push(startOption);
       }
-      
+
       const ownedCostumes = (data.items || []).filter(i => i.item_category === 'costume');
       ownedCostumes.forEach(c => {
         options.push({
@@ -4696,12 +4696,12 @@ async function openEqPanel(category) {
     } else {
       const startingWKey = data.startingWeapon || 'none';
       const startOption = starterWeapons.find(w => w.key === startingWKey);
-      
+
       const options = [];
       if (startOption) {
         options.push(startOption);
       }
-      
+
       const ownedWeapons = (data.items || []).filter(i => i.item_category === 'weapon');
       ownedWeapons.forEach(w => {
         options.push({
@@ -4726,7 +4726,7 @@ async function openEqPanel(category) {
         listEl.appendChild(btn);
       });
     }
-  } catch (err) {}
+  } catch (err) { }
 }
 
 function closeEqPanel() {
@@ -5081,7 +5081,7 @@ function setupAdminTabs() {
         }
         showNotification('Данные ячейки обновлены!', 'success');
         await loadCells();
-        
+
         if (state.boardScene) {
           state.boardScene.remove(state.tileObjects[cellNumber]);
           const pos = getTilePosition(cellNumber);
@@ -5111,7 +5111,7 @@ function setupAdminTabs() {
           } else {
             state.floatingIcons[cellNumber] = null;
           }
-          
+
           layoutBoardElements();
         }
       } catch (err) {
@@ -5163,7 +5163,7 @@ function setupAdminTabs() {
         const slownessEl = document.getElementById('admin-price-slowness');
         const doubleRollEl = document.getElementById('admin-price-double_roll');
         const removeRewardEl = document.getElementById('admin-price-remove-reward');
-        
+
         const eqAxeEl = document.getElementById('admin-price-eq_axe');
         const eqBowEl = document.getElementById('admin-price-eq_bow');
         const eqScytheEl = document.getElementById('admin-price-eq_scythe');
@@ -5233,7 +5233,7 @@ async function loadAdminUsers() {
     const res = await fetch(`/api/admin/users?requesterUserId=${state.user.id}`);
     const data = await res.json();
     state.adminUsers = data.users;
-    
+
     const searchVal = document.getElementById('admin-search-users').value;
     renderAdminUsers(searchVal);
   } catch (err) {
@@ -5375,12 +5375,12 @@ window.editUserModal = async (userId, oldBalance, oldCell, isAdmin, name, taxReq
   document.getElementById('edit-user-tax-required').value = taxRequired;
   document.getElementById('edit-user-tax-paid').value = taxPaid;
   document.getElementById('edit-user-admin').checked = (isAdmin === 1);
-  
+
   const invEl = document.getElementById('edit-user-inventory');
   const effEl = document.getElementById('edit-user-effects');
   if (invEl) invEl.innerHTML = '<div style="font-size: 11px; color: #8c9ba5;">Загрузка...</div>';
   if (effEl) effEl.innerHTML = '<div style="font-size: 11px; color: #8c9ba5;">Загрузка...</div>';
-  
+
   document.getElementById('admin-edit-modal').classList.remove('hidden');
 
   try {
@@ -5396,7 +5396,7 @@ window.editUserModal = async (userId, oldBalance, oldCell, isAdmin, name, taxReq
         data.inventory.forEach(item => {
           const itemDiv = document.createElement('div');
           itemDiv.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 6px; padding: 6px; font-size: 11px; display: flex; flex-direction: column; gap: 4px;';
-          
+
           if (item.item_type === 'remanga_card') {
             itemDiv.innerHTML = `
               <div style="text-align: center;">
@@ -5636,7 +5636,7 @@ function showCellInfoTag(cellIndex) {
 
       contentEl.innerHTML = html;
       document.getElementById('cell-info-tag').classList.remove('hidden');
-      
+
       const bossIndex = bossCells.indexOf(cellIndex);
       setTimeout(() => {
         initBossPreview3D(bossIndex);
@@ -5743,27 +5743,27 @@ function showConfirm(message) {
       `;
       document.body.appendChild(modal);
     }
-    
+
     document.getElementById('confirm-modal-message').textContent = message;
-    
+
     const yesBtn = document.getElementById('confirm-modal-yes-btn');
     const noBtn = document.getElementById('confirm-modal-no-btn');
-    
+
     const cleanup = (value) => {
       modal.classList.add('hidden');
       yesBtn.replaceWith(yesBtn.cloneNode(true));
       noBtn.replaceWith(noBtn.cloneNode(true));
       resolve(value);
     };
-    
+
     modal.classList.remove('hidden');
-    
+
     document.getElementById('confirm-modal-yes-btn').addEventListener('click', () => cleanup(true));
     document.getElementById('confirm-modal-no-btn').addEventListener('click', () => cleanup(false));
   });
 }
 
-window.handleRewardImageError = function(img, originalUrl) {
+window.handleRewardImageError = function (img, originalUrl) {
   if (!img.dataset.retries) img.dataset.retries = '0';
   let retries = parseInt(img.dataset.retries);
   if (retries < 5) {
@@ -5792,11 +5792,11 @@ window.handleRewardImageError = function(img, originalUrl) {
 function showRewardChoiceModal(reward) {
   state.pendingReward = reward;
   document.getElementById('reward-choice-name').textContent = reward.name;
-  
+
   const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
   const freeSlots = Math.max(0, 10 - claimedCount);
   const canClaim = freeSlots > 0;
-  
+
   let descText = '';
   if (reward.type === 'card') {
     descText = `Эта карта предметов будет добавлена в ваш инвентарь наград.<br><br>`;
@@ -5813,7 +5813,7 @@ function showRewardChoiceModal(reward) {
   } else {
     descText = 'Этот премиум-статус будет добавлен в ваш инвентарь наград.<br><br>';
   }
-  
+
   descText += `<span style="font-weight: 600; display: block; text-align: center; color: ${canClaim ? '#2ecc71' : '#e74c3c'}">`;
   descText += `Свободных мест для наград: ${freeSlots} из 10.<br>`;
   if (canClaim) {
@@ -5822,9 +5822,9 @@ function showRewardChoiceModal(reward) {
     descText += 'Инвентарь наград заполнен! Вы не можете забрать эту награду.';
   }
   descText += '</span>';
-  
+
   document.getElementById('reward-choice-desc').innerHTML = descText;
-  
+
   const claimYesBtn = document.getElementById('claim-reward-yes-btn');
   if (claimYesBtn) {
     if (canClaim) {
@@ -5837,7 +5837,7 @@ function showRewardChoiceModal(reward) {
       claimYesBtn.style.pointerEvents = 'none';
     }
   }
-  
+
   document.getElementById('reward-choice-modal').classList.remove('hidden');
 }
 
@@ -5852,7 +5852,7 @@ window.confirmRemoveReward = async (itemId, name) => {
         removePrice = parseInt(price_remove_reward.value) || 100;
       }
     }
-  } catch (err) {}
+  } catch (err) { }
 
   if (await showConfirm(`Вы уверены, что хотите убрать награду "${name}"? Она вернется обратно на ячейку карты. С вашего баланса будет списано ${removePrice} монет.`)) {
     try {
@@ -5936,7 +5936,7 @@ window.showRewardChoiceModal = showRewardChoiceModal;
 window.showConfirm = showConfirm;
 
 const casinoSegments = [
-  { color: 'red',   fill: '#c81e1e', label: 'Красный', pct: 49 },
+  { color: 'red', fill: '#c81e1e', label: 'Красный', pct: 49 },
   { color: 'black', fill: '#1a1a1a', label: 'Чёрный', pct: 49 },
   { color: 'green', fill: '#00a832', label: '★', pct: 2 },
 ];
@@ -6063,7 +6063,7 @@ async function casinoSpin() {
   updateDOMBalance(state.user.balance);
 
   const total = casinoSegments.length;
-  
+
   let currentAccum = 0;
   const segmentInfo = casinoSegments.map(seg => {
     const size = (seg.pct / 100) * (Math.PI * 2);
@@ -6129,6 +6129,6 @@ async function casinoSpin() {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    navigator.serviceWorker.register('/sw.js').catch(() => { });
   });
 }

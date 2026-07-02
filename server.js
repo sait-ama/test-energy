@@ -99,7 +99,7 @@ async function startTelegramPolling() {
                       text: `✅ Авторизация успешна!\n\nДобро пожаловать, ${tgUser.first_name}! Вернитесь на сайт — вход выполнен автоматически.`
                     })
                   });
-                } catch (e) {}
+                } catch (e) { }
               } else {
                 try {
                   await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -110,7 +110,7 @@ async function startTelegramPolling() {
                       text: `⚠️ Токен авторизации не найден или истёк.\nПожалуйста, нажмите кнопку "Войти через Telegram" на сайте заново.`
                     })
                   });
-                } catch (e) {}
+                } catch (e) { }
               }
             } else if (text === '/start') {
               const tgUser = update.message.from;
@@ -123,12 +123,12 @@ async function startTelegramPolling() {
                     text: `👋 Привет, ${tgUser.first_name}!\n\nЭто бот авторизации для ивента Eternal Watchers.\nДля входа используйте кнопку "Войти через Telegram" на сайте.`
                   })
                 });
-              } catch (e) {}
+              } catch (e) { }
             }
           }
         }
       }
-    } catch (e) {}
+    } catch (e) { }
     setTimeout(poll, 1000);
   }
 
@@ -162,8 +162,8 @@ async function broadcastPlayersList() {
       let parsedChar = null;
       try {
         parsedChar = user.character_data ? JSON.parse(user.character_data) : null;
-      } catch (e) {}
-      
+      } catch (e) { }
+
       const userEffects = activeEffects.filter(e => e.target_user_id === user.id);
 
       return {
@@ -202,7 +202,7 @@ io.on('connection', (socket) => {
     if (!data || !data.userId) return;
     userId = data.userId;
     socket.join(`user_${userId}`);
-    
+
     const user = await getQuery('SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, current_cell, character_data FROM users WHERE id = ?', [userId]);
     if (user) {
       onlineUsers.set(String(userId), {
@@ -337,32 +337,32 @@ app.get('/api/auth/telegram-check/:token', async (req, res) => {
 app.post('/api/auth/telegram', async (req, res) => {
   const userData = req.body;
   const { id, first_name, username } = userData;
-  
+
   if (!id || !first_name) {
     return res.status(400).json({ error: 'Missing parameters' });
   }
-  
+
   const isValid = verifyTelegramAuth(userData, TELEGRAM_BOT_TOKEN);
   if (!isValid) {
     return res.status(401).json({ error: 'Invalid hash signature' });
   }
-  
+
   const tg_id = String(id);
-  
+
   try {
     let user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
     const isOwner = (username && username.toLowerCase() === 'saitama01010');
-    
+
     if (!user) {
       const isFirst = (await getQuery('SELECT COUNT(*) as count FROM users')).count === 0;
       const isAdmin = (isFirst || isOwner) ? 1 : 0;
-      
+
       await runQuery(
         'INSERT INTO users (tg_id, tg_username, tg_first_name, is_admin) VALUES (?, ?, ?, ?)',
         [tg_id, username || '', first_name, isAdmin]
       );
       user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
-      
+
       await runQuery(
         'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
         [user.id, 'registration', 'Регистрация на сайте через Telegram', new Date().toISOString()]
@@ -375,7 +375,7 @@ app.post('/api/auth/telegram', async (req, res) => {
       }
       user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
     }
-    
+
     res.json({ success: true, user });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -391,7 +391,7 @@ app.post('/api/auth/telegram-demo', async (req, res) => {
   try {
     let user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
     const isOwner = (username && username.toLowerCase() === 'saitama01010');
-    
+
     if (!user) {
       if (!isOwner) {
         const memberCheck = await checkTelegramMembership(tg_id);
@@ -411,7 +411,7 @@ app.post('/api/auth/telegram-demo', async (req, res) => {
         [tg_id, username || '', first_name, isAdmin]
       );
       user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
-      
+
       await runQuery(
         'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
         [user.id, 'registration', 'Регистрация на сайте', new Date().toISOString()]
@@ -484,7 +484,7 @@ app.get('/api/tg-avatar/:tgId', async (req, res) => {
     if (photosData.ok && photosData.result && photosData.result.total_count > 0) {
       const photos = photosData.result.photos[0];
       const photo = photos[0];
-      
+
       const fileUrl = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getFile?file_id=${photo.file_id}`;
       const fileResp = await fetch(fileUrl);
       if (fileResp.ok) {
@@ -657,7 +657,7 @@ app.post('/api/character/save', async (req, res) => {
       'UPDATE users SET character_data = ?, equipped_weapon = ?, equipped_costume = ?, starting_weapon = ?, starting_costume = ? WHERE id = ?',
       [charString, startWeapon, startCostume, startWeapon, startCostume, userId]
     );
-    
+
     await runQuery(
       'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
       [userId, 'customize', 'Создан 3D-персонаж (изменение заблокировано)', new Date().toISOString()]
@@ -873,7 +873,7 @@ app.post('/api/board/roll', async (req, res) => {
     }
 
     const nextCooldown = new Date(now.getTime() + cooldownSeconds * 1000).toISOString();
-    
+
     let nextRequired = user.guild_tax_required || 0;
     let nextPaid = user.guild_tax_paid || 0;
     if (specialEffect && specialEffect.type === 'guild_tax') {
@@ -1183,7 +1183,7 @@ app.post('/api/boss/start-fight', async (req, res) => {
   try {
     const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
     if (!user) return res.status(404).json({ error: 'User not found' });
-    
+
     const bossCell = parseInt(cellNumber);
     const onBossCell = user.current_cell === bossCell || user.pending_boss_cell === bossCell;
     if (!onBossCell) {
@@ -1192,30 +1192,30 @@ app.post('/api/boss/start-fight', async (req, res) => {
     if (user.current_cell !== bossCell) {
       await runQuery('UPDATE users SET current_cell = ? WHERE id = ?', [bossCell, user.id]);
     }
-    
+
     const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [cellNumber]);
     if (!boss) return res.status(404).json({ error: 'Boss not found' });
-    
+
     if (boss.defeated) {
       return res.status(400).json({ error: 'Этот босс уже побежден!' });
     }
-    
+
     if (boss.current_fighter_id && boss.current_fighter_id !== user.id) {
       return res.status(400).json({ error: `С боссом уже сражается другой игрок: ${boss.current_fighter_username}` });
     }
-    
+
     const stats = getPlayerBattleStats(user);
-    
+
     await runQuery('UPDATE users SET pending_boss_cell = NULL, pending_boss_remaining = 0 WHERE id = ?', [user.id]);
 
     await runQuery(
       'UPDATE bosses SET current_fighter_id = ?, current_fighter_username = ?, current_fighter_hp = ?, hp = ? WHERE cell_number = ?',
       [user.id, user.tg_first_name || user.tg_username || 'Неизвестно', stats.maxHp, boss.max_hp, cellNumber]
     );
-    
+
     const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
     io.emit('bosses_update', updatedBosses);
-    
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1230,14 +1230,14 @@ app.post('/api/boss/attack', async (req, res) => {
   try {
     const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
     if (!user) return res.status(404).json({ error: 'User not found' });
-    
+
     const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [cellNumber]);
     if (!boss) return res.status(404).json({ error: 'Boss not found' });
-    
+
     if (boss.current_fighter_id !== user.id) {
       return res.status(400).json({ error: 'Вы не сражаетесь с этим боссом!' });
     }
-    
+
     const now = new Date();
     if (user.last_boss_attack_time) {
       const lastAttack = new Date(user.last_boss_attack_time);
@@ -1248,30 +1248,30 @@ app.post('/api/boss/attack', async (req, res) => {
         return res.status(400).json({ error: `Кулдаун удара! Подождите ещё ${remain} секунд.` });
       }
     }
-    
+
     const stats = getPlayerBattleStats(user);
-    
+
     let dmgDealt = stats.dmg;
     let elementMatch = false;
     if (stats.element === boss.weakness) {
       dmgDealt = Math.floor(dmgDealt * 1.5);
       elementMatch = true;
     }
-    
+
     const newBossHp = Math.max(0, boss.hp - dmgDealt);
-    
+
     await runQuery('UPDATE users SET last_boss_attack_time = ? WHERE id = ?', [now.toISOString(), user.id]);
     user.last_boss_attack_time = now.toISOString();
-    
+
     if (newBossHp <= 0) {
       const reward = boss.reward_coins || 500;
       const newBalance = user.balance + reward;
-      
+
       await runQuery(
         'UPDATE bosses SET hp = 0, defeated = 1, defeated_by_username = ?, current_fighter_id = NULL, current_fighter_username = NULL, current_fighter_hp = 0 WHERE cell_number = ?',
         [user.tg_first_name || user.tg_username || 'Неизвестно', cellNumber]
       );
-      
+
       await runQuery('UPDATE users SET balance = ? WHERE id = ?', [newBalance, user.id]);
 
       let historyDetail = `Побежден босс ${boss.name}! Получено ${reward} монет.`;
@@ -1291,17 +1291,17 @@ app.post('/api/boss/attack', async (req, res) => {
         rewardCardName = cardName;
         historyDetail = `Побежден босс ${boss.name}! Получено ${reward} монет и карта: ${cardName}.`;
       }
-      
+
       await runQuery(
         'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
         [user.id, 'boss_victory', historyDetail, now.toISOString()]
       );
-      
+
       const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
       io.emit('bosses_update', updatedBosses);
-      
+
       io.to(`user_${user.id}`).emit('balance_update', { balance: newBalance });
-      
+
       return res.json({
         status: 'victory',
         dmgDealt,
@@ -1311,10 +1311,10 @@ app.post('/api/boss/attack', async (req, res) => {
         rewardCard: rewardCardName
       });
     }
-    
+
     const critChance = boss.crit_chance !== undefined && boss.crit_chance !== null ? boss.crit_chance : 0;
     const isCrit = Math.random() * 100 < critChance;
-    
+
     let bossDmg = boss.dmg;
     let finalPlayerHp = boss.current_fighter_hp - bossDmg;
     if (isCrit) {
@@ -1322,45 +1322,45 @@ app.post('/api/boss/attack', async (req, res) => {
       finalPlayerHp = 0;
     }
     const newPlayerHp = Math.max(0, finalPlayerHp);
-    
+
     if (newPlayerHp <= 0) {
       const loss = 300;
       const newBalance = user.balance - loss;
       const pushbackAmount = Math.floor(Math.random() * 6) + 5;
       const newCell = Math.max(0, user.current_cell - pushbackAmount);
-      
+
       const path = [];
       for (let c = user.current_cell - 1; c >= newCell; c--) {
         path.push(c);
       }
-      
+
       await runQuery(
         'UPDATE bosses SET current_fighter_id = NULL, current_fighter_username = NULL, current_fighter_hp = 0, hp = max_hp WHERE cell_number = ?',
         [cellNumber]
       );
-      
+
       await runQuery(
         'UPDATE users SET current_cell = ?, balance = ? WHERE id = ?',
         [newCell, newBalance, user.id]
       );
-      
+
       const detailMsg = isCrit
         ? `Поражение от босса ${boss.name} (Критический удар)! Потеряно ${loss} монет, откат на ячейку ${newCell}.`
         : `Поражение от босса ${boss.name}! Потеряно ${loss} монет, откат на ячейку ${newCell}.`;
-      
+
       await runQuery(
         'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
         [user.id, 'boss_defeat', detailMsg, now.toISOString()]
       );
-      
+
       const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
       io.emit('bosses_update', updatedBosses);
-      
+
       if (onlineUsers.has(String(user.id))) {
         const cached = onlineUsers.get(String(user.id));
         cached.current_cell = newCell;
       }
-      
+
       io.emit('player_move', {
         userId: user.id,
         tg_username: user.tg_username,
@@ -1371,11 +1371,11 @@ app.post('/api/boss/attack', async (req, res) => {
         rewardTriggered: null,
         win: false
       });
-      
+
       await broadcastPlayersList();
-      
+
       io.to(`user_${user.id}`).emit('balance_update', { balance: newBalance });
-      
+
       return res.json({
         status: 'defeat',
         dmgDealt,
@@ -1388,15 +1388,15 @@ app.post('/api/boss/attack', async (req, res) => {
         isCrit
       });
     }
-    
+
     await runQuery(
       'UPDATE bosses SET hp = ?, current_fighter_hp = ? WHERE cell_number = ?',
       [newBossHp, newPlayerHp, cellNumber]
     );
-    
+
     const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
     io.emit('bosses_update', updatedBosses);
-    
+
     res.json({
       status: 'active',
       dmgDealt,
@@ -1418,48 +1418,48 @@ app.post('/api/boss/forfeit', async (req, res) => {
   try {
     const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
     if (!user) return res.status(404).json({ error: 'User not found' });
-    
+
     const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [cellNumber]);
     if (!boss) return res.status(404).json({ error: 'Boss not found' });
-    
+
     if (boss.current_fighter_id !== user.id) {
       return res.status(400).json({ error: 'Вы не сражаетесь с этим боссом!' });
     }
-    
+
     const loss = 300;
     const newBalance = user.balance - loss;
     const pushbackAmount = Math.floor(Math.random() * 6) + 5;
     const newCell = Math.max(0, user.current_cell - pushbackAmount);
-    
+
     const path = [];
     for (let c = user.current_cell - 1; c >= newCell; c--) {
       path.push(c);
     }
-    
+
     await runQuery(
       'UPDATE bosses SET current_fighter_id = NULL, current_fighter_username = NULL, current_fighter_hp = 0, hp = max_hp WHERE cell_number = ?',
       [cellNumber]
     );
-    
+
     await runQuery(
       'UPDATE users SET current_cell = ?, balance = ? WHERE id = ?',
       [newCell, newBalance, user.id]
     );
-    
+
     const now = new Date();
     await runQuery(
       'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
       [user.id, 'boss_forfeit', `Побег от босса ${boss.name}! Потеряно ${loss} монет, откат на ячейку ${newCell}.`, now.toISOString()]
     );
-    
+
     const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
     io.emit('bosses_update', updatedBosses);
-    
+
     if (onlineUsers.has(String(user.id))) {
       const cached = onlineUsers.get(String(user.id));
       cached.current_cell = newCell;
     }
-    
+
     io.emit('player_move', {
       userId: user.id,
       tg_username: user.tg_username,
@@ -1470,11 +1470,11 @@ app.post('/api/boss/forfeit', async (req, res) => {
       rewardTriggered: null,
       win: false
     });
-    
+
     await broadcastPlayersList();
-    
+
     io.to(`user_${user.id}`).emit('balance_update', { balance: newBalance });
-    
+
     res.json({
       status: 'defeat',
       newCell,
@@ -1506,10 +1506,10 @@ app.post('/api/admin/boss/update', checkAdmin, async (req, res) => {
       'UPDATE bosses SET name = ?, max_hp = ?, hp = ?, dmg = ?, attack_cooldown_seconds = ?, reward_coins = ?, reward_type = ?, reward_detail = ?, model_file = ?, crit_chance = ? WHERE cell_number = ?',
       [name || '', hp, hp, dmg, cooldown, reward || 0, rewardType || 'coins', rewardDetail || '', modelFile || '', critChance !== undefined ? parseInt(critChance) : 0, cellNumber]
     );
-    
+
     const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
     io.emit('bosses_update', updatedBosses);
-    
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1526,10 +1526,10 @@ app.post('/api/admin/boss/position', checkAdmin, async (req, res) => {
       'UPDATE bosses SET position_offset_x = ?, position_offset_y = ?, position_offset_z = ?, custom_rotation = ?, custom_scale = ? WHERE cell_number = ?',
       [offsetX || 0, offsetY || 0, offsetZ || 0, rotation !== undefined && rotation !== null ? rotation : null, scale !== undefined && scale !== null ? scale : 1.0, cellNumber]
     );
-    
+
     const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
     io.emit('bosses_update', updatedBosses);
-    
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1657,10 +1657,10 @@ app.get('/api/equipment/inventory', async (req, res) => {
   try {
     const items = await allQuery('SELECT * FROM equipment_inventory WHERE user_id = ?', [userId]);
     const user = await getQuery('SELECT equipped_weapon, equipped_costume, starting_weapon, starting_costume, character_data FROM users WHERE id = ?', [userId]);
-    
+
     let startingWeapon = 'none';
     let startingCostume = 'normal';
-    
+
     if (user) {
       if (user.starting_weapon) {
         startingWeapon = user.starting_weapon;
@@ -1668,22 +1668,22 @@ app.get('/api/equipment/inventory', async (req, res) => {
         try {
           const parsed = JSON.parse(user.character_data);
           startingWeapon = parsed.weapon || 'none';
-        } catch(e) {}
+        } catch (e) { }
       }
-      
+
       if (user.starting_costume) {
         startingCostume = user.starting_costume;
       } else {
         try {
           const parsed = JSON.parse(user.character_data);
           startingCostume = parsed.costume || 'normal';
-        } catch(e) {}
+        } catch (e) { }
       }
     }
-    
-    res.json({ 
-      items, 
-      equippedWeapon: user ? user.equipped_weapon : null, 
+
+    res.json({
+      items,
+      equippedWeapon: user ? user.equipped_weapon : null,
       equippedCostume: user ? user.equipped_costume : null,
       startingWeapon,
       startingCostume
@@ -1702,13 +1702,13 @@ app.post('/api/equipment/equip', async (req, res) => {
     if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
 
     let charData = {};
-    try { charData = user.character_data ? JSON.parse(user.character_data) : {}; } catch(e) { charData = {}; }
+    try { charData = user.character_data ? JSON.parse(user.character_data) : {}; } catch (e) { charData = {}; }
 
     if (category === 'weapon') {
       let allowed = false;
       let startW = user.starting_weapon;
       if (!startW) {
-        try { startW = JSON.parse(user.character_data).weapon; } catch(e){}
+        try { startW = JSON.parse(user.character_data).weapon; } catch (e) { }
       }
       startW = startW || 'none';
 
@@ -1726,7 +1726,7 @@ app.post('/api/equipment/equip', async (req, res) => {
       let allowed = false;
       let startC = user.starting_costume;
       if (!startC) {
-        try { startC = JSON.parse(user.character_data).costume; } catch(e){}
+        try { startC = JSON.parse(user.character_data).costume; } catch (e) { }
       }
       startC = startC || 'normal';
 
@@ -1889,7 +1889,7 @@ app.post('/api/shop/use', async (req, res) => {
       );
 
       await runQuery('DELETE FROM inventory WHERE id = ?', [inventoryId]);
-      
+
       await runQuery(
         'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
         [userId, 'use_item', `Активирован Энергетический Щит на 12 часов`, new Date().toISOString()]
@@ -1902,7 +1902,7 @@ app.post('/api/shop/use', async (req, res) => {
     if (item.item_type === 'cure') {
       await runQuery('DELETE FROM active_effects WHERE target_user_id = ? AND type IN ("freeze", "slowness")', [userId]);
       await runQuery('DELETE FROM inventory WHERE id = ?', [inventoryId]);
-      
+
       await runQuery(
         'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
         [userId, 'use_item', `Использовано Очищающее Зелье: все негативные эффекты сняты`, new Date().toISOString()]
@@ -1920,7 +1920,7 @@ app.post('/api/shop/use', async (req, res) => {
       );
 
       await runQuery('DELETE FROM inventory WHERE id = ?', [inventoryId]);
-      
+
       await runQuery(
         'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
         [userId, 'use_item', `Активированы Крылья Ветра на 1 час`, new Date().toISOString()]
@@ -2280,7 +2280,7 @@ app.post('/api/admin/simulate-donation', async (req, res) => {
         const remaining = newRequired - newPaid;
         const applied = Math.min(remaining, diff);
         newPaid += applied;
-        
+
         taxMsg = ` (в счет налога внесено: ${applied} молний`;
         if (newPaid >= newRequired) {
           newRequired = 0;
@@ -2356,7 +2356,7 @@ app.post('/api/admin/fetch-card', checkAdmin, async (req, res) => {
     const data = await apiRes.json();
     const coverPath = data.cover?.mid || data.cover?.high || '';
     const fullCover = coverPath.startsWith('http') ? coverPath : `https://api.remanga.org${coverPath}`;
-    
+
     res.json({
       id: data.id,
       title: data.title?.main_name || '',
@@ -2524,7 +2524,7 @@ function startNgrokTunnel() {
     if (ngrokProcess) {
       try {
         ngrokProcess.kill();
-      } catch (e) {}
+      } catch (e) { }
     }
     const ngrokPath = path.resolve(process.cwd(), '../Pixel/ngrok.exe');
     ngrokProcess = spawn(ngrokPath, ['http', '--domain=patrina-unlusty-vince.ngrok-free.dev', '3000']);
@@ -2538,7 +2538,7 @@ function startSshTunnel() {
   if (sshProcess) {
     try {
       sshProcess.kill();
-    } catch (e) {}
+    } catch (e) { }
     sshUrl = '';
   }
   sshProcess = spawn('ssh', ['-o', 'StrictHostKeyChecking=no', '-R', '80:localhost:3000', 'nokey@localhost.run']);
@@ -2573,7 +2573,7 @@ async function startLocalTunnel() {
   if (localtunnelInstance) {
     try {
       localtunnelInstance.close();
-    } catch (e) {}
+    } catch (e) { }
     localtunnelUrl = '';
   }
   try {
@@ -2594,14 +2594,14 @@ function startCloudflareTunnel() {
   if (cloudflaredProcess) {
     try {
       cloudflaredProcess.kill();
-    } catch (e) {}
+    } catch (e) { }
   }
 
   const logFile = path.resolve(process.cwd(), 'cloudflared.log');
   if (fs.existsSync(logFile)) {
     try {
       fs.unlinkSync(logFile);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   cloudflaredProcess = spawn('cloudflared', ['tunnel', '--url', 'http://127.0.0.1:3000', '--logfile', logFile]);
@@ -2621,7 +2621,7 @@ function startCloudflareTunnel() {
           }
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   }, 1000);
 
   cloudflaredProcess.on('close', () => {
@@ -2644,7 +2644,7 @@ async function publishBackendUrl() {
           backendUrl = tunnel.public_url;
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   if (!backendUrl) {
@@ -2662,7 +2662,7 @@ async function publishBackendUrl() {
       if (data && data.status === 0) {
         lastPublishedUrl = backendUrl;
       }
-    } catch (err) {}
+    } catch (err) { }
   }
 }
 
