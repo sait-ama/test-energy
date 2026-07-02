@@ -504,6 +504,15 @@
               <label>Костюм шиноби (Ninja Suit)</label>
               <input type="number" id="admin-price-eq_ninja" min="0">
             </div>
+            <h3 style="margin-top: 20px; font-size: 11px; text-transform: uppercase; color: #ff4444; font-weight: 600;">🔒 Белый список (ограничение регистрации)</h3>
+            <div style="background: rgba(255,68,68,0.06); border: 1px solid rgba(255,68,68,0.2); border-radius: 6px; padding: 10px; margin-bottom: 12px; font-size: 11px; color: #ff9999; line-height: 1.5;">
+              Если поле заполнено — регистрироваться смогут только участники указанных групп/каналов. Оставьте пустым, чтобы разрешить всем. Бот должен быть администратором в каждой группе.
+            </div>
+            <div class="form-group">
+              <label>ID групп/каналов (через запятую)</label>
+              <input type="text" id="admin-whitelist-chats" placeholder="Например: -1001234567890, @mychannel">
+              <div style="font-size: 10px; color: #8c9ba5; margin-top: 4px;">Узнать ID группы: добавьте @getmyid_bot в группу и напишите /id</div>
+            </div>
             <button id="save-settings-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Сохранить настройки</button>
           </div>
 

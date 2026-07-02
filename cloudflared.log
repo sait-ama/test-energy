@@ -13,3 +13,10 @@
 {"level":"info","time":"2026-07-02T14:09:50Z","message":"Initial protocol quic"}
 {"level":"info","time":"2026-07-02T14:09:50Z","message":"ICMP proxy will use 192.168.99.23 as source for IPv4"}
 {"level":"info","time":"2026-07-02T14:09:50Z","message":"ICMP proxy will use fe80::2e35:79e5:e345:29c2 in zone Ethernet as source for IPv6"}
+{"level":"error","originCertPath":"","time":"2026-07-02T14:09:53Z","message":"Cannot determine default origin certificate path. No file cert.pem in [~/.cloudflared ~/.cloudflare-warp ~/cloudflare-warp]. You need to specify the origin certificate path by specifying the origincert option in the configuration file, or set TUNNEL_ORIGIN_CERT environment variable"}
+{"level":"info","time":"2026-07-02T14:09:53Z","message":"cloudflared does not support loading the system root certificate pool on Windows. Please use --origin-ca-pool <PATH> to specify the path to the certificate pool"}
+{"level":"info","time":"2026-07-02T14:09:53Z","message":"ICMP proxy will use 192.168.99.23 as source for IPv4"}
+{"level":"info","event":0,"ip":"198.41.200.63","connIndex":0,"time":"2026-07-02T14:09:53Z","message":"Tunnel connection curve preferences: [X25519MLKEM768 CurveP256]"}
+{"level":"info","time":"2026-07-02T14:09:53Z","message":"ICMP proxy will use fe80::2e35:79e5:e345:29c2 in zone Ethernet as source for IPv6"}
+{"level":"info","time":"2026-07-02T14:09:53Z","message":"Starting metrics server on 127.0.0.1:20241/metrics"}
+{"level":"info","event":0,"connection":"db5f4d3d-c42c-4359-a9cd-5b8447f38003","connIndex":0,"location":"waw05","ip":"198.41.200.63","protocol":"quic","time":"2026-07-02T14:09:54Z","message":"Registered tunnel connection"}

@@ -5171,6 +5171,7 @@ function setupAdminTabs() {
         const eqCyberEl = document.getElementById('admin-price-eq_cyber');
         const eqSteampunkEl = document.getElementById('admin-price-eq_steampunk');
         const eqNinjaEl = document.getElementById('admin-price-eq_ninja');
+        const whitelistEl = document.getElementById('admin-whitelist-chats');
 
         const dice_cooldown = cooldownEl ? (parseInt(cooldownEl.value) || 0) : 0;
         const price_shield = shieldEl ? (parseInt(shieldEl.value) || 0) : 0;
@@ -5188,6 +5189,7 @@ function setupAdminTabs() {
         const price_eq_cyber = eqCyberEl ? (parseInt(eqCyberEl.value) || 0) : 0;
         const price_eq_steampunk = eqSteampunkEl ? (parseInt(eqSteampunkEl.value) || 0) : 0;
         const price_eq_ninja = eqNinjaEl ? (parseInt(eqNinjaEl.value) || 0) : 0;
+        const whitelist_chat_ids = whitelistEl ? whitelistEl.value.trim() : '';
 
         if (!state.user) throw new Error('Пользователь не авторизован');
 
@@ -5210,6 +5212,7 @@ function setupAdminTabs() {
             price_eq_cyber,
             price_eq_steampunk,
             price_eq_ninja,
+            whitelist_chat_ids,
             requesterUserId: state.user.id
           })
         });
@@ -5255,7 +5258,8 @@ async function loadAdminSettings() {
       'admin-price-eq_hammer',
       'admin-price-eq_cyber',
       'admin-price-eq_steampunk',
-      'admin-price-eq_ninja'
+      'admin-price-eq_ninja',
+      'admin-whitelist-chats'
     ];
     if (activeEl && settingsInputs.includes(activeEl.id)) {
       return;
@@ -5297,6 +5301,10 @@ async function loadAdminSettings() {
     document.getElementById('admin-price-eq_cyber').value = price_eq_cyber.value;
     document.getElementById('admin-price-eq_steampunk').value = price_eq_steampunk.value;
     document.getElementById('admin-price-eq_ninja').value = price_eq_ninja.value;
+
+    const whitelist = data.settings.find(s => s.key === 'whitelist_chat_ids');
+    const whitelistEl = document.getElementById('admin-whitelist-chats');
+    if (whitelistEl) whitelistEl.value = whitelist ? whitelist.value : '';
   } catch (err) {
   }
 }

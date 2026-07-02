@@ -230,6 +230,38 @@ io.on('connection', (socket) => {
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_BOT_USERNAME = process.env.TELEGRAM_BOT_USERNAME || '';
+const WHITELIST_CHAT_IDS_ENV = process.env.WHITELIST_CHAT_IDS || '';
+
+async function getWhitelistChatIds() {
+  const row = await getQuery("SELECT value FROM settings WHERE key = 'whitelist_chat_ids'");
+  const raw = (row && row.value) ? row.value : WHITELIST_CHAT_IDS_ENV;
+  if (!raw || !raw.trim()) return [];
+  return raw.split(',').map(s => s.trim()).filter(Boolean);
+}
+
+async function checkTelegramMembership(tgUserId) {
+  if (!TELEGRAM_BOT_TOKEN) return { allowed: true, reason: 'no_bot' };
+  const chatIds = await getWhitelistChatIds();
+  if (!chatIds.length) return { allowed: true, reason: 'no_whitelist' };
+
+  for (const chatId of chatIds) {
+    try {
+      const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getChatMember?chat_id=${encodeURIComponent(chatId)}&user_id=${tgUserId}`;
+      const resp = await fetch(url);
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      if (data.ok && data.result) {
+        const status = data.result.status;
+        if (['creator', 'administrator', 'member', 'restricted'].includes(status)) {
+          return { allowed: true, chatId };
+        }
+      }
+    } catch (e) {
+      console.error('[Whitelist] Error checking membership:', chatId, e.message);
+    }
+  }
+  return { allowed: false, reason: 'not_member' };
+}
 
 app.get('/api/config/telegram', (req, res) => {
   res.json({ botUsername: TELEGRAM_BOT_USERNAME });
@@ -361,6 +393,16 @@ app.post('/api/auth/telegram-demo', async (req, res) => {
     const isOwner = (username && username.toLowerCase() === 'saitama01010');
     
     if (!user) {
+      if (!isOwner) {
+        const memberCheck = await checkTelegramMembership(tg_id);
+        if (!memberCheck.allowed) {
+          return res.status(403).json({
+            error: 'Регистрация доступна только участникам определённых Telegram-групп. Вступите в нужное сообщество и попробуйте снова.',
+            code: 'NOT_IN_WHITELIST'
+          });
+        }
+      }
+
       const isFirst = (await getQuery('SELECT COUNT(*) as count FROM users')).count === 0;
       const isAdmin = (isFirst || isOwner) ? 1 : 0;
 
@@ -2174,6 +2216,9 @@ app.post('/api/admin/settings/update', checkAdmin, async (req, res) => {
     }
     if (req.body.price_eq_ninja !== undefined) {
       await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('price_eq_ninja', ?)", [String(req.body.price_eq_ninja)]);
+    }
+    if (req.body.whitelist_chat_ids !== undefined) {
+      await runQuery("INSERT OR REPLACE INTO settings (key, value) VALUES ('whitelist_chat_ids', ?)", [String(req.body.whitelist_chat_ids)]);
     }
     if (io) {
       io.emit('settings_update');
