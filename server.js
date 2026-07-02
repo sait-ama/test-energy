@@ -240,26 +240,41 @@ async function getWhitelistChatIds() {
 }
 
 async function checkTelegramMembership(tgUserId) {
-  if (!TELEGRAM_BOT_TOKEN) return { allowed: true, reason: 'no_bot' };
+  console.log(`[Whitelist] Checking membership for User ID: ${tgUserId}`);
+  if (!TELEGRAM_BOT_TOKEN) {
+    console.log('[Whitelist] Allowed: No Telegram Bot Token configured');
+    return { allowed: true, reason: 'no_bot' };
+  }
   const chatIds = await getWhitelistChatIds();
-  if (!chatIds.length) return { allowed: true, reason: 'no_whitelist' };
+  console.log('[Whitelist] Active Chat IDs:', chatIds);
+  if (!chatIds.length) {
+    console.log('[Whitelist] Allowed: Whitelist is empty');
+    return { allowed: true, reason: 'no_whitelist' };
+  }
 
   for (const chatId of chatIds) {
     try {
       const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/getChatMember?chat_id=${encodeURIComponent(chatId)}&user_id=${tgUserId}`;
+      console.log(`[Whitelist] Requesting Telegram API for Chat: ${chatId}`);
       const resp = await fetch(url);
-      if (!resp.ok) continue;
-      const data = await resp.json();
-      if (data.ok && data.result) {
+      const data = await resp.json().catch(() => ({}));
+      console.log(`[Whitelist] Response from Telegram API for Chat ${chatId}:`, JSON.stringify(data));
+      
+      if (resp.ok && data.ok && data.result) {
         const status = data.result.status;
+        console.log(`[Whitelist] Status of ${tgUserId} in ${chatId} is "${status}"`);
         if (['creator', 'administrator', 'member', 'restricted'].includes(status)) {
+          console.log(`[Whitelist] Access GRANTED via Chat ${chatId} (status: ${status})`);
           return { allowed: true, chatId };
         }
+      } else {
+        console.log(`[Whitelist] Telegram API request failed or user not found in Chat ${chatId}. Ok: ${resp.ok}, Data.ok: ${data?.ok}`);
       }
     } catch (e) {
       console.error('[Whitelist] Error checking membership:', chatId, e.message);
     }
   }
+  console.log(`[Whitelist] Access DENIED for User ID ${tgUserId}. Not a member of any whitelisted chats.`);
   return { allowed: false, reason: 'not_member' };
 }
 
@@ -298,8 +313,11 @@ app.get('/api/auth/telegram-check/:token', async (req, res) => {
   try {
     let user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
     const isOwner = (username && username.toLowerCase() === 'saitama01010');
+    
+    console.log(`[Auth Check] User with Telegram ID ${tg_id} exists in database: ${!!user}`);
 
     if (!user) {
+      console.log(`[Auth Check] Registering new user ${tg_id}...`);
       if (!isOwner) {
         const memberCheck = await checkTelegramMembership(tg_id);
         if (!memberCheck.allowed) {
