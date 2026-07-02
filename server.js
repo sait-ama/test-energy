@@ -618,8 +618,9 @@ app.get('/api/profile/:id', async (req, res) => {
 
 app.post('/api/profile/link-remanga', async (req, res) => {
   const { userId, remangaUrl } = req.body;
-  if (!userId || !remangaUrl) {
-    return res.status(400).json({ error: 'Missing parameters' });
+  console.log('[Link Remanga] Request userId:', userId, 'remangaUrl:', remangaUrl);
+  if (!userId || !remangaUrl || userId === 'undefined') {
+    return res.status(400).json({ error: 'Не указан ID пользователя или ссылка на профиль Реманги' });
   }
 
   const match = remangaUrl.match(/user\/(\d+)/);
@@ -666,6 +667,11 @@ app.post('/api/profile/link-remanga', async (req, res) => {
     );
 
     const updatedUser = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    console.log('[Link Remanga] db updatedUser:', updatedUser);
+    if (!updatedUser) {
+      return res.status(404).json({ error: `Пользователь с ID ${userId} не найден в базе данных после обновления.` });
+    }
+    
     res.json({
       user: {
         ...updatedUser,
