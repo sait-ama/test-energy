@@ -2229,6 +2229,12 @@ async function startTelegramBotAuth() {
           setTimeout(() => {
             checkOnboardingStage(state.user);
           }, 500);
+        } else if (checkData.status === 'not_allowed') {
+          clearInterval(tgAuthPollingInterval);
+          tgAuthPollingInterval = null;
+          resetTgAuthButton();
+          statusEl.style.display = 'none';
+          showNotification(checkData.error || 'Регистрация недоступна — вы не состоите в нужной группе.', 'error');
         } else if (checkData.status === 'expired') {
           clearInterval(tgAuthPollingInterval);
           tgAuthPollingInterval = null;
