@@ -1039,7 +1039,11 @@ function updateBossModalUI(boss) {
     document.getElementById('boss-btn-bypass').classList.remove('hidden');
   }
 
-  if (state.user && state.user.current_cell !== boss.cell_number) {
+  const playerOnOrPendingBoss = state.user && (
+    state.user.current_cell === boss.cell_number ||
+    state.user.pending_boss_cell === boss.cell_number
+  );
+  if (!playerOnOrPendingBoss) {
     document.getElementById('boss-btn-bypass-only').classList.add('hidden');
     document.getElementById('boss-btn-fight').classList.add('hidden');
     document.getElementById('boss-btn-bypass').classList.add('hidden');
@@ -2596,13 +2600,13 @@ async function refreshProfile() {
       updateDrawerEquipment();
     }
     
-    const isBoss = (state.user.current_cell > 0 && state.user.current_cell % 30 === 0) || state.user.current_cell === 299;
-    if (isBoss) {
-      checkAndShowBossModal(state.user.current_cell);
-    }
-
     if (data.pendingBoss && !data.pendingBoss.defeated) {
       showPendingBossModal(data.pendingBoss);
+    } else {
+      const isBoss = (state.user.current_cell > 0 && state.user.current_cell % 30 === 0) || state.user.current_cell === 299;
+      if (isBoss) {
+        checkAndShowBossModal(state.user.current_cell);
+      }
     }
 
   } catch (err) {
@@ -4127,6 +4131,13 @@ function animateDiceRoll(rollValue, callback) {
         if (state.pendingSelfMove) {
           performSelfMovement(state.pendingSelfMove);
           state.pendingSelfMove = null;
+          if (bossEnc) {
+            refreshProfile().then(() => {
+              showPendingBossModal(bossEnc);
+            });
+          } else {
+            refreshProfile();
+          }
         } else {
           refreshProfile().then(() => {
             if (bossEnc) {

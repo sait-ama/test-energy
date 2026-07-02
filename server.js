@@ -1142,8 +1142,13 @@ app.post('/api/boss/start-fight', async (req, res) => {
     const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
     if (!user) return res.status(404).json({ error: 'User not found' });
     
-    if (user.current_cell !== parseInt(cellNumber)) {
+    const bossCell = parseInt(cellNumber);
+    const onBossCell = user.current_cell === bossCell || user.pending_boss_cell === bossCell;
+    if (!onBossCell) {
       return res.status(400).json({ error: 'Вы не находитесь на ячейке с боссом!' });
+    }
+    if (user.current_cell !== bossCell) {
+      await runQuery('UPDATE users SET current_cell = ? WHERE id = ?', [bossCell, user.id]);
     }
     
     const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [cellNumber]);
