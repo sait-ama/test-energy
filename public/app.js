@@ -2061,7 +2061,7 @@ function buildBoardPaths() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   await resolveBackendUrl();
-  initAuth();
+  await initAuth();
   setupUI();
   setupAdminTabs();
   initJoystick();
@@ -2069,11 +2069,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 let tgAuthPollingInterval = null;
 
-function initAuth() {
+async function initAuth() {
   const savedUser = localStorage.getItem('ew_event_user');
   if (savedUser) {
-    state.user = JSON.parse(savedUser);
-    checkOnboardingStage(state.user);
+    try {
+      const userObj = JSON.parse(savedUser);
+      const res = await fetch(`/api/profile/${userObj.id}`);
+      if (!res.ok) {
+        if (res.status === 404) {
+          console.warn('Текущий пользователь не найден в БД. Сброс сессии.');
+          localStorage.removeItem('ew_event_user');
+          state.user = null;
+          checkOnboardingStage(null);
+          return;
+        }
+      }
+      const data = await res.json();
+      state.user = data.user;
+      localStorage.setItem('ew_event_user', JSON.stringify(data.user));
+      checkOnboardingStage(state.user);
+    } catch (e) {
+      console.error('Ошибка проверки сессии при старте:', e);
+      state.user = JSON.parse(savedUser);
+      checkOnboardingStage(state.user);
+    }
   } else {
     checkOnboardingStage(null);
   }
