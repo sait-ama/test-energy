@@ -318,15 +318,13 @@ app.get('/api/auth/telegram-check/:token', async (req, res) => {
 
     if (!user) {
       console.log(`[Auth Check] Registering new user ${tg_id}...`);
-      if (!isOwner) {
-        const memberCheck = await checkTelegramMembership(tg_id);
-        if (!memberCheck.allowed) {
-          return res.status(403).json({
-            status: 'not_allowed',
-            error: 'Регистрация доступна только участникам определённых Telegram-групп. Вступите в нужное сообщество и попробуйте снова.',
-            code: 'NOT_IN_WHITELIST'
-          });
-        }
+      const memberCheck = await checkTelegramMembership(tg_id);
+      if (!memberCheck.allowed) {
+        return res.json({
+          status: 'not_allowed',
+          error: 'Регистрация доступна только участникам определённых Telegram-групп. Вступите в нужное сообщество и попробуйте снова.',
+          code: 'NOT_IN_WHITELIST'
+        });
       }
 
       const isFirst = (await getQuery('SELECT COUNT(*) as count FROM users')).count === 0;
@@ -383,14 +381,12 @@ app.post('/api/auth/telegram', async (req, res) => {
     const isOwner = (username && username.toLowerCase() === 'saitama01010');
 
     if (!user) {
-      if (!isOwner) {
-        const memberCheck = await checkTelegramMembership(tg_id);
-        if (!memberCheck.allowed) {
-          return res.status(403).json({
-            error: 'Регистрация доступна только участникам определённых Telegram-групп. Вступите в нужное сообщество и попробуйте снова.',
-            code: 'NOT_IN_WHITELIST'
-          });
-        }
+      const memberCheck = await checkTelegramMembership(tg_id);
+      if (!memberCheck.allowed) {
+        return res.status(403).json({
+          error: 'Регистрация доступна только участникам определённых Telegram-групп. Вступите в нужное сообщество и попробуйте снова.',
+          code: 'NOT_IN_WHITELIST'
+        });
       }
 
       const isFirst = (await getQuery('SELECT COUNT(*) as count FROM users')).count === 0;
@@ -432,14 +428,12 @@ app.post('/api/auth/telegram-demo', async (req, res) => {
     const isOwner = (username && username.toLowerCase() === 'saitama01010');
 
     if (!user) {
-      if (!isOwner) {
-        const memberCheck = await checkTelegramMembership(tg_id);
-        if (!memberCheck.allowed) {
-          return res.status(403).json({
-            error: 'Регистрация доступна только участникам определённых Telegram-групп. Вступите в нужное сообщество и попробуйте снова.',
-            code: 'NOT_IN_WHITELIST'
-          });
-        }
+      const memberCheck = await checkTelegramMembership(tg_id);
+      if (!memberCheck.allowed) {
+        return res.status(403).json({
+          error: 'Регистрация доступна только участникам определённых Telegram-групп. Вступите в нужное сообщество и попробуйте снова.',
+          code: 'NOT_IN_WHITELIST'
+        });
       }
 
       const isFirst = (await getQuery('SELECT COUNT(*) as count FROM users')).count === 0;
