@@ -4911,10 +4911,14 @@ function updateInventoryUI() {
           const cellText = item.origin_cell_number !== null ? `<div style="font-size: 10px; color: #8c9ba5; text-align: center; margin-top: 4px;">Ячейка: ${item.origin_cell_number}</div>` : '';
 
           if (item.item_type === 'remanga_card') {
+            let cover = item.description || '';
+            if (cover.includes('|')) {
+              cover = cover.split('|')[0];
+            }
             div.className = 'inventory-item card-item-container';
             div.innerHTML = `
               <div class="card-item-cover-wrapper" style="text-align: center; margin-bottom: 8px;">
-                <img class="card-item-cover" referrerpolicy="no-referrer" src="${item.description}" alt="${item.name}" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';">
+                <img class="card-item-cover" referrerpolicy="no-referrer" src="${cover}" alt="${item.name}" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';">
               </div>
               <div class="card-item-name" style="text-align: center; font-size: 11px; font-weight: 700; color: #00f0ff;">${item.name}</div>
               ${cellText}
@@ -5649,9 +5653,13 @@ window.editUserModal = async (userId, oldBalance, oldCell, isAdmin, name, taxReq
           itemDiv.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 6px; padding: 6px; font-size: 11px; display: flex; flex-direction: column; gap: 4px;';
 
           if (item.item_type === 'remanga_card') {
+            let cover = item.description || '';
+            if (cover.includes('|')) {
+              cover = cover.split('|')[0];
+            }
             itemDiv.innerHTML = `
               <div style="text-align: center;">
-                <img src="${item.description}" referrerpolicy="no-referrer" style="width: 50px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2);" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';">
+                <img src="${cover}" referrerpolicy="no-referrer" style="width: 50px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2);" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';">
               </div>
               <div style="font-weight: bold; color: #00f0ff; text-align: center; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${item.name}</div>
               <div style="font-size: 9px; color: #8c9ba5; text-align: center;">Ячейка: ${item.origin_cell_number || '-'}</div>
