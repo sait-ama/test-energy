@@ -2949,7 +2949,7 @@ function startCloudflareTunnel() {
   cloudflaredProcess.on('close', () => {
     clearInterval(interval);
     cloudflaredUrl = '';
-    setTimeout(startCloudflareTunnel, 60000);
+    setTimeout(startCloudflareTunnel, 5000);
   });
 }
 
@@ -2986,7 +2986,20 @@ async function publishBackendUrl() {
   }
 
   if (!backendUrl) {
-    backendUrl = cloudflaredUrl || sshUrl || localtunnelUrl;
+    let activeCloudflaredUrl = '';
+    if (cloudflaredUrl) {
+      try {
+        const checkRes = await fetch(cloudflaredUrl);
+        if (checkRes.status < 500) {
+          activeCloudflaredUrl = cloudflaredUrl;
+        } else {
+          console.log(`[Tunnel] Cloudflare tunnel returned status: ${checkRes.status}.`);
+        }
+      } catch (e) {
+        console.log('[Tunnel] Cloudflare tunnel check error:', e.message);
+      }
+    }
+    backendUrl = activeCloudflaredUrl || sshUrl || localtunnelUrl;
   }
 
   if (backendUrl && backendUrl !== lastPublishedUrl) {
