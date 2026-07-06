@@ -249,7 +249,10 @@ function getBossRotation(index) {
 const loadingBossModels = new Set();
 
 function loadBossModels() {
-  if (typeof THREE.GLTFLoader === 'undefined') return;
+  if (typeof THREE.GLTFLoader === 'undefined') {
+    setTimeout(loadBossModels, 200);
+    return;
+  }
   const loader = new THREE.GLTFLoader();
   const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270, 299];
   const defaultModels = [
@@ -969,13 +972,13 @@ function updateBossModalUI(boss) {
   } else {
     document.getElementById('boss-status-ready').classList.remove('hidden');
     document.getElementById('boss-info-name').textContent = boss.name;
-    document.getElementById('boss-info-hp').textContent = boss.max_hp;
+    document.getElementById('boss-info-hp').textContent = `${boss.hp} / ${boss.max_hp}`;
     document.getElementById('boss-info-dmg').textContent = boss.dmg;
     document.getElementById('boss-info-weakness').textContent = translateElement(boss.weakness);
     const rewardText = formatBossReward(boss);
     document.getElementById('boss-info-reward').textContent = rewardText;
 
-    document.getElementById('boss-preview-hp').textContent = boss.max_hp;
+    document.getElementById('boss-preview-hp').textContent = `${boss.hp} / ${boss.max_hp}`;
     document.getElementById('boss-preview-dmg').textContent = boss.dmg;
     renderBossPreview3D(boss);
 
@@ -1270,7 +1273,9 @@ function setupAdminBossConfig() {
       const nameEl = document.getElementById('admin-boss-name');
       if (nameEl) nameEl.value = boss.name || '';
       if (modelSelect) modelSelect.value = boss.model_file || '';
-      document.getElementById('admin-boss-hp').value = boss.max_hp;
+      const maxHpInput = document.getElementById('admin-boss-max-hp');
+      if (maxHpInput) maxHpInput.value = boss.max_hp;
+      document.getElementById('admin-boss-hp').value = boss.hp;
       document.getElementById('admin-boss-dmg').value = boss.dmg;
       document.getElementById('admin-boss-cooldown').value = boss.attack_cooldown_seconds;
       document.getElementById('admin-boss-crit').value = boss.crit_chance || 0;
@@ -1366,6 +1371,8 @@ function setupAdminBossConfig() {
       const cellNum = parseInt(bossSelect.value);
       const name = document.getElementById('admin-boss-name').value;
       const modelFile = modelSelect ? modelSelect.value : '';
+      const maxHpInput = document.getElementById('admin-boss-max-hp');
+      const maxHp = maxHpInput ? parseInt(maxHpInput.value) : parseInt(document.getElementById('admin-boss-hp').value);
       const hp = parseInt(document.getElementById('admin-boss-hp').value);
       const dmg = parseInt(document.getElementById('admin-boss-dmg').value);
       const cooldown = parseInt(document.getElementById('admin-boss-cooldown').value);
@@ -1378,7 +1385,7 @@ function setupAdminBossConfig() {
         const res = await fetch('/api/admin/boss/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cellNumber: cellNum, name, modelFile, hp, dmg, cooldown, reward, rewardType, rewardDetail, critChance, requesterUserId: state.user.id })
+          body: JSON.stringify({ cellNumber: cellNum, name, modelFile, maxHp, hp, dmg, cooldown, reward, rewardType, rewardDetail, critChance, requesterUserId: state.user.id })
         });
         if (res.ok) {
           showNotification('Настройки босса сохранены!', 'success');
@@ -2439,7 +2446,20 @@ function initSocket() {
     options.transports = ['websocket'];
   }
   state.socket = io(socketUrl, options);
-  state.socket.emit('authenticate', { userId: state.user.id });
+
+  state.socket.on('connect', () => {
+    state.socket.emit('authenticate', { userId: state.user.id });
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.socket) {
+      if (!state.socket.connected) {
+        state.socket.connect();
+      } else {
+        state.socket.emit('authenticate', { userId: state.user.id });
+      }
+    }
+  });
   state.socket.on('bosses_update', (list) => {
     state.bosses = list;
     if (state.tileObjects && state.tileObjects.length > 0) {
@@ -2669,7 +2689,7 @@ function showPendingBossModal(pendingBoss) {
   } else {
     document.getElementById('boss-status-ready').classList.remove('hidden');
     document.getElementById('boss-info-name').textContent = pendingBoss.bossName;
-    document.getElementById('boss-info-hp').textContent = pendingBoss.bossHp;
+    document.getElementById('boss-info-hp').textContent = `${pendingBoss.bossHp} / ${pendingBoss.bossMaxHp}`;
     document.getElementById('boss-info-dmg').textContent = pendingBoss.bossDmg;
     document.getElementById('boss-info-weakness').textContent = translateElement(pendingBoss.bossWeakness);
     document.getElementById('boss-info-reward').textContent = formatBossReward({
@@ -2678,9 +2698,9 @@ function showPendingBossModal(pendingBoss) {
       reward_detail: pendingBoss.bossRewardDetail || ''
     });
 
-    document.getElementById('boss-preview-hp').textContent = pendingBoss.bossHp;
+    document.getElementById('boss-preview-hp').textContent = `${pendingBoss.bossHp} / ${pendingBoss.bossMaxHp}`;
     document.getElementById('boss-preview-dmg').textContent = pendingBoss.bossDmg;
-    renderBossPreview3D({ cell_number: pendingBoss.cellNumber, max_hp: pendingBoss.bossHp, dmg: pendingBoss.bossDmg });
+    renderBossPreview3D({ cell_number: pendingBoss.cellNumber, max_hp: pendingBoss.bossMaxHp, hp: pendingBoss.bossHp, dmg: pendingBoss.bossDmg });
 
     document.getElementById('boss-btn-fight').classList.remove('hidden');
     document.getElementById('boss-btn-bypass').classList.remove('hidden');

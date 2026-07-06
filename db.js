@@ -112,6 +112,7 @@ export function initDb() {
       db.run(`ALTER TABLE users ADD COLUMN last_boss_attack_time TEXT`, () => {});
       db.run(`ALTER TABLE users ADD COLUMN pending_boss_cell INTEGER DEFAULT NULL`, () => {});
       db.run(`ALTER TABLE users ADD COLUMN pending_boss_remaining INTEGER DEFAULT 0`, () => {});
+      db.run(`ALTER TABLE users ADD COLUMN pending_boss_time TEXT`, () => {});
       db.run(`
         CREATE TABLE IF NOT EXISTS bosses (
           cell_number INTEGER PRIMARY KEY,
@@ -129,6 +130,7 @@ export function initDb() {
           attack_cooldown_seconds INTEGER DEFAULT 300
         )
       `, () => {
+        db.run(`ALTER TABLE bosses ADD COLUMN last_attack_time TEXT`, () => {});
         db.run(`ALTER TABLE bosses ADD COLUMN reward_type TEXT DEFAULT 'coins'`, () => {});
         db.run(`ALTER TABLE bosses ADD COLUMN reward_detail TEXT DEFAULT ''`, () => {});
         db.run(`ALTER TABLE bosses ADD COLUMN position_offset_x REAL DEFAULT 0`, () => {});
