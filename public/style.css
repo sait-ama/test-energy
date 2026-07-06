@@ -1997,3 +1997,11 @@ body.scroll-locked {
   background: rgba(255, 204, 0, 0.1);
   border-color: #ffcc00;
 }
+
+@media (max-width: 768px) {
+  .cell-info-tag {
+    min-width: 260px;
+    max-width: 340px;
+    width: 90%;
+  }
+}

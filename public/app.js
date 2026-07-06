@@ -5995,10 +5995,10 @@ function showCellInfoTag(cellIndex) {
             text += `<br><span style="color:#ff4a4a; font-size:9px;">(Забрал: ${r.claimed_by_username})</span>`;
           }
           
-          html += `<div style="display: flex; flex-direction: column; align-items: center; text-align: center; width: 105px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 6px; box-sizing: border-box;">
+          html += `<div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1 1 90px; max-width: 110px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 6px; box-sizing: border-box;">
             <div style="font-size: 10px; color: #ffffff; line-height: 1.2; word-break: break-word; margin-bottom: 4px;">${text}</div>`;
           if (r.type === 'card' && r.cover) {
-            html += `<img src="${r.cover}" referrerpolicy="no-referrer" alt="${r.name}" style="width: 80px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2); margin-top: 2px;">`;
+            html += `<img src="${r.cover}" referrerpolicy="no-referrer" alt="${r.name}" style="width: 100%; max-width: 80px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2); margin-top: 2px;">`;
           }
           html += `</div>`;
         });
