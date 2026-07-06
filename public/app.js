@@ -2499,6 +2499,10 @@ function initSocket() {
         }
       }
     }
+    if (data.dice_cooldown_until !== undefined) {
+      state.user.dice_cooldown_until = data.dice_cooldown_until;
+      updateDiceButton();
+    }
     if (data.historyEntry) {
       addHistoryItem(data.historyEntry);
     }
@@ -5401,6 +5405,17 @@ window.editUserModal = async (userId, oldBalance, oldCell, isAdmin, name, taxReq
   document.getElementById('edit-user-tax-paid').value = taxPaid;
   document.getElementById('edit-user-admin').checked = (isAdmin === 1);
 
+  const cdInput = document.getElementById('edit-user-cooldown');
+  if (cdInput) {
+    cdInput.value = '';
+    cdInput.dataset.original = '';
+  }
+
+  const remangaContainer = document.getElementById('edit-user-remanga-link-container');
+  if (remangaContainer) {
+    remangaContainer.innerHTML = '<span style="color: #8c9ba5; font-size: 13px;">Загрузка...</span>';
+  }
+
   const invEl = document.getElementById('edit-user-inventory');
   const effEl = document.getElementById('edit-user-effects');
   if (invEl) invEl.innerHTML = '<div style="font-size: 11px; color: #8c9ba5;">Загрузка...</div>';
@@ -5412,6 +5427,26 @@ window.editUserModal = async (userId, oldBalance, oldCell, isAdmin, name, taxReq
     const res = await fetch(`/api/profile/${userId}`);
     if (!res.ok) throw new Error();
     const data = await res.json();
+
+    if (cdInput && data.user) {
+      let cooldownMinutes = 0;
+      if (data.user.dice_cooldown_until) {
+        const diffMs = new Date(data.user.dice_cooldown_until) - new Date();
+        if (diffMs > 0) {
+          cooldownMinutes = Math.ceil(diffMs / 60000);
+        }
+      }
+      cdInput.value = cooldownMinutes;
+      cdInput.dataset.original = cooldownMinutes;
+    }
+
+    if (remangaContainer && data.user) {
+      if (data.user.remanga_user_id) {
+        remangaContainer.innerHTML = `<a href="https://remanga.org/user/${data.user.remanga_user_id}" target="_blank" style="color: #00f0ff; text-decoration: underline; font-size: 13px;">Профиль Remanga (${data.user.remanga_username || data.user.remanga_user_id})</a>`;
+      } else {
+        remangaContainer.innerHTML = '<span style="color: #ff4a4a; font-size: 13px;">Не привязан</span>';
+      }
+    }
 
     if (invEl) {
       invEl.innerHTML = '';
@@ -5477,11 +5512,25 @@ document.getElementById('save-user-edit-btn').addEventListener('click', async ()
   const guildTaxPaid = parseInt(document.getElementById('edit-user-tax-paid').value) || 0;
   const isAdmin = document.getElementById('edit-user-admin').checked ? 1 : 0;
 
+  const cdInput = document.getElementById('edit-user-cooldown');
+  let diceCooldownUntil = undefined;
+  if (cdInput) {
+    const cooldownMinutes = parseInt(cdInput.value) || 0;
+    const original = parseInt(cdInput.dataset.original) || 0;
+    if (cooldownMinutes !== original) {
+      if (cooldownMinutes <= 0) {
+        diceCooldownUntil = null;
+      } else {
+        diceCooldownUntil = new Date(Date.now() + cooldownMinutes * 60000).toISOString();
+      }
+    }
+  }
+
   try {
     const res = await fetch('/api/admin/users/update', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, balance, currentCell, isAdmin, guildTaxRequired, guildTaxPaid, requesterUserId: state.user.id })
+      body: JSON.stringify({ userId, balance, currentCell, isAdmin, guildTaxRequired, guildTaxPaid, diceCooldownUntil, requesterUserId: state.user.id })
     });
 
     const data = await res.json();

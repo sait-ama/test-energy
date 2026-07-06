@@ -2151,7 +2151,7 @@ app.get('/api/admin/users', checkAdmin, async (req, res) => {
 });
 
 app.post('/api/admin/users/update', checkAdmin, async (req, res) => {
-  const { userId, balance, currentCell, isAdmin, guildTaxRequired, guildTaxPaid } = req.body;
+  const { userId, balance, currentCell, isAdmin, guildTaxRequired, guildTaxPaid, diceCooldownUntil } = req.body;
   try {
     const requester = req.requester;
     const isOwner = (requester.tg_username && requester.tg_username.toLowerCase() === 'saitama01010');
@@ -2180,10 +2180,23 @@ app.post('/api/admin/users/update', checkAdmin, async (req, res) => {
       nextPaid = 0;
     }
 
-    await runQuery(
-      'UPDATE users SET balance = ?, current_cell = ?, is_admin = ?, guild_tax_required = ?, guild_tax_paid = ? WHERE id = ?',
-      [balance, currentCell, finalIsAdmin, nextRequired, nextPaid, userId]
-    );
+    let query = 'UPDATE users SET balance = ?, current_cell = ?, is_admin = ?, guild_tax_required = ?, guild_tax_paid = ?';
+    let params = [balance, currentCell, finalIsAdmin, nextRequired, nextPaid];
+
+    if (diceCooldownUntil !== undefined) {
+      query += ', dice_cooldown_until = ?';
+      params.push(diceCooldownUntil);
+    }
+
+    query += ' WHERE id = ?';
+    params.push(userId);
+
+    await runQuery(query, params);
+
+    let diceCooldownUntilVal = targetUser.dice_cooldown_until;
+    if (diceCooldownUntil !== undefined) {
+      diceCooldownUntilVal = diceCooldownUntil;
+    }
 
     if (onlineUsers.has(String(userId))) {
       const cached = onlineUsers.get(String(userId));
@@ -2195,7 +2208,8 @@ app.post('/api/admin/users/update', checkAdmin, async (req, res) => {
       io.to(`user_${userId}`).emit('balance_update', {
         balance: balance,
         guild_tax_required: nextRequired,
-        guild_tax_paid: nextPaid
+        guild_tax_paid: nextPaid,
+        dice_cooldown_until: diceCooldownUntilVal
       });
     }
 
