@@ -2956,6 +2956,7 @@ function startCloudflareTunnel() {
 async function publishBackendUrl() {
   let backendUrl = process.env.BACKEND_URL;
 
+  let ngrokUrl = '';
   if (!backendUrl) {
     try {
       const res = await fetch('http://127.0.0.1:4040/api/tunnels');
@@ -2963,10 +2964,29 @@ async function publishBackendUrl() {
         const data = await res.json();
         const tunnel = data.tunnels.find(t => t.proto === 'https');
         if (tunnel) {
-          backendUrl = tunnel.public_url;
+          ngrokUrl = tunnel.public_url;
         }
       }
     } catch (e) { }
+  }
+
+  if (ngrokUrl) {
+    try {
+      const checkRes = await fetch(ngrokUrl, {
+        headers: { 'ngrok-skip-browser-warning': 'true' }
+      });
+      if (checkRes.status === 403 || checkRes.status === 429 || checkRes.status >= 500) {
+        console.log(`[Tunnel] Ngrok error status: ${checkRes.status}.`);
+      } else {
+        backendUrl = ngrokUrl;
+      }
+    } catch (e) {
+      console.log('[Tunnel] Ngrok check error:', e.message);
+    }
+  }
+
+  if (!backendUrl) {
+    backendUrl = cloudflaredUrl || sshUrl || localtunnelUrl;
   }
 
   if (backendUrl && backendUrl !== lastPublishedUrl) {
@@ -2979,6 +2999,7 @@ async function publishBackendUrl() {
       const data = await res.json();
       if (data && data.status === 0) {
         lastPublishedUrl = backendUrl;
+        console.log('[Tunnel] Published URL:', backendUrl);
       }
     } catch (err) { }
   }
@@ -2986,6 +3007,7 @@ async function publishBackendUrl() {
 
 function startPublishingLoop() {
   startNgrokTunnel();
+  startCloudflareTunnel();
   publishBackendUrl();
   setInterval(publishBackendUrl, 10000);
 }
