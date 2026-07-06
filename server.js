@@ -2990,9 +2990,6 @@ async function publishBackendUrl() {
 
 function startPublishingLoop() {
   startNgrokTunnel();
-  startCloudflareTunnel();
-  startSshTunnel();
-  startLocalTunnel();
   publishBackendUrl();
   setInterval(publishBackendUrl, 10000);
 }
