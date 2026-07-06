@@ -7,7 +7,32 @@ import fetch from 'node-fetch';
 import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
-import { initDb, runQuery, getQuery, allQuery } from './db.js';
+import { initDb, runQuery as originalRunQuery, getQuery, allQuery } from './db.js';
+
+async function broadcastGlobalHistory() {
+  if (!io) return;
+  try {
+    const history = await allQuery(`
+      SELECT h.*, u.tg_first_name, u.tg_username
+      FROM history h
+      JOIN users u ON h.user_id = u.id
+      WHERE u.is_admin = 0
+      ORDER BY h.id DESC
+      LIMIT 50
+    `);
+    io.emit('global_history', history);
+  } catch (err) {
+    console.error('Error broadcasting global history:', err);
+  }
+}
+
+const runQuery = async (sql, params = []) => {
+  const res = await originalRunQuery(sql, params);
+  if (sql.trim().toUpperCase().includes('INSERT INTO HISTORY')) {
+    setTimeout(broadcastGlobalHistory, 50);
+  }
+  return res;
+};
 import { startGuildScanner, runGuildScan } from './scanner.js';
 import { spawn, exec } from 'child_process';
 import localtunnel from 'localtunnel';
@@ -679,6 +704,22 @@ app.get('/api/profile/:id', async (req, res) => {
   }
 });
 
+app.get('/api/history/global', async (req, res) => {
+  try {
+    const history = await allQuery(`
+      SELECT h.*, u.tg_first_name, u.tg_username
+      FROM history h
+      JOIN users u ON h.user_id = u.id
+      WHERE u.is_admin = 0
+      ORDER BY h.id DESC
+      LIMIT 50
+    `);
+    res.json(history);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/profile/link-remanga', async (req, res) => {
   const { userId, remangaUrl } = req.body;
   console.log('[Link Remanga] Request userId:', userId, 'remangaUrl:', remangaUrl);
@@ -943,20 +984,39 @@ app.post('/api/board/roll', async (req, res) => {
         }
 
         const actualCell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [finalCell]);
-        if (actualCell && !win && actualCell.reward_type && actualCell.reward_type !== 'none') {
-          if (actualCell.reward_type === 'currency') {
-            rewardTriggered = {
-              type: actualCell.reward_type,
-              name: actualCell.reward_name,
-              detail: actualCell.reward_detail
-            };
-          } else if ((actualCell.reward_type === 'card' || actualCell.reward_type === 'premium') && actualCell.claimed_by_user_id === null) {
-            rewardTriggered = {
-              type: actualCell.reward_type,
-              name: actualCell.reward_name,
-              detail: actualCell.reward_detail,
-              originCell: finalCell
-            };
+        if (actualCell && !win) {
+          if (actualCell.rewards_json) {
+            let rewards = [];
+            try {
+              rewards = JSON.parse(actualCell.rewards_json);
+            } catch (e) {}
+            const coinsItem = rewards.find(r => r.type === 'coins');
+            if (coinsItem && coinsItem.value) {
+              newBalance += parseInt(coinsItem.value) || 0;
+            }
+            const hasUnclaimed = rewards.some(r => (r.type === 'card' || r.type === 'premium') && !r.claimed_by_user_id);
+            if (hasUnclaimed) {
+              rewardTriggered = {
+                type: 'multi',
+                originCell: finalCell,
+                rewards: rewards
+              };
+            }
+          } else if (actualCell.reward_type && actualCell.reward_type !== 'none') {
+            if (actualCell.reward_type === 'currency') {
+              rewardTriggered = {
+                type: actualCell.reward_type,
+                name: actualCell.reward_name,
+                detail: actualCell.reward_detail
+              };
+            } else if ((actualCell.reward_type === 'card' || actualCell.reward_type === 'premium') && actualCell.claimed_by_user_id === null) {
+              rewardTriggered = {
+                type: actualCell.reward_type,
+                name: actualCell.reward_name,
+                detail: actualCell.reward_detail,
+                originCell: finalCell
+              };
+            }
           }
         }
       }
@@ -1212,11 +1272,30 @@ async function autoSkipPendingBoss(user) {
       }
 
       const actualCell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [finalCell]);
-      if (actualCell && !win && actualCell.reward_type && actualCell.reward_type !== 'none') {
-        if (actualCell.reward_type === 'currency') {
-          rewardTriggered = { type: actualCell.reward_type, name: actualCell.reward_name, detail: actualCell.reward_detail };
-        } else if ((actualCell.reward_type === 'card' || actualCell.reward_type === 'premium') && actualCell.claimed_by_user_id === null) {
-          rewardTriggered = { type: actualCell.reward_type, name: actualCell.reward_name, detail: actualCell.reward_detail, originCell: finalCell };
+      if (actualCell && !win) {
+        if (actualCell.rewards_json) {
+          let rewards = [];
+          try {
+            rewards = JSON.parse(actualCell.rewards_json);
+          } catch (e) {}
+          const coinsItem = rewards.find(r => r.type === 'coins');
+          if (coinsItem && coinsItem.value) {
+            newBalance += parseInt(coinsItem.value) || 0;
+          }
+          const hasUnclaimed = rewards.some(r => (r.type === 'card' || r.type === 'premium') && !r.claimed_by_user_id);
+          if (hasUnclaimed) {
+            rewardTriggered = {
+              type: 'multi',
+              originCell: finalCell,
+              rewards: rewards
+            };
+          }
+        } else if (actualCell.reward_type && actualCell.reward_type !== 'none') {
+          if (actualCell.reward_type === 'currency') {
+            rewardTriggered = { type: actualCell.reward_type, name: actualCell.reward_name, detail: actualCell.reward_detail };
+          } else if ((actualCell.reward_type === 'card' || actualCell.reward_type === 'premium') && actualCell.claimed_by_user_id === null) {
+            rewardTriggered = { type: actualCell.reward_type, name: actualCell.reward_name, detail: actualCell.reward_detail, originCell: finalCell };
+          }
         }
       }
     }
@@ -2366,11 +2445,11 @@ app.post('/api/admin/settings/update', checkAdmin, async (req, res) => {
 });
 
 app.post('/api/admin/cells/update', checkAdmin, async (req, res) => {
-  const { cellNumber, type, value, rewardType, rewardName, rewardDetail } = req.body;
+  const { cellNumber, type, value, rewardType, rewardName, rewardDetail, rewardsJson } = req.body;
   try {
     await runQuery(
-      'UPDATE cells SET type = ?, value = ?, reward_type = ?, reward_name = ?, reward_detail = ? WHERE cell_number = ?',
-      [type, value, rewardType, rewardName, rewardDetail, cellNumber]
+      'UPDATE cells SET type = ?, value = ?, reward_type = ?, reward_name = ?, reward_detail = ?, rewards_json = ? WHERE cell_number = ?',
+      [type, value, rewardType, rewardName, rewardDetail, rewardsJson || null, cellNumber]
     );
     await broadcastCells();
     res.json({ success: true });
@@ -2577,6 +2656,90 @@ app.post('/api/board/claim-reward', async (req, res) => {
   }
 });
 
+app.post('/api/board/claim-multi-reward', async (req, res) => {
+  const { userId, cellNumber, rewardId, claim } = req.body;
+  if (!userId || cellNumber === undefined) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+  try {
+    const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    if (!user) return res.status(400).json({ error: 'Игрок не найден' });
+
+    if (user.current_cell !== cellNumber) {
+      return res.status(400).json({ error: 'Вы находитесь на другой ячейке!' });
+    }
+
+    const cell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [cellNumber]);
+    if (!cell) return res.status(400).json({ error: 'Ячейка не найдена' });
+
+    if (!cell.rewards_json) {
+      return res.status(400).json({ error: 'На этой ячейке нет множественной награды' });
+    }
+
+    let rewards = [];
+    try {
+      rewards = JSON.parse(cell.rewards_json);
+    } catch (e) {
+      return res.status(400).json({ error: 'Неверный формат наград' });
+    }
+
+    const rewardIndex = rewards.findIndex(r => r.id === rewardId);
+    if (rewardIndex === -1) {
+      return res.status(400).json({ error: 'Награда не найдена' });
+    }
+
+    const reward = rewards[rewardIndex];
+    if (reward.claimed_by_user_id !== null && reward.claimed_by_user_id !== undefined) {
+      return res.status(400).json({ error: 'Эта награда уже забрана другим игроком!' });
+    }
+
+    if (claim) {
+      const invCountRow = await getQuery(
+        "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+        [userId]
+      );
+      const count = invCountRow ? invCountRow.count : 0;
+      if (count >= 10) {
+        return res.status(400).json({ error: 'Ваш инвентарь наград заполнен! Максимум можно иметь 10 наград.' });
+      }
+
+      const itemType = reward.type === 'card' ? 'remanga_card' : 'premium_subscription';
+      const name = reward.name;
+      const detail = reward.type === 'card' ? `${reward.cover}|${reward.name}|${reward.char}` : String(reward.value);
+
+      await runQuery(
+        'INSERT INTO inventory (user_id, item_type, name, description, duration, origin_cell_number) VALUES (?, ?, ?, ?, ?, ?)',
+        [userId, itemType, name, detail, 0, cellNumber]
+      );
+
+      const displayName = user.tg_first_name || user.tg_username || `Игрок ${user.id}`;
+      reward.claimed_by_user_id = userId;
+      reward.claimed_by_username = displayName;
+
+      await runQuery(
+        'UPDATE cells SET rewards_json = ? WHERE cell_number = ?',
+        [JSON.stringify(rewards), cellNumber]
+      );
+
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [
+          userId,
+          'claim_reward',
+          `Забрана награда с ячейки ${cellNumber}: ${name}`,
+          new Date().toISOString()
+        ]
+      );
+
+      await broadcastPlayersList();
+      await broadcastCells();
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/inventory/remove-reward', async (req, res) => {
   const { userId, itemId } = req.body;
   if (!userId || !itemId) {
@@ -2616,10 +2779,28 @@ app.post('/api/inventory/remove-reward', async (req, res) => {
 
     await runQuery('DELETE FROM inventory WHERE id = ?', [itemId]);
 
-    await runQuery(
-      'UPDATE cells SET claimed_by_user_id = NULL, claimed_by_username = NULL WHERE cell_number = ?',
-      [item.origin_cell_number]
-    );
+    const cell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [item.origin_cell_number]);
+    if (cell && cell.rewards_json) {
+      let rewards = [];
+      try {
+        rewards = JSON.parse(cell.rewards_json);
+      } catch (e) {}
+      const itemType = item.item_type === 'remanga_card' ? 'card' : 'premium';
+      const match = rewards.find(r => r.type === itemType && r.name === item.name && r.claimed_by_user_id === userId);
+      if (match) {
+        match.claimed_by_user_id = null;
+        match.claimed_by_username = null;
+        await runQuery(
+          'UPDATE cells SET rewards_json = ? WHERE cell_number = ?',
+          [JSON.stringify(rewards), item.origin_cell_number]
+        );
+      }
+    } else {
+      await runQuery(
+        'UPDATE cells SET claimed_by_user_id = NULL, claimed_by_username = NULL WHERE cell_number = ?',
+        [item.origin_cell_number]
+      );
+    }
 
     await runQuery(
       'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
@@ -2771,6 +2952,10 @@ async function publishBackendUrl() {
   let backendUrl = process.env.BACKEND_URL;
 
   if (!backendUrl) {
+    backendUrl = cloudflaredUrl;
+  }
+
+  if (!backendUrl) {
     try {
       const res = await fetch('http://127.0.0.1:4040/api/tunnels');
       if (res.ok) {
@@ -2784,7 +2969,7 @@ async function publishBackendUrl() {
   }
 
   if (!backendUrl) {
-    backendUrl = cloudflaredUrl || sshUrl || localtunnelUrl;
+    backendUrl = sshUrl || localtunnelUrl;
   }
 
   if (backendUrl && backendUrl !== lastPublishedUrl) {
@@ -2803,7 +2988,6 @@ async function publishBackendUrl() {
 }
 
 function startPublishingLoop() {
-  startNgrokTunnel();
   startCloudflareTunnel();
   startSshTunnel();
   startLocalTunnel();

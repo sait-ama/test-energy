@@ -467,9 +467,24 @@
               <label>Название награды</label>
               <input type="text" id="admin-cell-rew-name" placeholder="Например: 50 монет">
             </div>
-            <div class="form-group">
-              <label>Детали награды (JSON / Значение)</label>
-              <input type="text" id="admin-cell-rew-detail" placeholder="Например: 50">
+            <div class="form-group" style="border-top: 1px dashed rgba(255, 255, 255, 0.15); padding-top: 10px; margin-top: 15px;">
+              <label style="font-weight: bold; color: #00f0ff; display: block; margin-bottom: 8px;">Множественные награды (Объединенная ячейка)</label>
+              <div style="margin-bottom: 8px;">
+                <label style="font-size: 11px; opacity: 0.8;">Монеты в ячейке</label>
+                <input type="number" id="admin-cell-multi-coins" value="0" placeholder="Количество монет" style="font-size: 12px; padding: 6px;">
+              </div>
+              <div style="margin-bottom: 8px;">
+                <label style="font-size: 11px; opacity: 0.8;">Дни премиума в ячейке</label>
+                <input type="number" id="admin-cell-multi-premium" value="0" placeholder="Дни премиума" style="font-size: 12px; padding: 6px;">
+              </div>
+              <div style="margin-bottom: 8px; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                <label style="font-size: 11px; opacity: 0.8; display: block; margin-bottom: 6px;">Карты в ячейке</label>
+                <div id="admin-cell-multi-cards-list" style="margin-bottom: 6px; display: flex; flex-direction: column; gap: 4px;"></div>
+                <div style="display: flex; gap: 4px;">
+                  <input type="text" id="admin-cell-multi-card-url" placeholder="Ссылка на карту Remanga" style="flex: 1; font-size: 11px; margin-bottom: 0; padding: 6px;">
+                  <button id="admin-cell-multi-card-add-btn" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;">Добавить</button>
+                </div>
+              </div>
             </div>
             <button id="save-cell-btn" class="btn btn-primary btn-block">Сохранить ячейку</button>
           </div>
@@ -1077,7 +1092,26 @@
     </div>
   </div>
 
-  <script src="app.js?v=1.2.3"></script>
+  <div id="multi-reward-modal" class="modal hidden" style="z-index: 9999;">
+    <div class="modal-content" style="max-width: 500px; width: 90%;">
+      <div class="modal-header">
+        <h2>Выбор награды!</h2>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 10px;">Вы попали на ячейку со множеством наград. Вы можете выбрать одну из доступных наград ниже:</p>
+        <p id="multi-reward-slots-info" style="font-size: 12px; color: #00f0ff; text-align: center; margin-bottom: 15px; font-weight: bold;"></p>
+        
+        <div id="multi-rewards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-bottom: 20px; max-height: 300px; overflow-y: auto; padding: 4px;"></div>
+
+        <div style="display: flex; gap: 10px;">
+          <button id="claim-multi-reward-yes-btn" class="btn btn-primary" style="flex: 1;" disabled>Забрать выбранное</button>
+          <button id="claim-multi-reward-no-btn" class="btn btn-secondary" style="flex: 1;">Отказаться</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=1.2.5"></script>
 </body>
 
 </html>

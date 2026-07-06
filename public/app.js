@@ -1498,6 +1498,7 @@ const state = {
   inventory: [],
   activeEffects: [],
   history: [],
+  globalHistory: [],
   onlinePlayers: [],
   cells: [],
   shopItems: [],
@@ -2377,6 +2378,15 @@ async function initGameComponents() {
     console.error(e);
   }
   try {
+    const res = await fetch('/api/history/global');
+    if (res.ok) {
+      state.globalHistory = await res.json();
+      updateGlobalHistoryUI();
+    }
+  } catch (e) {
+    console.error(e);
+  }
+  try {
     await refreshProfile();
   } catch (e) {
     console.error(e);
@@ -2424,7 +2434,9 @@ function performSelfMovement(moveData) {
       }
     });
     if (moveData.rewardTriggered && moveData.rewardTriggered.type && moveData.rewardTriggered.type !== 'none') {
-      if (moveData.rewardTriggered.type === 'card' || moveData.rewardTriggered.type === 'premium') {
+      if (moveData.rewardTriggered.type === 'multi') {
+        showMultiRewardChoiceModal(moveData.rewardTriggered);
+      } else if (moveData.rewardTriggered.type === 'card' || moveData.rewardTriggered.type === 'premium') {
         showRewardChoiceModal(moveData.rewardTriggered);
       } else {
         showRewardPopup(moveData.rewardTriggered);
@@ -2524,7 +2536,7 @@ function initSocket() {
       updateDiceButton();
     }
     if (data.historyEntry) {
-      addHistoryItem(data.historyEntry);
+      addPersonalHistoryItem(data.historyEntry);
     }
   });
 
@@ -2546,6 +2558,11 @@ function initSocket() {
     if (state.activeShopTab === 'equipment') {
       renderEquipmentShop();
     }
+  });
+
+  state.socket.on('global_history', (history) => {
+    state.globalHistory = history;
+    updateGlobalHistoryUI();
   });
 }
 
@@ -2629,7 +2646,7 @@ async function refreshProfile() {
 
     updateInventoryUI();
     updateEffectsUI();
-    updateHistoryUI();
+    updatePersonalHistoryUI();
     updateDiceButton();
 
     const currentCellIndex = state.user.current_cell;
@@ -4949,17 +4966,13 @@ function updateEffectsUI() {
   });
 }
 
-function updateHistoryUI() {
-  const mainContainer = document.getElementById('action-history');
+function updatePersonalHistoryUI() {
   const drawerContainer = document.getElementById('drawer-history-list');
-
-  mainContainer.innerHTML = '';
+  if (!drawerContainer) return;
   drawerContainer.innerHTML = '';
 
   if (state.history.length === 0) {
-    const emptyNote = '<div class="info-note">История пуста</div>';
-    mainContainer.innerHTML = emptyNote;
-    drawerContainer.innerHTML = emptyNote;
+    drawerContainer.innerHTML = '<div class="info-note">История пуста</div>';
     return;
   }
 
@@ -4971,15 +4984,13 @@ function updateHistoryUI() {
       <div>${item.detail}</div>
       <div class="history-item-time">${date}</div>
     `;
-
-    mainContainer.appendChild(div);
-    drawerContainer.appendChild(div.cloneNode(true));
+    drawerContainer.appendChild(div);
   });
 }
 
-function addHistoryItem(item) {
-  const mainContainer = document.getElementById('action-history');
+function addPersonalHistoryItem(item) {
   const drawerContainer = document.getElementById('drawer-history-list');
+  if (!drawerContainer) return;
 
   const div = document.createElement('div');
   div.className = `history-item ${item.action}`;
@@ -4988,9 +4999,31 @@ function addHistoryItem(item) {
     <div>${item.detail}</div>
     <div class="history-item-time">${date}</div>
   `;
+  drawerContainer.insertBefore(div, drawerContainer.firstChild);
+}
 
-  mainContainer.insertBefore(div, mainContainer.firstChild);
-  drawerContainer.insertBefore(div.cloneNode(true), drawerContainer.firstChild);
+function updateGlobalHistoryUI() {
+  const mainContainer = document.getElementById('action-history');
+  if (!mainContainer) return;
+  mainContainer.innerHTML = '';
+
+  if (!state.globalHistory || state.globalHistory.length === 0) {
+    mainContainer.innerHTML = '<div class="info-note">История пуста</div>';
+    return;
+  }
+
+  state.globalHistory.forEach(item => {
+    const div = document.createElement('div');
+    div.className = `history-item ${item.action}`;
+    const date = formatDateTime(item.timestamp);
+    const displayName = item.tg_first_name || item.tg_username || `Игрок ${item.user_id}`;
+    const userSpan = `<span style="color: #00f0ff; font-weight: bold;">${displayName}</span>: `;
+    div.innerHTML = `
+      <div>${userSpan}${item.detail}</div>
+      <div class="history-item-time">${date}</div>
+    `;
+    mainContainer.appendChild(div);
+  });
 }
 
 let activeUseInventoryId = null;
@@ -5098,6 +5131,41 @@ function setupAdminTabs() {
     });
   }
 
+  const addMultiCardBtn = document.getElementById('admin-cell-multi-card-add-btn');
+  if (addMultiCardBtn) {
+    addMultiCardBtn.addEventListener('click', async () => {
+      const urlInput = document.getElementById('admin-cell-multi-card-url');
+      const url = urlInput ? urlInput.value.trim() : '';
+      if (!url) return;
+      try {
+        addMultiCardBtn.setAttribute('disabled', 'true');
+        const res = await fetch('/api/admin/fetch-card', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ cardUrl: url, requesterUserId: state.user.id })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Ошибка загрузки');
+        adminSelectedMultiCards.push({
+          id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+          type: 'card',
+          cover: data.cover,
+          name: data.title,
+          char: data.characterName,
+          claimed_by_user_id: null,
+          claimed_by_username: null
+        });
+        urlInput.value = '';
+        renderAdminMultiCardsList();
+        showNotification('Карта добавлена в список!', 'success');
+      } catch (e) {
+        showNotification(e.message, 'error');
+      } finally {
+        addMultiCardBtn.removeAttribute('disabled');
+      }
+    });
+  }
+
   const saveCellBtn = document.getElementById('save-cell-btn');
   if (saveCellBtn) {
     saveCellBtn.addEventListener('click', async () => {
@@ -5116,12 +5184,63 @@ function setupAdminTabs() {
         const rewardName = rewNameEl ? rewNameEl.value.trim() : '';
         const rewardDetail = rewDetailEl ? rewDetailEl.value.trim() : '';
 
+        const multiCoins = parseInt(document.getElementById('admin-cell-multi-coins').value) || 0;
+        const multiPremium = parseInt(document.getElementById('admin-cell-multi-premium').value) || 0;
+
+        let rewardsArr = [];
+        if (multiCoins > 0) {
+          rewardsArr.push({
+            id: 'coins',
+            type: 'coins',
+            value: multiCoins,
+            name: `${multiCoins} монет`
+          });
+        }
+        if (multiPremium > 0) {
+          let oldPrem = null;
+          if (state.cells[cellNumber] && state.cells[cellNumber].rewards_json) {
+            try {
+              const oldRewards = JSON.parse(state.cells[cellNumber].rewards_json);
+              oldPrem = oldRewards.find(r => r.type === 'premium');
+            } catch (e) {}
+          }
+          rewardsArr.push({
+            id: oldPrem ? oldPrem.id : 'premium_' + Date.now(),
+            type: 'premium',
+            value: multiPremium,
+            name: `Премиум статус ${multiPremium} дн.`,
+            claimed_by_user_id: oldPrem ? oldPrem.claimed_by_user_id : null,
+            claimed_by_username: oldPrem ? oldPrem.claimed_by_username : null
+          });
+        }
+
+        adminSelectedMultiCards.forEach(card => {
+          let oldCard = null;
+          if (state.cells[cellNumber] && state.cells[cellNumber].rewards_json) {
+            try {
+              const oldRewards = JSON.parse(state.cells[cellNumber].rewards_json);
+              oldCard = oldRewards.find(r => r.type === 'card' && r.name === card.name);
+            } catch (e) {}
+          }
+          rewardsArr.push({
+            id: card.id,
+            type: 'card',
+            cover: card.cover,
+            name: card.name,
+            char: card.char,
+            claimed_by_user_id: oldCard ? oldCard.claimed_by_user_id : card.claimed_by_user_id,
+            claimed_by_username: oldCard ? oldCard.claimed_by_username : card.claimed_by_username
+          });
+        });
+
+        const rewardsJson = rewardsArr.length > 0 ? JSON.stringify(rewardsArr) : null;
+
         if (!state.user) throw new Error('Пользователь не авторизован');
 
         const res = await fetch('/api/admin/cells/update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ cellNumber, type, value, rewardType, rewardName, rewardDetail, requesterUserId: state.user.id })
+          body: JSON.stringify({ cellNumber, type, value, rewardType, rewardName, rewardDetail, rewardsJson, requesterUserId: state.user.id })
         });
 
         if (!res.ok) {
@@ -5565,6 +5684,34 @@ document.getElementById('save-user-edit-btn').addEventListener('click', async ()
   }
 });
 
+let adminSelectedMultiCards = [];
+
+function renderAdminMultiCardsList() {
+  const container = document.getElementById('admin-cell-multi-cards-list');
+  if (!container) return;
+  container.innerHTML = '';
+  adminSelectedMultiCards.forEach((card, idx) => {
+    const itemDiv = document.createElement('div');
+    itemDiv.style.cssText = 'display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 2px;';
+    const labelSpan = document.createElement('span');
+    labelSpan.textContent = card.name || 'Карта';
+    labelSpan.style.textOverflow = 'ellipsis';
+    labelSpan.style.overflow = 'hidden';
+    labelSpan.style.whiteSpace = 'nowrap';
+    labelSpan.style.flex = '1';
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '❌';
+    delBtn.style.cssText = 'background: none; border: none; cursor: pointer; padding: 0 4px;';
+    delBtn.addEventListener('click', () => {
+      adminSelectedMultiCards.splice(idx, 1);
+      renderAdminMultiCardsList();
+    });
+    itemDiv.appendChild(labelSpan);
+    itemDiv.appendChild(delBtn);
+    container.appendChild(itemDiv);
+  });
+}
+
 function loadAdminCellData(cellIndex) {
   const cell = state.cells[cellIndex] || { type: 'normal', value: 0, reward_type: 'none', reward_name: '', reward_detail: '' };
   document.getElementById('admin-cell-type').value = cell.type;
@@ -5580,6 +5727,25 @@ function loadAdminCellData(cellIndex) {
   } else {
     helper.classList.add('hidden');
   }
+
+  let coinsVal = 0;
+  let premVal = 0;
+  adminSelectedMultiCards = [];
+  if (cell.rewards_json) {
+    try {
+      const rewards = JSON.parse(cell.rewards_json);
+      const coinsItem = rewards.find(r => r.type === 'coins');
+      if (coinsItem) coinsVal = coinsItem.value || 0;
+      const premItem = rewards.find(r => r.type === 'premium');
+      if (premItem) premVal = premItem.value || 0;
+      adminSelectedMultiCards = rewards.filter(r => r.type === 'card');
+    } catch (e) {
+      console.error('Failed to parse rewards_json in admin editor', e);
+    }
+  }
+  document.getElementById('admin-cell-multi-coins').value = coinsVal;
+  document.getElementById('admin-cell-multi-premium').value = premVal;
+  renderAdminMultiCardsList();
 }
 
 let bossPreviewRenderer = null;
@@ -6013,20 +6179,189 @@ document.getElementById('claim-reward-current-cell-btn').addEventListener('click
   const currentCellIndex = state.user.current_cell;
   const currentCell = state.cells ? state.cells[currentCellIndex] : null;
   if (currentCell) {
-    showRewardChoiceModal({
-      type: currentCell.reward_type,
-      name: currentCell.reward_name,
-      detail: currentCell.reward_detail,
-      originCell: currentCellIndex
-    });
+    if (currentCell.rewards_json) {
+      let rewards = [];
+      try {
+        rewards = JSON.parse(currentCell.rewards_json);
+      } catch (e) {}
+      const hasUnclaimed = rewards.some(r => (r.type === 'card' || r.type === 'premium') && !r.claimed_by_user_id);
+      if (hasUnclaimed) {
+        showMultiRewardChoiceModal({
+          type: 'multi',
+          originCell: currentCellIndex,
+          rewards: rewards
+        });
+      } else {
+        showNotification('Все награды на этой ячейке уже забраны!', 'info');
+      }
+    } else {
+      showRewardChoiceModal({
+        type: currentCell.reward_type,
+        name: currentCell.reward_name,
+        detail: currentCell.reward_detail,
+        originCell: currentCellIndex
+      });
+    }
   }
 });
+
+let selectedMultiRewardId = null;
+
+function showMultiRewardChoiceModal(rewardTriggered) {
+  state.pendingMultiReward = rewardTriggered;
+  selectedMultiRewardId = null;
+  
+  const claimBtn = document.getElementById('claim-multi-reward-yes-btn');
+  if (claimBtn) {
+    claimBtn.setAttribute('disabled', 'true');
+  }
+
+  const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
+  const freeSlots = Math.max(0, 10 - claimedCount);
+  
+  const slotsInfo = document.getElementById('multi-reward-slots-info');
+  if (slotsInfo) {
+    slotsInfo.textContent = `Свободных мест для наград: ${freeSlots} из 10.`;
+    slotsInfo.style.color = freeSlots > 0 ? '#2ecc71' : '#e74c3c';
+  }
+
+  const grid = document.getElementById('multi-rewards-grid');
+  if (grid) {
+    grid.innerHTML = '';
+    
+    const choiceItems = rewardTriggered.rewards.filter(r => r.type === 'card' || r.type === 'premium');
+    
+    choiceItems.forEach(item => {
+      const cardEl = document.createElement('div');
+      cardEl.className = 'reward-card-choice-item';
+      cardEl.style.cssText = 'position: relative; background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; text-align: center; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 180px;';
+      
+      const isClaimed = item.claimed_by_user_id !== null && item.claimed_by_user_id !== undefined;
+      
+      if (isClaimed) {
+        cardEl.style.opacity = '0.5';
+        cardEl.style.cursor = 'not-allowed';
+        cardEl.style.borderColor = 'rgba(255,0,0,0.2)';
+      }
+      
+      if (item.type === 'card') {
+        const imgContainer = document.createElement('div');
+        imgContainer.style.cssText = 'position: relative; width: 80px; height: 110px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 4px; overflow: hidden;';
+        
+        const spinner = document.createElement('div');
+        spinner.className = 'image-loader-spinner';
+        spinner.style.cssText = 'position: absolute; width: 20px; height: 20px; border: 2px solid rgba(0,240,255,0.1); border-radius: 50%; border-top-color: #00f0ff; animation: spin 1s linear infinite;';
+        imgContainer.appendChild(spinner);
+        
+        const img = document.createElement('img');
+        img.src = item.cover;
+        img.referrerPolicy = 'no-referrer';
+        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.3s;';
+        img.onload = () => { spinner.remove(); img.style.opacity = '1'; };
+        img.onerror = () => { spinner.remove(); img.src = 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp'; img.style.opacity = '1'; };
+        imgContainer.appendChild(img);
+        cardEl.appendChild(imgContainer);
+      } else {
+        const premIcon = document.createElement('div');
+        premIcon.style.cssText = 'width: 80px; height: 110px; display: flex; align-items: center; justify-content: center; background: rgba(255,215,0,0.1); border: 1px dashed #ffd700; border-radius: 4px; color: #ffd700; font-size: 24px; margin-bottom: 6px;';
+        premIcon.innerHTML = '⭐';
+        cardEl.appendChild(premIcon);
+      }
+      
+      const nameLabel = document.createElement('div');
+      nameLabel.textContent = item.name;
+      nameLabel.style.cssText = 'font-size: 11px; font-weight: bold; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 26px; line-height: 13px;';
+      cardEl.appendChild(nameLabel);
+      
+      if (isClaimed) {
+        const claimedBy = document.createElement('div');
+        claimedBy.textContent = `Забрал: ${item.claimed_by_username}`;
+        claimedBy.style.cssText = 'font-size: 9px; color: #e74c3c; font-weight: bold; margin-top: 4px;';
+        cardEl.appendChild(claimedBy);
+      }
+      
+      if (!isClaimed && freeSlots > 0) {
+        cardEl.addEventListener('click', () => {
+          const allCards = grid.querySelectorAll('.reward-card-choice-item');
+          allCards.forEach(c => {
+            if (c.style.borderColor !== 'rgba(255, 0, 0, 0.2)') {
+              c.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+              c.style.boxShadow = 'none';
+            }
+          });
+          cardEl.style.borderColor = '#00f0ff';
+          cardEl.style.boxShadow = '0 0 10px rgba(0,240,255,0.4)';
+          selectedMultiRewardId = item.id;
+          if (claimBtn) {
+            claimBtn.removeAttribute('disabled');
+          }
+        });
+      }
+      grid.appendChild(cardEl);
+    });
+  }
+  document.getElementById('multi-reward-modal').classList.remove('hidden');
+}
+
+const claimMultiYesBtn = document.getElementById('claim-multi-reward-yes-btn');
+if (claimMultiYesBtn) {
+  claimMultiYesBtn.addEventListener('click', async () => {
+    if (!state.pendingMultiReward || !selectedMultiRewardId) return;
+    try {
+      const res = await fetch('/api/board/claim-multi-reward', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: state.user.id,
+          cellNumber: state.pendingMultiReward.originCell,
+          rewardId: selectedMultiRewardId,
+          claim: true
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Ошибка при получении награды');
+      
+      showNotification('Награда успешно добавлена в ваш инвентарь!', 'success');
+      document.getElementById('multi-reward-modal').classList.add('hidden');
+      state.pendingMultiReward = null;
+      selectedMultiRewardId = null;
+      refreshProfile();
+    } catch (err) {
+      showNotification(err.message, 'error');
+    }
+  });
+}
+
+const claimMultiNoBtn = document.getElementById('claim-multi-reward-no-btn');
+if (claimMultiNoBtn) {
+  claimMultiNoBtn.addEventListener('click', async () => {
+    if (!state.pendingMultiReward) return;
+    try {
+      await fetch('/api/board/claim-multi-reward', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: state.user.id,
+          cellNumber: state.pendingMultiReward.originCell,
+          claim: false
+        })
+      });
+      document.getElementById('multi-reward-modal').classList.add('hidden');
+      state.pendingMultiReward = null;
+      selectedMultiRewardId = null;
+      refreshProfile();
+    } catch (err) {
+      showNotification(err.message, 'error');
+    }
+  });
+}
 
 window.loadAdminCellData = loadAdminCellData;
 window.showCellInfoTag = showCellInfoTag;
 window.showGuildTaxModal = showGuildTaxModal;
 window.showRewardPopup = showRewardPopup;
 window.showRewardChoiceModal = showRewardChoiceModal;
+window.showMultiRewardChoiceModal = showMultiRewardChoiceModal;
 window.showConfirm = showConfirm;
 
 const casinoSegments = [

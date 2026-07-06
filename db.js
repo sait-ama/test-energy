@@ -107,6 +107,7 @@ export function initDb() {
       db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('dice_cooldown', '1800')`);
       db.run(`ALTER TABLE cells ADD COLUMN claimed_by_user_id INTEGER DEFAULT NULL`, () => {});
       db.run(`ALTER TABLE cells ADD COLUMN claimed_by_username TEXT DEFAULT NULL`, () => {});
+      db.run(`ALTER TABLE cells ADD COLUMN rewards_json TEXT DEFAULT NULL`, () => {});
       db.run(`ALTER TABLE inventory ADD COLUMN origin_cell_number INTEGER DEFAULT NULL`, () => {});
       db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('price_remove_reward', '100')`);
       db.run(`ALTER TABLE users ADD COLUMN last_boss_attack_time TEXT`, () => {});
