@@ -5913,6 +5913,19 @@ function showCellInfoTag(cellIndex) {
   const cell = state.cells ? state.cells[cellIndex] : null;
   if (!cell) return;
 
+  const tag = document.getElementById('cell-info-tag');
+  if (tag) {
+    if (window.innerWidth <= 768) {
+      tag.style.minWidth = '270px';
+      tag.style.maxWidth = '340px';
+      tag.style.width = '90%';
+    } else {
+      tag.style.minWidth = '200px';
+      tag.style.maxWidth = '280px';
+      tag.style.width = '';
+    }
+  }
+
   const contentEl = document.getElementById('cell-info-tag-content');
   if (!contentEl) return;
 
