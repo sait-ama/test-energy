@@ -268,9 +268,10 @@
           </div>
         </div>
         <div class="user-stats-group">
-          <div class="header-stat">
+          <div class="header-stat" id="header-balance-container" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
             <span class="label">Монеты:</span>
             <span id="user-balance" class="value text-gold">0</span>
+            <span style="color: #ffb800; font-weight: bold; font-size: 16px; margin-left: 2px;">+</span>
           </div>
           <div class="header-stat" style="display: none;">
             <span class="label">Победы:</span>
@@ -293,11 +294,14 @@
               Закрыть</button>
           </div>
           <!-- Mobile shop balance display -->
-          <div class="mobile-shop-balance mobile-only"
-            style="margin-bottom: 15px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); display: flex; justify-content: space-between; align-items: center;">
+          <div class="mobile-shop-balance mobile-only" id="shop-balance-container"
+            style="margin-bottom: 15px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
             <span style="font-size: 13px; color: #8c9ba5;">Баланс монет:</span>
-            <span id="shop-balance" class="text-gold"
-              style="font-weight: 700; font-size: 16px; font-family: 'Orbitron', sans-serif;">0</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span id="shop-balance" class="text-gold"
+                style="font-weight: 700; font-size: 16px; font-family: 'Orbitron', sans-serif;">0</span>
+              <span style="color: #ffb800; font-weight: bold; font-size: 18px;">+</span>
+            </div>
           </div>
           <div class="shop-tabs">
             <button class="shop-tab-btn active" data-tab="buffs">Баффы</button>
@@ -752,9 +756,12 @@
       <div class="drawer-section">
         <h3>Статистика</h3>
         <div class="drawer-stats-row">
-          <div class="drawer-stat">
+          <div class="drawer-stat" id="drawer-balance-container" style="cursor: pointer; display: flex; flex-direction: row; justify-content: space-between; align-items: center; width: 100%;">
             <span class="stat-label">Монеты</span>
-            <span id="drawer-balance" class="stat-value text-gold">0</span>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span id="drawer-balance" class="stat-value text-gold">0</span>
+              <span style="color: #ffb800; font-weight: bold; font-size: 16px;">+</span>
+            </div>
           </div>
           <div class="drawer-stat" style="display: none;">
             <span class="stat-label">Победы</span>
@@ -1114,8 +1121,24 @@
       </div>
     </div>
   </div>
-
-  <script src="app.js?v=1.2.6"></script>
+  <div id="deposit-modal" class="modal hidden" style="z-index: 99999;">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h2>Пополнение</h2>
+        <button id="close-deposit-modal-btn" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body" style="text-align: center;">
+        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 15px;">Чтобы пополнить монеты, перейдите в одну из трех гильдий и просто сделайте вклад. Пополнения проверяются каждые 5 минут. 1 молния = 1 монета.</p>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
+          <a href="https://remanga.org/clubs/eternal-watchers-5fdc5a3d/" target="_blank" class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Watchers</a>
+          <a href="https://remanga.org/clubs/eternal-keepers-of-knowledge-06969ad9/" target="_blank" class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Keepers</a>
+          <a href="https://remanga.org/clubs/eternalangelicguardianse-w-da9b9d1b/" target="_blank" class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Angelic Guardians</a>
+        </div>
+        <button id="close-deposit-modal-btn-bottom" class="btn btn-secondary btn-block">Закрыть</button>
+      </div>
+    </div>
+  </div>
+  <script src="app.js?v=1.2.7"></script>
 </body>
 
 </html>

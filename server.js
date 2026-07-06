@@ -335,7 +335,7 @@ async function checkTelegramMembership(tgUserId) {
       const resp = await fetch(url);
       const data = await resp.json().catch(() => ({}));
       console.log(`[Whitelist] Response from Telegram API for Chat ${chatId}:`, JSON.stringify(data));
-      
+
       if (resp.ok && data.ok && data.result) {
         const status = data.result.status;
         console.log(`[Whitelist] Status of ${tgUserId} in ${chatId} is "${status}"`);
@@ -389,7 +389,7 @@ app.get('/api/auth/telegram-check/:token', async (req, res) => {
   try {
     let user = await getQuery('SELECT * FROM users WHERE tg_id = ?', [tg_id]);
     const isOwner = (username && username.toLowerCase() === 'saitama01010');
-    
+
     console.log(`[Auth Check] User with Telegram ID ${tg_id} exists in database: ${!!user}`);
 
     if (!user) {
@@ -775,7 +775,7 @@ app.post('/api/profile/link-remanga', async (req, res) => {
     if (!updatedUser) {
       return res.status(404).json({ error: `Пользователь с ID ${userId} не найден в базе данных после обновления.` });
     }
-    
+
     res.json({
       user: {
         ...updatedUser,
@@ -989,7 +989,7 @@ app.post('/api/board/roll', async (req, res) => {
             let rewards = [];
             try {
               rewards = JSON.parse(actualCell.rewards_json);
-            } catch (e) {}
+            } catch (e) { }
             const coinsItem = rewards.find(r => r.type === 'coins');
             if (coinsItem && coinsItem.value) {
               newBalance += parseInt(coinsItem.value) || 0;
@@ -1277,7 +1277,7 @@ async function autoSkipPendingBoss(user) {
           let rewards = [];
           try {
             rewards = JSON.parse(actualCell.rewards_json);
-          } catch (e) {}
+          } catch (e) { }
           const coinsItem = rewards.find(r => r.type === 'coins');
           if (coinsItem && coinsItem.value) {
             newBalance += parseInt(coinsItem.value) || 0;
@@ -2689,6 +2689,11 @@ app.post('/api/board/claim-multi-reward', async (req, res) => {
     }
 
     const reward = rewards[rewardIndex];
+    const userAlreadyClaimed = rewards.some(r => r.claimed_by_user_id === userId);
+    if (userAlreadyClaimed) {
+      return res.status(400).json({ error: 'Вы уже забрали награду с этой ячейки!' });
+    }
+
     if (reward.claimed_by_user_id !== null && reward.claimed_by_user_id !== undefined) {
       return res.status(400).json({ error: 'Эта награда уже забрана другим игроком!' });
     }
@@ -2784,7 +2789,7 @@ app.post('/api/inventory/remove-reward', async (req, res) => {
       let rewards = [];
       try {
         rewards = JSON.parse(cell.rewards_json);
-      } catch (e) {}
+      } catch (e) { }
       const itemType = item.item_type === 'remanga_card' ? 'card' : 'premium';
       const match = rewards.find(r => r.type === itemType && r.name === item.name && r.claimed_by_user_id === userId);
       if (match) {
@@ -2952,10 +2957,6 @@ async function publishBackendUrl() {
   let backendUrl = process.env.BACKEND_URL;
 
   if (!backendUrl) {
-    backendUrl = cloudflaredUrl;
-  }
-
-  if (!backendUrl) {
     try {
       const res = await fetch('http://127.0.0.1:4040/api/tunnels');
       if (res.ok) {
@@ -2969,7 +2970,7 @@ async function publishBackendUrl() {
   }
 
   if (!backendUrl) {
-    backendUrl = sshUrl || localtunnelUrl;
+    backendUrl = cloudflaredUrl || sshUrl || localtunnelUrl;
   }
 
   if (backendUrl && backendUrl !== lastPublishedUrl) {
@@ -2988,6 +2989,7 @@ async function publishBackendUrl() {
 }
 
 function startPublishingLoop() {
+  startNgrokTunnel();
   startCloudflareTunnel();
   startSshTunnel();
   startLocalTunnel();

@@ -2653,9 +2653,27 @@ async function refreshProfile() {
     const currentCell = state.cells ? state.cells[currentCellIndex] : null;
     const claimBtn = document.getElementById('claim-reward-current-cell-btn');
     if (claimBtn) {
-      if (currentCell && (currentCell.reward_type === 'card' || currentCell.reward_type === 'premium') && currentCell.claimed_by_user_id === null) {
+      let showButton = false;
+      let btnText = 'Забрать награду';
+      if (currentCell) {
+        if (currentCell.rewards_json) {
+          try {
+            const rewards = JSON.parse(currentCell.rewards_json);
+            const userClaimed = rewards.some(r => r.claimed_by_user_id === state.user.id);
+            const hasUnclaimed = rewards.some(r => (r.type === 'card' || r.type === 'premium') && !r.claimed_by_user_id);
+            if (!userClaimed && hasUnclaimed) {
+              showButton = true;
+              btnText = 'Выбрать награду';
+            }
+          } catch (e) {}
+        } else if ((currentCell.reward_type === 'card' || currentCell.reward_type === 'premium') && currentCell.claimed_by_user_id === null) {
+          showButton = true;
+          btnText = `Забрать: ${currentCell.reward_name}`;
+        }
+      }
+      if (showButton) {
         claimBtn.classList.remove('hidden');
-        claimBtn.textContent = `Забрать: ${currentCell.reward_name}`;
+        claimBtn.textContent = btnText;
       } else {
         claimBtn.classList.add('hidden');
       }
@@ -4015,6 +4033,18 @@ function setupUI() {
     updateBodyScrollLock();
   });
 
+  document.addEventListener('click', (e) => {
+    const drawer = document.getElementById('profile-drawer');
+    const openBtn = document.getElementById('open-profile-btn');
+    const mobileBtn = document.getElementById('mobile-open-profile-btn');
+    if (drawer && drawer.classList.contains('open')) {
+      if (!drawer.contains(e.target) && !openBtn.contains(e.target) && (!mobileBtn || !mobileBtn.contains(e.target))) {
+        drawer.classList.remove('open');
+        updateBodyScrollLock();
+      }
+    }
+  });
+
   const slotCostume = document.getElementById('slot-costume');
   if (slotCostume) {
     slotCostume.addEventListener('click', () => openEqPanel('costume'));
@@ -5060,6 +5090,28 @@ document.getElementById('close-use-modal-btn').addEventListener('click', () => {
   document.getElementById('use-item-modal').classList.add('hidden');
 });
 
+const openDeposit = () => {
+  document.getElementById('deposit-modal').classList.remove('hidden');
+};
+const closeDeposit = () => {
+  document.getElementById('deposit-modal').classList.add('hidden');
+};
+
+const headerBal = document.getElementById('header-balance-container');
+if (headerBal) headerBal.addEventListener('click', openDeposit);
+
+const shopBal = document.getElementById('shop-balance-container');
+if (shopBal) shopBal.addEventListener('click', openDeposit);
+
+const drawerBal = document.getElementById('drawer-balance-container');
+if (drawerBal) drawerBal.addEventListener('click', openDeposit);
+
+const closeDepBtn = document.getElementById('close-deposit-modal-btn');
+if (closeDepBtn) closeDepBtn.addEventListener('click', closeDeposit);
+
+const closeDepBtnBottom = document.getElementById('close-deposit-modal-btn-bottom');
+if (closeDepBtnBottom) closeDepBtnBottom.addEventListener('click', closeDeposit);
+
 document.getElementById('confirm-use-btn').addEventListener('click', async () => {
   const targetId = document.getElementById('use-target-select').value;
   if (!targetId && document.getElementById('use-target-select').options[0].value === '') {
@@ -5913,7 +5965,35 @@ function showCellInfoTag(cellIndex) {
 
   html += `<div style="font-size: 11px; font-weight: 700; color: #00f0ff; margin-bottom: 8px;">${typeText}</div>`;
 
-  if (cell.reward_type && cell.reward_type !== 'none') {
+  if (cell.rewards_json) {
+    try {
+      const rewards = JSON.parse(cell.rewards_json);
+      if (rewards.length > 0) {
+        html += `<div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; margin-top: 6px;">
+          <div style="font-size: 10px; font-weight: 700; color: #ffb800; margin-bottom: 4px;">Награды на ячейке:</div>`;
+        rewards.forEach(r => {
+          let text = '';
+          if (r.type === 'coins') {
+            text = `🪙 +${r.value} монет`;
+          } else if (r.type === 'premium') {
+            text = `💎 Премиум (${r.value} дн.)`;
+          } else if (r.type === 'card') {
+            text = `🃏 Карта: ${r.name}`;
+          }
+          if (r.claimed_by_username) {
+            text += ` <span style="color:#ff4a4a; font-size:10px;">(Забрал: ${r.claimed_by_username})</span>`;
+          }
+          html += `<div style="font-size: 11px; color: #ffffff; margin-bottom: 4px;">${text}</div>`;
+          if (r.type === 'card' && r.cover) {
+            html += `<div style="text-align: center; margin: 4px 0 8px 0;">
+              <img src="${r.cover}" referrerpolicy="no-referrer" alt="${r.name}" style="max-width: 100%; height: auto; max-height: 120px; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2);">
+            </div>`;
+          }
+        });
+        html += `</div>`;
+      }
+    } catch (e) {}
+  } else if (cell.reward_type && cell.reward_type !== 'none') {
     let rewType = 'Награда';
     if (cell.reward_type === 'currency') rewType = `+${cell.reward_detail} монет`;
     else if (cell.reward_type === 'card') rewType = `Карта`;
