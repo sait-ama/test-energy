@@ -5271,7 +5271,7 @@ function setupAdminTabs() {
           if (state.cells[cellNumber] && state.cells[cellNumber].rewards_json) {
             try {
               const oldRewards = JSON.parse(state.cells[cellNumber].rewards_json);
-              oldCard = oldRewards.find(r => r.type === 'card' && r.name === card.name);
+              oldCard = oldRewards.find(r => r.type === 'card' && (r.id ? r.id === card.id : r.name === card.name));
             } catch (e) {}
           }
           rewardsArr.push({
@@ -5737,20 +5737,22 @@ document.getElementById('save-user-edit-btn').addEventListener('click', async ()
 });
 
 let adminSelectedMultiCards = [];
-
 function renderAdminMultiCardsList() {
   const container = document.getElementById('admin-cell-multi-cards-list');
   if (!container) return;
   container.innerHTML = '';
   adminSelectedMultiCards.forEach((card, idx) => {
     const itemDiv = document.createElement('div');
-    itemDiv.style.cssText = 'display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 2px;';
-    const labelSpan = document.createElement('span');
-    labelSpan.textContent = card.name || 'Карта';
-    labelSpan.style.textOverflow = 'ellipsis';
-    labelSpan.style.overflow = 'hidden';
-    labelSpan.style.whiteSpace = 'nowrap';
-    labelSpan.style.flex = '1';
+    itemDiv.style.cssText = 'display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 2px; gap: 8px;';
+    
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.value = card.name || 'Карта';
+    nameInput.style.cssText = 'background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 11px; padding: 2px 4px; border-radius: 3px; flex: 1; margin: 0; box-sizing: border-box;';
+    nameInput.addEventListener('input', (e) => {
+      card.name = e.target.value;
+    });
+
     const delBtn = document.createElement('button');
     delBtn.textContent = '❌';
     delBtn.style.cssText = 'background: none; border: none; cursor: pointer; padding: 0 4px;';
@@ -5758,12 +5760,12 @@ function renderAdminMultiCardsList() {
       adminSelectedMultiCards.splice(idx, 1);
       renderAdminMultiCardsList();
     });
-    itemDiv.appendChild(labelSpan);
+    
+    itemDiv.appendChild(nameInput);
     itemDiv.appendChild(delBtn);
     container.appendChild(itemDiv);
   });
 }
-
 function loadAdminCellData(cellIndex) {
   const cell = state.cells[cellIndex] || { type: 'normal', value: 0, reward_type: 'none', reward_name: '', reward_detail: '' };
   document.getElementById('admin-cell-type').value = cell.type;
@@ -5970,7 +5972,8 @@ function showCellInfoTag(cellIndex) {
       const rewards = JSON.parse(cell.rewards_json);
       if (rewards.length > 0) {
         html += `<div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; margin-top: 6px;">
-          <div style="font-size: 10px; font-weight: 700; color: #ffb800; margin-bottom: 4px;">Награды на ячейке:</div>`;
+          <div style="font-size: 10px; font-weight: 700; color: #ffb800; margin-bottom: 8px;">Награды на ячейке:</div>
+          <div style="display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; justify-content: flex-start; align-items: flex-start;">`;
         rewards.forEach(r => {
           let text = '';
           if (r.type === 'coins') {
@@ -5978,19 +5981,20 @@ function showCellInfoTag(cellIndex) {
           } else if (r.type === 'premium') {
             text = `💎 Премиум (${r.value} дн.)`;
           } else if (r.type === 'card') {
-            text = `🃏 Карта: ${r.name}`;
+            text = `🃏 ${r.name}`;
           }
           if (r.claimed_by_username) {
-            text += ` <span style="color:#ff4a4a; font-size:10px;">(Забрал: ${r.claimed_by_username})</span>`;
+            text += `<br><span style="color:#ff4a4a; font-size:9px;">(Забрал: ${r.claimed_by_username})</span>`;
           }
-          html += `<div style="font-size: 11px; color: #ffffff; margin-bottom: 4px;">${text}</div>`;
+          
+          html += `<div style="display: flex; flex-direction: column; align-items: center; text-align: center; width: 105px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 6px; box-sizing: border-box;">
+            <div style="font-size: 10px; color: #ffffff; line-height: 1.2; word-break: break-word; margin-bottom: 4px;">${text}</div>`;
           if (r.type === 'card' && r.cover) {
-            html += `<div style="text-align: center; margin: 4px 0 8px 0;">
-              <img src="${r.cover}" referrerpolicy="no-referrer" alt="${r.name}" style="max-width: 100%; height: auto; max-height: 120px; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2);">
-            </div>`;
+            html += `<img src="${r.cover}" referrerpolicy="no-referrer" alt="${r.name}" style="width: 80px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2); margin-top: 2px;">`;
           }
+          html += `</div>`;
         });
-        html += `</div>`;
+        html += `</div></div>`;
       }
     } catch (e) {}
   } else if (cell.reward_type && cell.reward_type !== 'none') {
