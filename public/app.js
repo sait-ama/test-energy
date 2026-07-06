@@ -5988,6 +5988,32 @@ function showCellInfoTag(cellIndex) {
 
   html += `<div style="font-size: 11px; font-weight: 700; color: #00f0ff; margin-bottom: 8px;">${typeText}</div>`;
 
+  if (cell.reward_type && cell.reward_type !== 'none') {
+    let rewType = 'Награда';
+    if (cell.reward_type === 'currency') rewType = `+${cell.reward_detail} монет`;
+    else if (cell.reward_type === 'card') rewType = `Карта`;
+    else if (cell.reward_type === 'premium') rewType = `Премиум`;
+
+    html += `<div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; margin-top: 6px;">
+      <div style="font-size: 10px; font-weight: 700; color: #ffb800; margin-bottom: 4px;">${rewType}</div>`;
+
+    if (cell.reward_type === 'card') {
+      html += `<div style="font-size: 11px; color: #ffffff; margin-bottom: 6px;">${cell.reward_name}</div>`;
+      if (cell.reward_detail) {
+        html += `<div style="text-align: center;">
+          <img src="${cell.reward_detail}" referrerpolicy="no-referrer" alt="${cell.reward_name}" style="max-width: 100%; height: auto; max-height: 180px; border-radius: 4px; box-shadow: 0 0 10px rgba(0,240,255,0.4); border: 1px solid rgba(0,240,255,0.2);">
+        </div>`;
+      }
+    } else if (cell.reward_type === 'premium') {
+      html += `<div style="font-size: 11px; color: #ffffff; margin-bottom: 6px;">${cell.reward_name}</div>`;
+    }
+
+    if (cell.claimed_by_username) {
+      html += `<div style="font-size: 10px; color: #ff4a4a; font-weight: bold; margin-top: 6px;">Забрал: ${cell.claimed_by_username}</div>`;
+    }
+    html += `</div>`;
+  }
+
   if (cell.rewards_json) {
     try {
       const rewards = JSON.parse(cell.rewards_json);
@@ -6018,30 +6044,6 @@ function showCellInfoTag(cellIndex) {
         html += `</div></div>`;
       }
     } catch (e) {}
-  } else if (cell.reward_type && cell.reward_type !== 'none') {
-    let rewType = 'Награда';
-    if (cell.reward_type === 'currency') rewType = `+${cell.reward_detail} монет`;
-    else if (cell.reward_type === 'card') rewType = `Карта`;
-    else if (cell.reward_type === 'premium') rewType = `Премиум`;
-
-    html += `<div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; margin-top: 6px;">
-      <div style="font-size: 10px; font-weight: 700; color: #ffb800; margin-bottom: 4px;">${rewType}</div>`;
-
-    if (cell.reward_type === 'card') {
-      html += `<div style="font-size: 11px; color: #ffffff; margin-bottom: 6px;">${cell.reward_name}</div>`;
-      if (cell.reward_detail) {
-        html += `<div style="text-align: center;">
-          <img src="${cell.reward_detail}" referrerpolicy="no-referrer" alt="${cell.reward_name}" style="max-width: 100%; height: auto; max-height: 180px; border-radius: 4px; box-shadow: 0 0 10px rgba(0,240,255,0.4); border: 1px solid rgba(0,240,255,0.2);">
-        </div>`;
-      }
-    } else if (cell.reward_type === 'premium') {
-      html += `<div style="font-size: 11px; color: #ffffff; margin-bottom: 6px;">${cell.reward_name}</div>`;
-    }
-
-    if (cell.claimed_by_username) {
-      html += `<div style="font-size: 10px; color: #ff4a4a; font-weight: bold; margin-top: 6px;">Забрал: ${cell.claimed_by_username}</div>`;
-    }
-    html += `</div>`;
   }
 
   contentEl.innerHTML = html;
