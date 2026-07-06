@@ -5206,7 +5206,7 @@ function setupAdminTabs() {
           id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
           type: 'card',
           cover: data.cover,
-          name: data.title,
+          name: data.characterName || data.title,
           char: data.characterName,
           claimed_by_user_id: null,
           claimed_by_username: null
