@@ -2969,10 +2969,6 @@ async function publishBackendUrl() {
     } catch (e) { }
   }
 
-  if (!backendUrl) {
-    backendUrl = cloudflaredUrl || sshUrl || localtunnelUrl;
-  }
-
   if (backendUrl && backendUrl !== lastPublishedUrl) {
     try {
       const res = await fetch('https://extendsclass.com/api/json-storage/bin/ffaabaf', {
