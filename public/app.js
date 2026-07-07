@@ -11,6 +11,22 @@ function getAvatarUrl(avatarPath) {
   return `https://remanga.org/media/${avatarPath}`;
 }
 
+function getCardMediaHTML(src, className, style, attrs) {
+  if (!src) return '';
+  const isWebm = src.toLowerCase().endsWith('.webm') || src.toLowerCase().includes('.webm');
+  const classAttr = className ? `class="${className}"` : '';
+  const styleAttr = style ? `style="${style}"` : '';
+  let otherAttrs = attrs || '';
+  if (isWebm) {
+    if (otherAttrs.includes('onload=')) {
+      otherAttrs = otherAttrs.replace('onload=', 'onloadeddata=');
+    }
+    return `<video src="${src}" autoplay loop muted playsinline ${classAttr} ${styleAttr} ${otherAttrs} preload="auto"></video>`;
+  } else {
+    return `<img src="${src}" referrerpolicy="no-referrer" ${classAttr} ${styleAttr} ${otherAttrs}>`;
+  }
+}
+
 function loadAvatar(imgEl, fallbackEl, user) {
   if (!user) return;
   const tgAvatarUrl = `/api/tg-avatar/${user.tg_id}`;
@@ -1285,7 +1301,7 @@ function setupAdminBossConfig() {
 
       div.innerHTML = `
         <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
-          <img src="${card.cover}" style="width: 25px; height: 35px; object-fit: cover; border-radius: 2px;">
+          ${getCardMediaHTML(card.cover, '', 'width: 25px; height: 35px; object-fit: cover; border-radius: 2px;')}
           <input type="text" value="${card.name}" onchange="updateAdminBossCardName('${card.id}', this.value)" style="background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #fff; font-size: 11px; padding: 2px 4px; border-radius: 4px; width: 120px; box-sizing: border-box; margin: 0;">
           ${claimText}
         </div>
@@ -5146,7 +5162,7 @@ function updateInventoryUI() {
             div.className = 'inventory-item card-item-container';
             div.innerHTML = `
               <div class="card-item-cover-wrapper" style="text-align: center; margin-bottom: 8px;">
-                <img class="card-item-cover" referrerpolicy="no-referrer" src="${cover}" alt="${item.name}" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';">
+                ${getCardMediaHTML(cover, 'card-item-cover', '', `alt="${item.name}" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';"`)}
               </div>
               <div class="card-item-name" style="text-align: center; font-size: 11px; font-weight: 700; color: #00f0ff;">${item.name}</div>
               ${cellText}
@@ -5904,7 +5920,7 @@ window.editUserModal = async (userId, oldBalance, oldCell, isAdmin, name, taxReq
             }
             itemDiv.innerHTML = `
               <div style="text-align: center;">
-                <img src="${cover}" referrerpolicy="no-referrer" style="width: 50px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2);" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';">
+                ${getCardMediaHTML(cover, '', 'width: 50px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2);', `onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';"`)}
               </div>
               <div style="font-weight: bold; color: #00f0ff; text-align: center; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${item.name}</div>
               <div style="font-size: 9px; color: #8c9ba5; text-align: center;">Ячейка: ${item.origin_cell_number || '-'}</div>
@@ -6226,7 +6242,7 @@ function showCellInfoTag(cellIndex) {
           if (cards.length > 0) {
             html += `<div style="display: flex; gap: 4px; overflow-x: auto; padding: 4px 0; margin-top: 6px; justify-content: center;">`;
             cards.forEach(card => {
-              html += `<img src="${card.cover}" referrerpolicy="no-referrer" alt="Награда" style="width: 68px; height: 95px; object-fit: cover; border-radius: 4px; box-shadow: 0 0 5px rgba(255, 56, 56, 0.3); border: 1px solid rgba(255, 56, 56, 0.15);">`;
+              html += getCardMediaHTML(card.cover, '', 'width: 68px; height: 95px; object-fit: cover; border-radius: 4px; box-shadow: 0 0 5px rgba(255, 56, 56, 0.3); border: 1px solid rgba(255, 56, 56, 0.15);', 'alt="Награда"');
             });
             html += `</div>`;
           }
@@ -6283,7 +6299,7 @@ function showCellInfoTag(cellIndex) {
               html += `
                 <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 4px; padding: 4px 6px;">
                   <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0;">
-                    <img src="${card.cover}" referrerpolicy="no-referrer" style="width: 25px; height: 35px; object-fit: cover; border-radius: 2px; flex-shrink: 0;">
+                    ${getCardMediaHTML(card.cover, '', 'width: 25px; height: 35px; object-fit: cover; border-radius: 2px; flex-shrink: 0;')}
                     <span style="font-size: 10px; color: #fff; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; text-align: left;" title="${card.name}">${card.name}</span>
                   </div>
                   <div style="flex-shrink: 0; margin-left: 8px;">${claimStatusText}</div>
@@ -6328,7 +6344,7 @@ function showCellInfoTag(cellIndex) {
       html += `<div style="font-size: 11px; color: #ffffff; margin-bottom: 6px;">${cell.reward_name}</div>`;
       if (cell.reward_detail) {
         html += `<div style="text-align: center;">
-          <img src="${cell.reward_detail}" referrerpolicy="no-referrer" alt="${cell.reward_name}" style="max-width: 100%; height: auto; max-height: 180px; border-radius: 4px; box-shadow: 0 0 10px rgba(0,240,255,0.4); border: 1px solid rgba(0,240,255,0.2);">
+          ${getCardMediaHTML(cell.reward_detail, '', 'max-width: 100%; height: auto; max-height: 180px; border-radius: 4px; box-shadow: 0 0 10px rgba(0,240,255,0.4); border: 1px solid rgba(0,240,255,0.2);', `alt="${cell.reward_name}"`)}
         </div>`;
       }
     } else if (cell.reward_type === 'premium') {
@@ -6364,7 +6380,7 @@ function showCellInfoTag(cellIndex) {
           html += `<div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1 1 90px; max-width: 110px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 6px; box-sizing: border-box;">
             <div style="font-size: 10px; color: #ffffff; line-height: 1.2; word-break: break-word; margin-bottom: 4px;">${text}</div>`;
           if (r.type === 'card' && r.cover) {
-            html += `<img src="${r.cover}" referrerpolicy="no-referrer" alt="${r.name}" style="width: 100%; max-width: 80px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2); margin-top: 2px;">`;
+            html += getCardMediaHTML(r.cover, '', 'width: 100%; max-width: 80px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2); margin-top: 2px;', `alt="${r.name}"`);
           }
           html += `</div>`;
         });
@@ -6498,11 +6514,7 @@ function showRewardChoiceModal(reward) {
     if (reward.detail) {
       descText += `<div style="text-align: center; margin-bottom: 15px; position: relative; min-height: 120px; display: flex; align-items: center; justify-content: center;">
         <div class="image-loader-spinner" style="position: absolute; width: 30px; height: 30px; border: 3px solid rgba(0,240,255,0.1); border-radius: 50%; border-top-color: #00f0ff; animation: spin 1s linear infinite;"></div>
-        <img src="${reward.detail}" referrerpolicy="no-referrer" alt="${reward.name}" 
-          onload="if(this.previousElementSibling)this.previousElementSibling.remove(); this.style.opacity='1';"
-          onerror="if(this.previousElementSibling)this.previousElementSibling.remove(); handleRewardImageError(this, '${reward.detail}');" 
-          style="max-width: 100%; height: auto; max-height: 180px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,240,255,0.4); border: 1px solid rgba(0,240,255,0.2); opacity: 0; transition: opacity 0.3s;"
-        >
+        ${getCardMediaHTML(reward.detail, '', 'max-width: 100%; height: auto; max-height: 180px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,240,255,0.4); border: 1px solid rgba(0,240,255,0.2); opacity: 0; transition: opacity 0.3s;', `alt="${reward.name}" onload="if(this.previousElementSibling)this.previousElementSibling.remove(); this.style.opacity='1';" onerror="if(this.previousElementSibling)this.previousElementSibling.remove(); handleRewardImageError(this, '${reward.detail}');"`)}
       </div>`;
     }
   } else {
@@ -6694,11 +6706,20 @@ function showMultiRewardChoiceModal(rewardTriggered) {
         spinner.style.cssText = 'position: absolute; width: 20px; height: 20px; border: 2px solid rgba(0,240,255,0.1); border-radius: 50%; border-top-color: #00f0ff; animation: spin 1s linear infinite;';
         imgContainer.appendChild(spinner);
         
-        const img = document.createElement('img');
+        const isWebm = item.cover && (item.cover.toLowerCase().endsWith('.webm') || item.cover.toLowerCase().includes('.webm'));
+        const img = document.createElement(isWebm ? 'video' : 'img');
         img.src = item.cover;
-        img.referrerPolicy = 'no-referrer';
+        if (isWebm) {
+          img.autoplay = true;
+          img.loop = true;
+          img.muted = true;
+          img.playsInline = true;
+          img.onloadeddata = () => { spinner.remove(); img.style.opacity = '1'; };
+        } else {
+          img.referrerPolicy = 'no-referrer';
+          img.onload = () => { spinner.remove(); img.style.opacity = '1'; };
+        }
         img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.3s;';
-        img.onload = () => { spinner.remove(); img.style.opacity = '1'; };
         img.onerror = () => { spinner.remove(); img.src = 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp'; img.style.opacity = '1'; };
         imgContainer.appendChild(img);
         cardEl.appendChild(imgContainer);
