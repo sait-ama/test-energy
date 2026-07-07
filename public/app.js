@@ -1664,6 +1664,10 @@ const originalRemoveEvent = EventTarget.prototype.removeEventListener;
 
 EventTarget.prototype.addEventListener = function (type, listener, options) {
   if (type.startsWith('touch')) {
+    if (listener && listener.isJoystickListener) {
+      originalAddEvent.call(this, type, listener, options);
+      return;
+    }
     const self = this;
     const wrapped = function (e) {
       listener(proxyTouchEvent(e, self));
@@ -1776,9 +1780,13 @@ function initJoystick() {
     }
   }
 
+  handleStart.isJoystickListener = true;
+  handleMove.isJoystickListener = true;
+  handleEnd.isJoystickListener = true;
+
   container.addEventListener('touchstart', handleStart, { passive: true });
-  container.addEventListener('touchmove', handleMove, { passive: false });
-  container.addEventListener('touchend', handleEnd, { passive: true });
+  window.addEventListener('touchmove', handleMove, { passive: false });
+  window.addEventListener('touchend', handleEnd, { passive: true });
 
   container.addEventListener('mousedown', handleStart);
   window.addEventListener('mousemove', handleMove);
