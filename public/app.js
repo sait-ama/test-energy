@@ -1750,6 +1750,10 @@ function initJoystick() {
   function handleMove(e) {
     if (!active) return;
 
+    if (e.cancelable) {
+      e.preventDefault();
+    }
+
     let touch = null;
     if (e.touches && touchId !== null) {
       touch = Array.from(e.touches).find(t => t.identifier === touchId);
