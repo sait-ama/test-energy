@@ -1291,6 +1291,18 @@ function setupAdminBossConfig() {
     });
   };
 
+  window.updateAdminBossCardName = (id, newName) => {
+    const card = adminSelectedBossCards.find(c => c.id === id);
+    if (card) {
+      card.name = newName;
+    }
+  };
+
+  window.removeAdminBossCard = (id) => {
+    adminSelectedBossCards = adminSelectedBossCards.filter(c => c.id !== id);
+    renderAdminBossCardsList();
+  };
+
   const loadBossFields = () => {
     const cellNum = parseInt(bossSelect.value);
     const boss = (state.bosses || []).find(b => b.cell_number === cellNum);
@@ -6887,6 +6899,38 @@ async function casinoSpin() {
 
   requestAnimationFrame(animateSpin);
 }
+
+window.claimBossCard = async (cellNumber, cardId) => {
+  if (!state.user) return;
+
+  const maxSlots = (state.user && state.user.inventory_slots) || 10;
+  const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
+  if (claimedCount >= maxSlots) {
+    if (maxSlots < 20) {
+      document.getElementById('buy-slots-modal').classList.remove('hidden');
+    } else {
+      showNotification('Ваш инвентарь наград полностью заполнен!', 'error');
+    }
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/boss/claim-reward-card', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: state.user.id, cellNumber, cardId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    showNotification('Карта босса добавлена в инвентарь!', 'success');
+    refreshProfile();
+    await refreshBosses();
+    showCellInfoTag(cellNumber);
+  } catch (err) {
+    showNotification(err.message, 'error');
+  }
+};
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
