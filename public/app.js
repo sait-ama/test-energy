@@ -21,7 +21,7 @@ function getCardMediaHTML(src, className, style, attrs) {
     if (otherAttrs.includes('onload=')) {
       otherAttrs = otherAttrs.replace('onload=', 'onloadeddata=');
     }
-    return `<video src="${src}" muted playsinline ${classAttr} ${styleAttr} ${otherAttrs} preload="metadata"></video>`;
+    return `<video src="${src}" autoplay muted playsinline ${classAttr} ${styleAttr} ${otherAttrs} preload="auto" onplay="this.pause()"></video>`;
   } else {
     return `<img src="${src}" referrerpolicy="no-referrer" ${classAttr} ${styleAttr} ${otherAttrs}>`;
   }
@@ -6710,9 +6710,11 @@ function showMultiRewardChoiceModal(rewardTriggered) {
         const img = document.createElement(isWebm ? 'video' : 'img');
         img.src = item.cover;
         if (isWebm) {
+          img.autoplay = true;
           img.muted = true;
           img.playsInline = true;
-          img.setAttribute('preload', 'metadata');
+          img.setAttribute('preload', 'auto');
+          img.onplay = () => { img.pause(); };
           img.onloadeddata = () => { spinner.remove(); img.style.opacity = '1'; };
         } else {
           img.referrerPolicy = 'no-referrer';
