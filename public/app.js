@@ -6226,7 +6226,7 @@ function showCellInfoTag(cellIndex) {
           if (cards.length > 0) {
             html += `<div style="display: flex; gap: 4px; overflow-x: auto; padding: 4px 0; margin-top: 6px; justify-content: center;">`;
             cards.forEach(card => {
-              html += `<img src="${card.cover}" referrerpolicy="no-referrer" alt="Награда" style="width: 58px; height: 81px; object-fit: cover; border-radius: 4px; box-shadow: 0 0 5px rgba(255, 56, 56, 0.3); border: 1px solid rgba(255, 56, 56, 0.15);">`;
+              html += `<img src="${card.cover}" referrerpolicy="no-referrer" alt="Награда" style="width: 68px; height: 95px; object-fit: cover; border-radius: 4px; box-shadow: 0 0 5px rgba(255, 56, 56, 0.3); border: 1px solid rgba(255, 56, 56, 0.15);">`;
             });
             html += `</div>`;
           }
