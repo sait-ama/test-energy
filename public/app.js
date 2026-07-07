@@ -1411,6 +1411,7 @@ function setupAdminBossConfig() {
     });
   }
 
+  window.loadAdminBossFields = loadBossFields;
   if (bossSelect) {
     bossSelect.addEventListener('change', loadBossFields);
   }
@@ -1467,6 +1468,7 @@ function setupAdminBossConfig() {
     }
   };
 
+  window.loadAdminBossPositionFields = loadBossPositionFields;
   if (bossSelect) {
     bossSelect.addEventListener('change', loadBossPositionFields);
   }
@@ -2573,6 +2575,12 @@ function initSocket() {
       if (state.selectedCellInfo) {
         showCellInfoTag(state.selectedCellInfo.cellIndex);
       }
+    }
+    if (typeof window.loadAdminBossFields === 'function') {
+      window.loadAdminBossFields();
+    }
+    if (typeof window.loadAdminBossPositionFields === 'function') {
+      window.loadAdminBossPositionFields();
     }
   });
 
