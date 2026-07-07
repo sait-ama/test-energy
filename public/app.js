@@ -281,7 +281,9 @@ function loadBossModels() {
       const meshesToReplace = [];
       gltf.scene.traverse((child) => {
         if (child.isSkinnedMesh && child.skeleton && child.skeleton.bones && child.skeleton.bones.length > 50) {
-          meshesToReplace.push(child);
+          if (modelFile !== 'slasher_castom_boss.glb') {
+            meshesToReplace.push(child);
+          }
         }
       });
 
@@ -331,28 +333,7 @@ function create3DBossMesh(index, defeated, faceAngle, customScale) {
     const group = new THREE.Group();
     const model = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cachedBossGLTF[index]) : cachedBossGLTF[index].clone();
 
-    let rightHand = null;
-    let leftHand = null;
-    let rightSaw = null;
-    let leftSaw = null;
-    model.traverse((child) => {
-      if (child.name && child.name.includes('RightHand_031')) {
-        rightHand = child;
-      } else if (child.name && child.name.includes('LeftHand_047')) {
-        leftHand = child;
-      } else if (child.name && child.name.endsWith('om0.001')) {
-        rightSaw = child;
-      } else if (child.name && child.name.endsWith('om0')) {
-        leftSaw = child;
-      }
-    });
-    model.updateMatrixWorld(true);
-    if (rightHand && rightSaw) {
-      rightHand.attach(rightSaw);
-    }
-    if (leftHand && leftSaw) {
-      leftHand.attach(leftSaw);
-    }
+
 
     const hiddenNodes = [];
     model.traverse((child) => {
