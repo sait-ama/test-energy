@@ -16,7 +16,6 @@ async function broadcastGlobalHistory() {
       SELECT h.*, u.tg_first_name, u.tg_username
       FROM history h
       JOIN users u ON h.user_id = u.id
-      WHERE u.is_admin = 0
       ORDER BY h.id DESC
       LIMIT 50
     `);
@@ -33,6 +32,25 @@ const runQuery = async (sql, params = []) => {
   }
   return res;
 };
+
+async function getBossesList() {
+  return await allQuery(`
+    SELECT b.*, u.current_cell AS killer_current_cell, u.id AS killer_user_id
+    FROM bosses b
+    LEFT JOIN users u ON b.defeated_by_user_id = u.id
+    ORDER BY b.cell_number ASC
+  `);
+}
+
+async function broadcastBossesList() {
+  if (!io) return;
+  try {
+    const list = await getBossesList();
+    io.emit('bosses_update', list);
+  } catch (err) {
+    console.error('Error broadcasting bosses list:', err);
+  }
+}
 import { startGuildScanner, runGuildScan } from './scanner.js';
 import { spawn, exec } from 'child_process';
 import localtunnel from 'localtunnel';
@@ -75,6 +93,60 @@ app.use(express.static('public'));
 app.use('/bosses', express.static(path.join(process.cwd(), 'Боссы')));
 
 const onlineUsers = new Map();
+
+async function touchUserActive(userId) {
+  const userIdStr = String(userId);
+  let cached = onlineUsers.get(userIdStr);
+  if (cached) {
+    cached.last_active = Date.now();
+  } else {
+    try {
+      const user = await getQuery('SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, current_cell, character_data FROM users WHERE id = ?', [userId]);
+      if (user) {
+        onlineUsers.set(userIdStr, {
+          id: user.id,
+          tg_id: user.tg_id,
+          tg_username: user.tg_username,
+          tg_first_name: user.tg_first_name,
+          remanga_username: user.remanga_username,
+          remanga_avatar: user.remanga_avatar,
+          current_cell: user.current_cell,
+          character_data: user.character_data ? JSON.parse(user.character_data) : null,
+          socketId: null,
+          last_active: Date.now()
+        });
+        await broadcastPlayersList();
+      }
+    } catch (e) {
+      console.error('Error touching active user:', e);
+    }
+  }
+}
+
+app.use(async (req, res, next) => {
+  const rawId = req.body.userId || req.query.userId || req.body.id || req.query.id;
+  if (rawId) {
+    const parsed = parseInt(rawId);
+    if (!isNaN(parsed)) {
+      await touchUserActive(parsed);
+    }
+  }
+  next();
+});
+
+setInterval(async () => {
+  const now = Date.now();
+  let changed = false;
+  for (const [userId, user] of onlineUsers.entries()) {
+    if (now - user.last_active > 90000) {
+      onlineUsers.delete(userId);
+      changed = true;
+    }
+  }
+  if (changed) {
+    await broadcastPlayersList();
+  }
+}, 10000);
 const pendingAuthTokens = new Map();
 let telegramPollingOffset = 0;
 let telegramPollingActive = false;
@@ -213,8 +285,7 @@ setInterval(async () => {
       }
     }
     if (updatedAny) {
-      const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
-      io.emit('bosses_update', updatedBosses);
+      await broadcastBossesList();
     }
   } catch (err) {
     console.error(err);
@@ -290,16 +361,25 @@ io.on('connection', (socket) => {
         remanga_avatar: user.remanga_avatar,
         current_cell: user.current_cell,
         character_data: user.character_data ? JSON.parse(user.character_data) : null,
-        socketId: socket.id
+        socketId: socket.id,
+        last_active: Date.now()
       });
       await broadcastPlayersList();
     }
   });
 
+  socket.on('heartbeat', () => {
+    if (userId) {
+      touchUserActive(userId);
+    }
+  });
+
   socket.on('disconnect', async () => {
     if (userId) {
-      onlineUsers.delete(String(userId));
-      await broadcastPlayersList();
+      const cached = onlineUsers.get(String(userId));
+      if (cached && cached.socketId === socket.id) {
+        cached.socketId = null;
+      }
     }
   });
 });
@@ -706,14 +786,15 @@ app.get('/api/profile/:id', async (req, res) => {
 
 app.get('/api/history/global', async (req, res) => {
   try {
+    const limit = parseInt(req.query.limit) || 50;
+    const offset = parseInt(req.query.offset) || 0;
     const history = await allQuery(`
       SELECT h.*, u.tg_first_name, u.tg_username
       FROM history h
       JOIN users u ON h.user_id = u.id
-      WHERE u.is_admin = 0
       ORDER BY h.id DESC
-      LIMIT 50
-    `);
+      LIMIT ? OFFSET ?
+    `, [limit, offset]);
     res.json(history);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1181,7 +1262,7 @@ function getPlayerBattleStats(user) {
 
 app.get('/api/bosses', async (req, res) => {
   try {
-    const rows = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
+    const rows = await getBossesList();
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1413,8 +1494,7 @@ app.post('/api/boss/start-fight', async (req, res) => {
       [user.id, user.tg_first_name || user.tg_username || 'Неизвестно', stats.maxHp, new Date().toISOString(), cellNumber]
     );
 
-    const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
-    io.emit('bosses_update', updatedBosses);
+    await broadcastBossesList();
 
     res.json({ success: true });
   } catch (err) {
@@ -1468,8 +1548,8 @@ app.post('/api/boss/attack', async (req, res) => {
       const newBalance = user.balance + reward;
 
       await runQuery(
-        'UPDATE bosses SET hp = 0, defeated = 1, defeated_by_username = ?, current_fighter_id = NULL, current_fighter_username = NULL, current_fighter_hp = 0 WHERE cell_number = ?',
-        [user.tg_first_name || user.tg_username || 'Неизвестно', cellNumber]
+        'UPDATE bosses SET hp = 0, defeated = 1, defeated_by_username = ?, defeated_by_user_id = ?, current_fighter_id = NULL, current_fighter_username = NULL, current_fighter_hp = 0 WHERE cell_number = ?',
+        [user.tg_first_name || user.tg_username || 'Неизвестно', user.id, cellNumber]
       );
 
       await runQuery('UPDATE users SET balance = ? WHERE id = ?', [newBalance, user.id]);
@@ -1491,8 +1571,7 @@ app.post('/api/boss/attack', async (req, res) => {
         [user.id, 'boss_victory', historyDetail, now.toISOString()]
       );
 
-      const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
-      io.emit('bosses_update', updatedBosses);
+      await broadcastBossesList();
 
       io.to(`user_${user.id}`).emit('balance_update', { balance: newBalance });
 
@@ -1547,8 +1626,7 @@ app.post('/api/boss/attack', async (req, res) => {
         [user.id, 'boss_defeat', detailMsg, now.toISOString()]
       );
 
-      const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
-      io.emit('bosses_update', updatedBosses);
+      await broadcastBossesList();
 
       if (onlineUsers.has(String(user.id))) {
         const cached = onlineUsers.get(String(user.id));
@@ -1588,8 +1666,7 @@ app.post('/api/boss/attack', async (req, res) => {
       [newBossHp, newPlayerHp, now.toISOString(), cellNumber]
     );
 
-    const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
-    io.emit('bosses_update', updatedBosses);
+    await broadcastBossesList();
 
     res.json({
       status: 'active',
@@ -1646,8 +1723,7 @@ app.post('/api/boss/forfeit', async (req, res) => {
       [user.id, 'boss_forfeit', `Побег от босса ${boss.name}! Потеряно ${loss} монет, откат на ячейку ${newCell}.`, now.toISOString()]
     );
 
-    const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
-    io.emit('bosses_update', updatedBosses);
+    await broadcastBossesList();
 
     if (onlineUsers.has(String(user.id))) {
       const cached = onlineUsers.get(String(user.id));
@@ -1702,8 +1778,7 @@ app.post('/api/admin/boss/update', checkAdmin, async (req, res) => {
       [name || '', finalMaxHp, hp, dmg, cooldown, reward || 0, rewardType || 'coins', rewardDetail || '', modelFile || '', critChance !== undefined ? parseInt(critChance) : 0, cellNumber]
     );
 
-    const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
-    io.emit('bosses_update', updatedBosses);
+    await broadcastBossesList();
 
     res.json({ success: true });
   } catch (err) {
@@ -1722,8 +1797,7 @@ app.post('/api/admin/boss/position', checkAdmin, async (req, res) => {
       [offsetX || 0, offsetY || 0, offsetZ || 0, rotation !== undefined && rotation !== null ? rotation : null, scale !== undefined && scale !== null ? scale : 1.0, cellNumber]
     );
 
-    const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
-    io.emit('bosses_update', updatedBosses);
+    await broadcastBossesList();
 
     res.json({ success: true });
   } catch (err) {
@@ -3084,10 +3158,23 @@ app.post('/api/boss/claim-reward-card', async (req, res) => {
       return res.status(400).json({ error: 'Босс ещё не побежден!' });
     }
 
-    const displayName = user.tg_first_name || user.tg_username || `Игрок ${user.id}`;
-    if (boss.defeated_by_username !== displayName) {
-      return res.status(400).json({ error: 'Эту награду может забрать только победитель босса!' });
+    if (user.current_cell !== boss.cell_number) {
+      return res.status(400).json({ error: 'Вы должны находиться на ячейке с боссом!' });
     }
+
+    const killerId = boss.defeated_by_user_id;
+    let killer = null;
+    if (killerId) {
+      killer = await getQuery('SELECT * FROM users WHERE id = ?', [killerId]);
+    } else if (boss.defeated_by_username) {
+      killer = await getQuery('SELECT * FROM users WHERE tg_first_name = ? OR tg_username = ?', [boss.defeated_by_username, boss.defeated_by_username]);
+    }
+
+    if (killer && killer.current_cell === boss.cell_number && killer.id !== user.id) {
+      return res.status(400).json({ error: 'Награду временно может забрать только победитель босса, пока он находится на ячейке!' });
+    }
+
+    const displayName = user.tg_first_name || user.tg_username || `Игрок ${user.id}`;
 
     let cards = [];
     try {
@@ -3153,8 +3240,8 @@ app.post('/api/boss/claim-reward-card', async (req, res) => {
     );
 
     await broadcastPlayersList();
-    const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
-    io.emit('bosses_update', updatedBosses);
+    const updatedBosses = await getBossesList();
+    if (io) io.emit('bosses_update', updatedBosses);
 
     res.json({ success: true, updatedBosses });
   } catch (err) {

@@ -331,6 +331,29 @@ function create3DBossMesh(index, defeated, faceAngle, customScale) {
     const group = new THREE.Group();
     const model = (typeof THREE.SkeletonUtils !== 'undefined') ? THREE.SkeletonUtils.clone(cachedBossGLTF[index]) : cachedBossGLTF[index].clone();
 
+    let rightHand = null;
+    let leftHand = null;
+    let rightSaw = null;
+    let leftSaw = null;
+    model.traverse((child) => {
+      if (child.name && child.name.includes('RightHand_031')) {
+        rightHand = child;
+      } else if (child.name && child.name.includes('LeftHand_047')) {
+        leftHand = child;
+      } else if (child.name && child.name.endsWith('om0.001')) {
+        rightSaw = child;
+      } else if (child.name && child.name.endsWith('om0')) {
+        leftSaw = child;
+      }
+    });
+    model.updateMatrixWorld(true);
+    if (rightHand && rightSaw) {
+      rightHand.attach(rightSaw);
+    }
+    if (leftHand && leftSaw) {
+      leftHand.attach(leftSaw);
+    }
+
     const hiddenNodes = [];
     model.traverse((child) => {
       if (child.isLight || child.isCamera || child.isHelper) {
@@ -2428,6 +2451,7 @@ async function initGameComponents() {
     const res = await fetch('/api/history/global');
     if (res.ok) {
       state.globalHistory = await res.json();
+      state.allHistoryLoaded = false;
       updateGlobalHistoryUI();
     }
   } catch (e) {
@@ -2506,8 +2530,41 @@ function initSocket() {
   }
   state.socket = io(socketUrl, options);
 
+  let heartbeatInterval = null;
+  let lastSentHeartbeat = 0;
+
+  const startHeartbeat = () => {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    heartbeatInterval = setInterval(() => {
+      if (state.socket && state.socket.connected && state.user) {
+        state.socket.emit('heartbeat');
+      }
+    }, 15000);
+  };
+
+  const sendHeartbeatNow = () => {
+    const now = Date.now();
+    if (now - lastSentHeartbeat > 5000) {
+      if (state.socket && state.socket.connected && state.user) {
+        state.socket.emit('heartbeat');
+        lastSentHeartbeat = now;
+      }
+    }
+  };
+
+  document.addEventListener('click', sendHeartbeatNow);
+  document.addEventListener('touchstart', sendHeartbeatNow);
+
   state.socket.on('connect', () => {
     state.socket.emit('authenticate', { userId: state.user.id });
+    startHeartbeat();
+  });
+
+  state.socket.on('disconnect', () => {
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+      heartbeatInterval = null;
+    }
   });
 
   document.addEventListener('visibilitychange', () => {
@@ -2516,6 +2573,7 @@ function initSocket() {
         state.socket.connect();
       } else {
         state.socket.emit('authenticate', { userId: state.user.id });
+        sendHeartbeatNow();
       }
     }
   });
@@ -2530,6 +2588,9 @@ function initSocket() {
         if (currentBoss) {
           updateBossModalUI(currentBoss);
         }
+      }
+      if (state.selectedCellInfo) {
+        showCellInfoTag(state.selectedCellInfo.cellIndex);
       }
     }
   });
@@ -2608,7 +2669,15 @@ function initSocket() {
   });
 
   state.socket.on('global_history', (history) => {
-    state.globalHistory = history;
+    if (!state.globalHistory) {
+      state.globalHistory = history;
+    } else {
+      const existingIds = new Set(state.globalHistory.map(item => item.id));
+      const newItems = history.filter(item => !existingIds.has(item.id));
+      if (newItems.length > 0) {
+        state.globalHistory = [...newItems, ...state.globalHistory];
+      }
+    }
     updateGlobalHistoryUI();
   });
 }
@@ -4382,6 +4451,39 @@ function setupUI() {
       el.addEventListener('input', updateCreatorPreview);
     }
   });
+
+  const historyListEl = document.getElementById('action-history');
+  if (historyListEl) {
+    historyListEl.addEventListener('scroll', async () => {
+      if (historyListEl.scrollHeight - historyListEl.scrollTop - historyListEl.clientHeight < 20) {
+        if (state.loadingMoreHistory || state.allHistoryLoaded) return;
+        state.loadingMoreHistory = true;
+        try {
+          const offset = state.globalHistory ? state.globalHistory.length : 0;
+          const res = await fetch(`/api/history/global?limit=50&offset=${offset}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.length === 0) {
+              state.allHistoryLoaded = true;
+            } else {
+              const existingIds = new Set(state.globalHistory.map(item => item.id));
+              const newItems = data.filter(item => !existingIds.has(item.id));
+              if (newItems.length === 0) {
+                state.allHistoryLoaded = true;
+              } else {
+                state.globalHistory = [...state.globalHistory, ...newItems];
+                updateGlobalHistoryUI(true, newItems);
+              }
+            }
+          }
+        } catch (err) {
+          console.error(err);
+        } finally {
+          state.loadingMoreHistory = false;
+        }
+      }
+    });
+  }
 }
 
 function initCreator3D() {
@@ -5173,19 +5275,23 @@ function addPersonalHistoryItem(item) {
   drawerContainer.insertBefore(div, drawerContainer.firstChild);
 }
 
-function updateGlobalHistoryUI() {
+function updateGlobalHistoryUI(appendOnly = false, appendedItems = []) {
   const mainContainer = document.getElementById('action-history');
   if (!mainContainer) return;
-  mainContainer.innerHTML = '';
 
   if (!state.globalHistory || state.globalHistory.length === 0) {
     mainContainer.innerHTML = '<div class="info-note">История пуста</div>';
     return;
   }
 
-  state.globalHistory.forEach(item => {
+  const emptyNote = mainContainer.querySelector('.info-note');
+  if (emptyNote) {
+    emptyNote.remove();
+  }
+
+  const createItemDOM = (item) => {
     const div = document.createElement('div');
-    div.className = `history-item ${item.action}`;
+    div.className = `history-item ${item.action || ''}`;
     const date = formatDateTime(item.timestamp);
     const displayName = item.tg_first_name || item.tg_username || `Игрок ${item.user_id}`;
     const userSpan = `<span style="color: #00f0ff; font-weight: bold;">${displayName}</span>: `;
@@ -5193,8 +5299,21 @@ function updateGlobalHistoryUI() {
       <div>${userSpan}${item.detail}</div>
       <div class="history-item-time">${date}</div>
     `;
-    mainContainer.appendChild(div);
-  });
+    return div;
+  };
+
+  if (appendOnly && appendedItems.length > 0) {
+    appendedItems.forEach(item => {
+      mainContainer.appendChild(createItemDOM(item));
+    });
+  } else {
+    const scrollTop = mainContainer.scrollTop;
+    mainContainer.innerHTML = '';
+    state.globalHistory.forEach(item => {
+      mainContainer.appendChild(createItemDOM(item));
+    });
+    mainContainer.scrollTop = scrollTop;
+  }
 }
 
 let activeUseInventoryId = null;
@@ -6157,10 +6276,19 @@ function showCellInfoTag(cellIndex) {
               let claimStatusText = '';
               if (claimed) {
                 claimStatusText = `<span style="font-size: 9px; color: #ff4a4a; font-weight: bold;">Забрано</span>`;
-              } else if (isKiller) {
-                claimStatusText = `<button class="btn btn-primary btn-sm" style="padding: 2px 6px; font-size: 10px; background: #00f0ff; color: #000; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;" onclick="claimBossCard(${boss.cell_number}, '${card.id}')">Забрать</button>`;
               } else {
-                claimStatusText = `<span style="font-size: 9px; color: #8c9ba5;">Для победителя</span>`;
+                const isKiller = (state.user && boss.defeated_by_user_id === state.user.id) || boss.defeated_by_username === displayName;
+                const killerIsOnBossCell = boss.killer_current_cell === boss.cell_number;
+                const userIsOnBossCell = state.user && state.user.current_cell === boss.cell_number;
+                const canClaim = userIsOnBossCell && (isKiller || !killerIsOnBossCell);
+
+                if (canClaim) {
+                  claimStatusText = `<button class="btn btn-primary btn-sm" style="padding: 2px 6px; font-size: 10px; background: #00f0ff; color: #000; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;" onclick="claimBossCard(${boss.cell_number}, '${card.id}')">Забрать</button>`;
+                } else if (killerIsOnBossCell) {
+                  claimStatusText = `<span style="font-size: 9px; color: #ffb800;">Ожидание выбора</span>`;
+                } else {
+                  claimStatusText = `<span style="font-size: 9px; color: #8c9ba5;">Встаньте на ячейку</span>`;
+                }
               }
 
               html += `

@@ -125,6 +125,7 @@ export function initDb() {
           weakness TEXT,
           defeated INTEGER DEFAULT 0,
           defeated_by_username TEXT,
+          defeated_by_user_id INTEGER DEFAULT NULL,
           current_fighter_id INTEGER DEFAULT NULL,
           current_fighter_username TEXT,
           current_fighter_hp INTEGER DEFAULT 0,
@@ -133,6 +134,7 @@ export function initDb() {
         )
       `, () => {
         db.run(`ALTER TABLE bosses ADD COLUMN last_attack_time TEXT`, () => {});
+        db.run(`ALTER TABLE bosses ADD COLUMN defeated_by_user_id INTEGER DEFAULT NULL`, () => {});
         db.run(`ALTER TABLE bosses ADD COLUMN reward_type TEXT DEFAULT 'coins'`, () => {});
         db.run(`ALTER TABLE bosses ADD COLUMN reward_detail TEXT DEFAULT ''`, () => {});
         db.run(`ALTER TABLE bosses ADD COLUMN position_offset_x REAL DEFAULT 0`, () => {});
