@@ -636,23 +636,15 @@
             </div>
             <div id="admin-boss-card-helper" class="form-group hidden"
               style="background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 6px; margin-bottom: 12px;">
-              <label style="font-size: 10px; color: #00f0ff;">Ссылка на карту Remanga</label>
-              <input type="text" id="admin-boss-card-url" placeholder="https://remanga.org/card/124112"
-                style="margin-bottom: 6px; font-size: 11px;">
-              <button id="admin-boss-fetch-card-btn" class="btn btn-secondary btn-sm btn-block"
-                style="padding: 4px; font-size: 10px;">📥 Загрузить данные карты</button>
-              <div id="admin-boss-card-preview" class="hidden"
-                style="margin-top: 8px; display: flex; align-items: center; gap: 10px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px;">
-                <img id="admin-boss-card-preview-img" src="" referrerpolicy="no-referrer"
-                  style="width: 50px; height: 70px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1);">
-                <div>
-                  <div id="admin-boss-card-preview-name" style="font-size: 12px; color: #fff; font-weight: 600;"></div>
-                  <div id="admin-boss-card-preview-char" style="font-size: 10px; color: #8c9ba5;"></div>
-                </div>
+              <label style="font-size: 10px; color: #00f0ff;">Наградные карты босса</label>
+              <div id="admin-boss-cards-list" style="margin-bottom: 6px; display: flex; flex-direction: column; gap: 4px;"></div>
+              <div style="display: flex; gap: 6px; margin-top: 8px;">
+                <input type="text" id="admin-boss-card-url" placeholder="Ссылка на Remanga" style="margin-bottom: 0; font-size: 11px; flex: 1;">
+                <button id="admin-boss-fetch-card-btn" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;">Добавить</button>
               </div>
             </div>
-            <div class="form-group">
-              <label>Детали награды (название карты / описание)</label>
+            <div class="form-group" id="admin-boss-reward-detail-group">
+              <label>Детали награды (описание)</label>
               <input type="text" id="admin-boss-reward-detail" placeholder="Например: Легендарная карта SSR">
             </div>
             <button id="admin-boss-save-btn" class="btn btn-primary btn-block">Сохранить настройки босса</button>
@@ -770,8 +762,11 @@
         </div>
       </div>
       <div class="drawer-section">
-        <h3>Ваши предметы</h3>
+        <h3>Ваши предметы <span id="drawer-inventory-slots-info" style="font-size: 10px; color: #8c9ba5; font-weight: normal; margin-left: 6px;"></span></h3>
         <div id="drawer-inventory-list" class="inventory-grid"></div>
+        <div id="buy-slots-container" style="margin-top: 10px;" class="hidden">
+          <button id="buy-slots-btn" class="btn btn-secondary btn-sm btn-block" style="background: linear-gradient(135deg, #00f0ff 0%, #0072ff 100%); color: #fff; border: none; font-weight: bold; padding: 6px 12px; font-size: 11px;">🔓 Купить +10 слотов (3000 монет)</button>
+        </div>
       </div>
 
       <div class="drawer-section">
@@ -781,6 +776,24 @@
       <div class="drawer-section">
         <h3>История действий</h3>
         <div id="drawer-history-list" class="history-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="buy-slots-modal" class="modal hidden">
+    <div class="modal-content modal-sm">
+      <div class="modal-header">
+        <h2>Расширение инвентаря</h2>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 20px; color: #ffffff; text-align: center;">
+          Ваш инвентарь наград заполнен!<br>
+          Хотите открыть дополнительные <strong>+10 слотов</strong> за <strong>3000 монет</strong>?
+        </p>
+        <div style="display: flex; gap: 10px;">
+          <button id="buy-slots-modal-yes" class="btn btn-primary" style="flex: 1; background: linear-gradient(135deg, #00f0ff 0%, #0072ff 100%); border: none;">Купить за 3000</button>
+          <button id="buy-slots-modal-no" class="btn btn-secondary" style="flex: 1;">Отмена</button>
+        </div>
       </div>
     </div>
   </div>

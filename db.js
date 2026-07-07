@@ -37,6 +37,7 @@ export function initDb() {
       db.run(`ALTER TABLE users ADD COLUMN equipped_costume TEXT DEFAULT NULL`, () => {});
       db.run(`ALTER TABLE users ADD COLUMN starting_weapon TEXT DEFAULT NULL`, () => {});
       db.run(`ALTER TABLE users ADD COLUMN starting_costume TEXT DEFAULT NULL`, () => {});
+      db.run(`ALTER TABLE users ADD COLUMN inventory_slots INTEGER DEFAULT 10`, () => {});
 
       db.run(`
         CREATE TABLE IF NOT EXISTS equipment_inventory (

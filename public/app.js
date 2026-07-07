@@ -1203,13 +1203,11 @@ function initBossModalEvents() {
 
       if (data.status === 'victory') {
         let msg = `Победа! Вы победили босса и получили ${data.reward} монет!`;
-        if (data.rewardCard) {
-          msg += ` + 🃏 ${data.rewardCard}`;
-        }
         showNotification(msg, 'success');
         hideBossModal();
         await refreshProfile();
         await refreshBosses();
+        showCellInfoTag(currentOpenedBossCell);
       } else if (data.status === 'defeat') {
         const msg = data.isCrit
           ? 'Смертельный критический удар босса! Вы потеряли 300 монет и отступили назад.'
@@ -1266,6 +1264,33 @@ function setupAdminBossConfig() {
     }
   }).catch(() => { });
 
+  let adminSelectedBossCards = [];
+
+  const renderAdminBossCardsList = () => {
+    const renderList = document.getElementById('admin-boss-cards-list');
+    if (!renderList) return;
+    renderList.innerHTML = '';
+    adminSelectedBossCards.forEach(card => {
+      const div = document.createElement('div');
+      div.style.cssText = 'display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; padding: 4px 8px; font-size: 11px;';
+      
+      let claimText = '';
+      if (card.claimed_by_username) {
+        claimText = ` <span style="color:#ff4a4a; font-size:9px;">(Забрал: ${card.claimed_by_username})</span>`;
+      }
+
+      div.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 6px; flex: 1;">
+          <img src="${card.cover}" style="width: 25px; height: 35px; object-fit: cover; border-radius: 2px;">
+          <input type="text" value="${card.name}" onchange="updateAdminBossCardName('${card.id}', this.value)" style="background: transparent; border: 1px solid rgba(255,255,255,0.15); color: #fff; font-size: 11px; padding: 2px 4px; border-radius: 4px; width: 120px; box-sizing: border-box; margin: 0;">
+          ${claimText}
+        </div>
+        <button class="btn btn-danger btn-sm" style="padding: 2px 6px; font-size: 10px;" onclick="removeAdminBossCard('${card.id}')">✕</button>
+      `;
+      renderList.appendChild(div);
+    });
+  };
+
   const loadBossFields = () => {
     const cellNum = parseInt(bossSelect.value);
     const boss = (state.bosses || []).find(b => b.cell_number === cellNum);
@@ -1282,11 +1307,34 @@ function setupAdminBossConfig() {
       document.getElementById('admin-boss-reward').value = boss.reward_coins || 500;
       const rtEl = document.getElementById('admin-boss-reward-type');
       if (rtEl) rtEl.value = boss.reward_type || 'coins';
+
+      adminSelectedBossCards = [];
+      if (boss.reward_type === 'card' && boss.reward_detail) {
+        try {
+          if (boss.reward_detail.startsWith('[')) {
+            adminSelectedBossCards = JSON.parse(boss.reward_detail);
+          } else {
+            const parts = boss.reward_detail.split('|');
+            adminSelectedBossCards = [{
+              id: 'card_legacy',
+              type: 'card',
+              cover: parts[0] || '',
+              name: parts[1] || boss.name + ' — Карта',
+              char: parts[2] || '',
+              claimed_by_user_id: null,
+              claimed_by_username: null
+            }];
+          }
+        } catch (e) {
+          adminSelectedBossCards = [];
+        }
+      }
+      renderAdminBossCardsList();
+
       const rdEl = document.getElementById('admin-boss-reward-detail');
       if (rdEl) rdEl.value = boss.reward_detail || '';
 
       toggleBossCardHelper(boss.reward_type || 'coins');
-      updateBossCardPreview(boss);
     }
   };
 
@@ -1301,23 +1349,6 @@ function setupAdminBossConfig() {
     }
   };
 
-  const updateBossCardPreview = (boss) => {
-    const preview = document.getElementById('admin-boss-card-preview');
-    if (!preview) return;
-    if (boss.reward_type === 'card' && boss.reward_detail) {
-      preview.classList.remove('hidden');
-      const imgEl = document.getElementById('admin-boss-card-preview-img');
-      const nameEl = document.getElementById('admin-boss-card-preview-name');
-      const charEl = document.getElementById('admin-boss-card-preview-char');
-      if (imgEl) imgEl.src = boss.reward_detail;
-      const parts = (boss.reward_detail || '').split('|');
-      if (nameEl) nameEl.textContent = parts[1] || 'Карта';
-      if (charEl) charEl.textContent = parts[2] || '';
-    } else {
-      preview.classList.add('hidden');
-    }
-  };
-
   const bossRewardTypeEl = document.getElementById('admin-boss-reward-type');
   if (bossRewardTypeEl) {
     bossRewardTypeEl.addEventListener('change', () => {
@@ -1328,12 +1359,14 @@ function setupAdminBossConfig() {
   const bossCardFetchBtn = document.getElementById('admin-boss-fetch-card-btn');
   if (bossCardFetchBtn) {
     bossCardFetchBtn.addEventListener('click', async () => {
-      const url = document.getElementById('admin-boss-card-url').value.trim();
+      const urlInput = document.getElementById('admin-boss-card-url');
+      const url = urlInput ? urlInput.value.trim() : '';
       if (!url) {
         showNotification('Введите ссылку на карту', 'error');
         return;
       }
       try {
+        bossCardFetchBtn.setAttribute('disabled', 'true');
         const res = await fetch('/api/admin/fetch-card', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1342,21 +1375,22 @@ function setupAdminBossConfig() {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error);
 
-        const cardTitle = `${data.title} (${data.characterName})`;
-        const rewardStr = `${data.cover}|${cardTitle}|${data.characterName}`;
-        document.getElementById('admin-boss-reward-detail').value = rewardStr;
-
-        const preview = document.getElementById('admin-boss-card-preview');
-        if (preview) {
-          preview.classList.remove('hidden');
-          document.getElementById('admin-boss-card-preview-img').src = data.cover;
-          document.getElementById('admin-boss-card-preview-name').textContent = cardTitle;
-          document.getElementById('admin-boss-card-preview-char').textContent = data.characterName;
-        }
-
-        showNotification('Карта загружена!', 'success');
+        adminSelectedBossCards.push({
+          id: 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+          type: 'card',
+          cover: data.cover,
+          name: data.characterName || data.title,
+          char: data.characterName,
+          claimed_by_user_id: null,
+          claimed_by_username: null
+        });
+        urlInput.value = '';
+        renderAdminBossCardsList();
+        showNotification('Карта босса добавлена!', 'success');
       } catch (err) {
         showNotification(err.message, 'error');
+      } finally {
+        bossCardFetchBtn.removeAttribute('disabled');
       }
     });
   }
@@ -1379,7 +1413,7 @@ function setupAdminBossConfig() {
       const critChance = parseInt(document.getElementById('admin-boss-crit').value) || 0;
       const reward = parseInt(document.getElementById('admin-boss-reward').value);
       const rewardType = document.getElementById('admin-boss-reward-type').value;
-      const rewardDetail = document.getElementById('admin-boss-reward-detail').value;
+      const rewardDetail = rewardType === 'card' ? JSON.stringify(adminSelectedBossCards) : document.getElementById('admin-boss-reward-detail').value;
 
       try {
         const res = await fetch('/api/admin/boss/update', {
@@ -3964,6 +3998,82 @@ function setupUI() {
     showWizardStep(2);
   });
 
+  const buySlotsBtn = document.getElementById('buy-slots-btn');
+  if (buySlotsBtn) {
+    buySlotsBtn.addEventListener('click', async () => {
+      if (!state.user) return;
+      if (state.user.balance < 3000) {
+        showNotification('Недостаточно монет! Стоимость: 3000 монет.', 'error');
+        return;
+      }
+      try {
+        const res = await fetch('/api/inventory/buy-slots', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: state.user.id })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        state.user.balance = data.newBalance;
+        state.user.inventory_slots = data.newSlots;
+        localStorage.setItem('ew_event_user', JSON.stringify(state.user));
+        
+        const balanceEl = document.getElementById('balance-value');
+        if (balanceEl) balanceEl.textContent = state.user.balance;
+        const drawerBalEl = document.getElementById('drawer-balance');
+        if (drawerBalEl) drawerBalEl.textContent = state.user.balance;
+
+        updateInventoryUI();
+        showNotification('Инвентарь успешно расширен на +10 слотов!', 'success');
+      } catch (err) {
+        showNotification(err.message || 'Ошибка при покупке слотов', 'error');
+      }
+    });
+  }
+
+  const buySlotsModalYes = document.getElementById('buy-slots-modal-yes');
+  if (buySlotsModalYes) {
+    buySlotsModalYes.addEventListener('click', async () => {
+      document.getElementById('buy-slots-modal').classList.add('hidden');
+      if (!state.user) return;
+      if (state.user.balance < 3000) {
+        showNotification('Недостаточно монет! Стоимость: 3000 монет.', 'error');
+        return;
+      }
+      try {
+        const res = await fetch('/api/inventory/buy-slots', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: state.user.id })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        state.user.balance = data.newBalance;
+        state.user.inventory_slots = data.newSlots;
+        localStorage.setItem('ew_event_user', JSON.stringify(state.user));
+        
+        const balanceEl = document.getElementById('balance-value');
+        if (balanceEl) balanceEl.textContent = state.user.balance;
+        const drawerBalEl = document.getElementById('drawer-balance');
+        if (drawerBalEl) drawerBalEl.textContent = state.user.balance;
+
+        updateInventoryUI();
+        showNotification('Инвентарь успешно расширен на +10 слотов!', 'success');
+      } catch (err) {
+        showNotification(err.message || 'Ошибка при покупке слотов', 'error');
+      }
+    });
+  }
+
+  const buySlotsModalNo = document.getElementById('buy-slots-modal-no');
+  if (buySlotsModalNo) {
+    buySlotsModalNo.addEventListener('click', () => {
+      document.getElementById('buy-slots-modal').classList.add('hidden');
+    });
+  }
+
   document.getElementById('creator-save-btn').addEventListener('click', () => {
     document.getElementById('confirm-char-modal').classList.remove('hidden');
   });
@@ -4876,12 +4986,26 @@ function updateInventoryUI() {
     }
   }
 
+  const maxSlots = (state.user && state.user.inventory_slots) || 10;
+  const prizes = state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription');
+  const slotsInfoEl = document.getElementById('drawer-inventory-slots-info');
+  if (slotsInfoEl) {
+    slotsInfoEl.textContent = `(${prizes.length} / ${maxSlots})`;
+  }
+  const buyContainer = document.getElementById('buy-slots-container');
+  if (buyContainer) {
+    if (maxSlots < 20) {
+      buyContainer.classList.remove('hidden');
+    } else {
+      buyContainer.classList.add('hidden');
+    }
+  }
+
   if (drawerInv) {
     drawerInv.innerHTML = '';
     if (state.inventory.length === 0) {
       drawerInv.innerHTML = '<div class="info-note">Инвентарь пуст</div>';
     } else {
-      const prizes = state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription');
       const normalItems = state.inventory.filter(item => item.item_type !== 'remanga_card' && item.item_type !== 'premium_subscription');
 
       prizes.sort((a, b) => {
@@ -4892,7 +5016,7 @@ function updateInventoryUI() {
 
       const countHeader = document.createElement('div');
       countHeader.style.cssText = 'grid-column: 1 / -1; font-size: 12px; font-weight: 600; color: #ffb800; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;';
-      countHeader.innerHTML = `Призы (заполнено: ${prizes.length} из 10)`;
+      countHeader.innerHTML = `Призы (заполнено: ${prizes.length} из ${maxSlots})`;
       drawerInv.appendChild(countHeader);
 
       if (prizes.length === 0) {
@@ -5947,8 +6071,17 @@ function showCellInfoTag(cellIndex) {
       if (boss.reward_type === 'coins') {
         rewText = `${boss.reward_coins} монет`;
       } else if (boss.reward_type === 'card') {
-        const parts = (boss.reward_detail || '').split('|');
-        rewText = `Карта: ${parts[1] || 'Случайная'}`;
+        try {
+          if (boss.reward_detail.startsWith('[')) {
+            const list = JSON.parse(boss.reward_detail);
+            rewText = `Карты (${list.length} шт.)`;
+          } else {
+            const parts = (boss.reward_detail || '').split('|');
+            rewText = `Карта: ${parts[1] || 'Случайная'}`;
+          }
+        } catch (e) {
+          rewText = 'Карта';
+        }
       } else {
         rewText = `${boss.reward_type} (${boss.reward_detail})`;
       }
@@ -5957,15 +6090,79 @@ function showCellInfoTag(cellIndex) {
         <div style="font-size: 10px; font-weight: 700; color: #ffb800; margin-bottom: 4px;">Награда за победу:</div>
         <div style="font-size: 11px; color: #ffffff; margin-bottom: 6px;">${rewText}</div>`;
 
-      if (boss.reward_type === 'card' && boss.reward_detail) {
-        const cardUrl = boss.reward_detail.split('|')[0] || boss.reward_detail;
-        html += `<div style="text-align: center; margin-top: 6px;">
-          <img src="${cardUrl}" referrerpolicy="no-referrer" alt="Награда" style="max-width: 100%; height: auto; max-height: 180px; border-radius: 4px; box-shadow: 0 0 10px rgba(255, 56, 56, 0.4); border: 1px solid rgba(255, 56, 56, 0.2);">
-        </div>`;
-      }
+      if (!boss.defeated) {
+        if (boss.reward_type === 'card' && boss.reward_detail) {
+          let cards = [];
+          try {
+            if (boss.reward_detail.startsWith('[')) {
+              cards = JSON.parse(boss.reward_detail);
+            } else {
+              const parts = boss.reward_detail.split('|');
+              cards = [{ cover: parts[0] }];
+            }
+          } catch (e) {}
 
-      if (boss.defeated) {
-        html += `<div style="font-size: 10px; color: #ff4a4a; font-weight: bold; margin-top: 6px;">Забрал: ${boss.defeated_by_username || 'Неизвестно'}</div>`;
+          if (cards.length > 0) {
+            html += `<div style="display: flex; gap: 4px; overflow-x: auto; padding: 4px 0; margin-top: 6px; justify-content: center;">`;
+            cards.forEach(card => {
+              html += `<img src="${card.cover}" referrerpolicy="no-referrer" alt="Награда" style="width: 50px; height: 70px; object-fit: cover; border-radius: 4px; box-shadow: 0 0 5px rgba(255, 56, 56, 0.3); border: 1px solid rgba(255, 56, 56, 0.15);">`;
+            });
+            html += `</div>`;
+          }
+        }
+      } else {
+        html += `<div style="font-size: 10px; color: #ff4a4a; font-weight: bold; margin-top: 6px;">Победитель: ${boss.defeated_by_username || 'Неизвестно'}</div>`;
+
+        if (boss.reward_type === 'card' && boss.reward_detail) {
+          let cards = [];
+          try {
+            if (boss.reward_detail.startsWith('[')) {
+              cards = JSON.parse(boss.reward_detail);
+            } else {
+              const parts = boss.reward_detail.split('|');
+              cards = [{
+                id: 'card_legacy',
+                type: 'card',
+                cover: parts[0] || '',
+                name: parts[1] || boss.name + ' — Карта',
+                char: parts[2] || '',
+                claimed_by_user_id: null,
+                claimed_by_username: null
+              }];
+            }
+          } catch (e) {}
+
+          const displayName = (state.user && (state.user.tg_first_name || state.user.tg_username)) || `Игрок ${state.user ? state.user.id : ''}`;
+          const isKiller = boss.defeated_by_username === displayName;
+
+          if (cards.length > 0) {
+            html += `<div style="margin-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 6px;">`;
+            html += `<div style="font-size: 10px; font-weight: 700; color: #00f0ff; margin-bottom: 6px;">Наградные карты:</div>`;
+            html += `<div style="display: flex; flex-direction: column; gap: 6px;">`;
+            cards.forEach(card => {
+              const claimed = card.claimed_by_user_id !== null && card.claimed_by_user_id !== undefined;
+              let claimStatusText = '';
+              if (claimed) {
+                claimStatusText = `<span style="font-size: 9px; color: #ff4a4a; font-weight: bold;">Забрано</span>`;
+              } else if (isKiller) {
+                claimStatusText = `<button class="btn btn-primary btn-sm" style="padding: 2px 6px; font-size: 10px; background: #00f0ff; color: #000; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;" onclick="claimBossCard(${boss.cell_number}, '${card.id}')">Забрать</button>`;
+              } else {
+                claimStatusText = `<span style="font-size: 9px; color: #8c9ba5;">Для победителя</span>`;
+              }
+
+              html += `
+                <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 4px; padding: 4px 6px;">
+                  <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0;">
+                    <img src="${card.cover}" referrerpolicy="no-referrer" style="width: 25px; height: 35px; object-fit: cover; border-radius: 2px; flex-shrink: 0;">
+                    <span style="font-size: 10px; color: #fff; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; text-align: left;" title="${card.name}">${card.name}</span>
+                  </div>
+                  <div style="flex-shrink: 0; margin-left: 8px;">${claimStatusText}</div>
+                </div>
+              `;
+            });
+            html += `</div></div>`;
+          }
+        }
       }
       html += `</div>`;
 
@@ -6160,8 +6357,9 @@ function showRewardChoiceModal(reward) {
   state.pendingReward = reward;
   document.getElementById('reward-choice-name').textContent = reward.name;
 
+  const maxSlots = (state.user && state.user.inventory_slots) || 10;
   const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
-  const freeSlots = Math.max(0, 10 - claimedCount);
+  const freeSlots = Math.max(0, maxSlots - claimedCount);
   const canClaim = freeSlots > 0;
 
   let descText = '';
@@ -6182,11 +6380,11 @@ function showRewardChoiceModal(reward) {
   }
 
   descText += `<span style="font-weight: 600; display: block; text-align: center; color: ${canClaim ? '#2ecc71' : '#e74c3c'}">`;
-  descText += `Свободных мест для наград: ${freeSlots} из 10.<br>`;
+  descText += `Свободных мест для наград: ${freeSlots} из ${maxSlots}.<br>`;
   if (canClaim) {
     descText += 'Вы можете забрать эту награду.';
   } else {
-    descText += 'Инвентарь наград заполнен! Вы не можете забрать эту награду.';
+    descText += 'Инвентарь наград заполнен! Нажмите "Забрать", чтобы получить предложение расширить инвентарь.';
   }
   descText += '</span>';
 
@@ -6194,15 +6392,9 @@ function showRewardChoiceModal(reward) {
 
   const claimYesBtn = document.getElementById('claim-reward-yes-btn');
   if (claimYesBtn) {
-    if (canClaim) {
-      claimYesBtn.removeAttribute('disabled');
-      claimYesBtn.style.opacity = '1';
-      claimYesBtn.style.pointerEvents = 'auto';
-    } else {
-      claimYesBtn.setAttribute('disabled', 'true');
-      claimYesBtn.style.opacity = '0.5';
-      claimYesBtn.style.pointerEvents = 'none';
-    }
+    claimYesBtn.removeAttribute('disabled');
+    claimYesBtn.style.opacity = '1';
+    claimYesBtn.style.pointerEvents = 'auto';
   }
 
   document.getElementById('reward-choice-modal').classList.remove('hidden');
@@ -6240,6 +6432,18 @@ window.confirmRemoveReward = async (itemId, name) => {
 
 document.getElementById('claim-reward-yes-btn').addEventListener('click', async () => {
   if (!state.pendingReward) return;
+  
+  const maxSlots = (state.user && state.user.inventory_slots) || 10;
+  const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
+  if (claimedCount >= maxSlots) {
+    if (maxSlots < 20) {
+      document.getElementById('buy-slots-modal').classList.remove('hidden');
+    } else {
+      showNotification('Ваш инвентарь наград полностью заполнен!', 'error');
+    }
+    return;
+  }
+
   try {
     const res = await fetch('/api/board/claim-reward', {
       method: 'POST',
@@ -6387,8 +6591,17 @@ function showMultiRewardChoiceModal(rewardTriggered) {
         cardEl.appendChild(claimedBy);
       }
       
-      if (!isClaimed && freeSlots > 0) {
+      if (!isClaimed) {
         cardEl.addEventListener('click', () => {
+          if (freeSlots <= 0) {
+            const maxSlots = (state.user && state.user.inventory_slots) || 10;
+            if (maxSlots < 20) {
+              document.getElementById('buy-slots-modal').classList.remove('hidden');
+            } else {
+              showNotification('Ваш инвентарь наград полностью заполнен!', 'error');
+            }
+            return;
+          }
           const allCards = grid.querySelectorAll('.reward-card-choice-item');
           allCards.forEach(c => {
             if (c.style.borderColor !== 'rgba(255, 0, 0, 0.2)') {
@@ -6414,6 +6627,18 @@ const claimMultiYesBtn = document.getElementById('claim-multi-reward-yes-btn');
 if (claimMultiYesBtn) {
   claimMultiYesBtn.addEventListener('click', async () => {
     if (!state.pendingMultiReward || !selectedMultiRewardId) return;
+
+    const maxSlots = (state.user && state.user.inventory_slots) || 10;
+    const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
+    if (claimedCount >= maxSlots) {
+      if (maxSlots < 20) {
+        document.getElementById('buy-slots-modal').classList.remove('hidden');
+      } else {
+        showNotification('Ваш инвентарь наград полностью заполнен!', 'error');
+      }
+      return;
+    }
+
     try {
       const res = await fetch('/api/board/claim-multi-reward', {
         method: 'POST',

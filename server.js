@@ -1475,21 +1475,15 @@ app.post('/api/boss/attack', async (req, res) => {
       await runQuery('UPDATE users SET balance = ? WHERE id = ?', [newBalance, user.id]);
 
       let historyDetail = `Побежден босс ${boss.name}! Получено ${reward} монет.`;
-      let rewardCardName = null;
-
       if (boss.reward_type === 'card' && boss.reward_detail) {
-        const parts = boss.reward_detail.split('|');
-        const cardCover = parts[0] || '';
-        const cardName = parts[1] || boss.name + ' — Карта';
-        const cardChar = parts[2] || '';
-
-        await runQuery(
-          'INSERT INTO inventory (user_id, item_type, name, description, duration, origin_cell_number) VALUES (?, ?, ?, ?, ?, ?)',
-          [user.id, 'remanga_card', cardName, cardCover, 0, cellNumber]
-        );
-
-        rewardCardName = cardName;
-        historyDetail = `Побежден босс ${boss.name}! Получено ${reward} монет и карта: ${cardName}.`;
+        let cardsCount = 1;
+        try {
+          if (boss.reward_detail.startsWith('[')) {
+            const list = JSON.parse(boss.reward_detail);
+            cardsCount = list.length;
+          }
+        } catch (e) {}
+        historyDetail = `Побежден босс ${boss.name}! Получено ${reward} монет и доступно карт для получения: ${cardsCount}.`;
       }
 
       await runQuery(
@@ -2620,8 +2614,9 @@ app.post('/api/board/claim-reward', async (req, res) => {
         [userId]
       );
       const count = invCountRow ? invCountRow.count : 0;
-      if (count >= 10) {
-        return res.status(400).json({ error: 'Ваш инвентарь наград заполнен! Максимум можно иметь 10 наград.' });
+      const maxSlots = user.inventory_slots || 10;
+      if (count >= maxSlots) {
+        return res.status(400).json({ error: `Ваш инвентарь наград заполнен! Максимум можно иметь ${maxSlots} наград.` });
       }
 
       const itemType = cell.reward_type === 'card' ? 'remanga_card' : 'premium_subscription';
@@ -2704,8 +2699,9 @@ app.post('/api/board/claim-multi-reward', async (req, res) => {
         [userId]
       );
       const count = invCountRow ? invCountRow.count : 0;
-      if (count >= 10) {
-        return res.status(400).json({ error: 'Ваш инвентарь наград заполнен! Максимум можно иметь 10 наград.' });
+      const maxSlots = user.inventory_slots || 10;
+      if (count >= maxSlots) {
+        return res.status(400).json({ error: `Ваш инвентарь наград заполнен! Максимум можно иметь ${maxSlots} наград.` });
       }
 
       const itemType = reward.type === 'card' ? 'remanga_card' : 'premium_subscription';
@@ -3024,6 +3020,147 @@ function startPublishingLoop() {
   publishBackendUrl();
   setInterval(publishBackendUrl, 10000);
 }
+
+app.post('/api/inventory/buy-slots', async (req, res) => {
+  const { userId } = req.body;
+  if (!userId) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  try {
+    const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    if (!user) {
+      return res.status(400).json({ error: 'Игрок не найден' });
+    }
+
+    const currentSlots = user.inventory_slots || 10;
+    if (currentSlots >= 20) {
+      return res.status(400).json({ error: 'Вы уже приобрели дополнительные слоты!' });
+    }
+
+    if (user.balance < 3000) {
+      return res.status(400).json({ error: 'Недостаточно монет! Стоимость: 3000 монет.' });
+    }
+
+    const newBalance = user.balance - 3000;
+    const newSlots = currentSlots + 10;
+
+    await runQuery(
+      'UPDATE users SET balance = ?, inventory_slots = ? WHERE id = ?',
+      [newBalance, newSlots, userId]
+    );
+
+    await runQuery(
+      'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+      [
+        userId,
+        'buy_slots',
+        'Куплено +10 слотов инвентаря за 3000 монет',
+        new Date().toISOString()
+      ]
+    );
+
+    await broadcastPlayersList();
+    res.json({ success: true, newBalance, newSlots });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/boss/claim-reward-card', async (req, res) => {
+  const { userId, cellNumber, cardId } = req.body;
+  if (!userId || cellNumber === undefined || !cardId) {
+    return res.status(400).json({ error: 'Missing parameters' });
+  }
+
+  try {
+    const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+    if (!user) return res.status(400).json({ error: 'Игрок не найден' });
+
+    const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [cellNumber]);
+    if (!boss) return res.status(400).json({ error: 'Босс не найден' });
+
+    if (!boss.defeated) {
+      return res.status(400).json({ error: 'Босс ещё не побежден!' });
+    }
+
+    const displayName = user.tg_first_name || user.tg_username || `Игрок ${user.id}`;
+    if (boss.defeated_by_username !== displayName) {
+      return res.status(400).json({ error: 'Эту награду может забрать только победитель босса!' });
+    }
+
+    let cards = [];
+    try {
+      if (boss.reward_detail.startsWith('[')) {
+        cards = JSON.parse(boss.reward_detail);
+      } else if (boss.reward_detail) {
+        const parts = boss.reward_detail.split('|');
+        cards = [{
+          id: 'card_legacy',
+          type: 'card',
+          cover: parts[0] || '',
+          name: parts[1] || boss.name + ' — Карта',
+          char: parts[2] || '',
+          claimed_by_user_id: null,
+          claimed_by_username: null
+        }];
+      }
+    } catch (e) {
+      return res.status(400).json({ error: 'Неверный формат наград' });
+    }
+
+    const cardIndex = cards.findIndex(c => c.id === cardId);
+    if (cardIndex === -1) {
+      return res.status(400).json({ error: 'Карта не найдена в наградах' });
+    }
+
+    const card = cards[cardIndex];
+    if (card.claimed_by_user_id !== null && card.claimed_by_user_id !== undefined) {
+      return res.status(400).json({ error: 'Эта карта уже забрана!' });
+    }
+
+    const invCountRow = await getQuery(
+      "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+      [userId]
+    );
+    const count = invCountRow ? invCountRow.count : 0;
+    const maxSlots = user.inventory_slots || 10;
+    if (count >= maxSlots) {
+      return res.status(400).json({ error: `Ваш инвентарь наград заполнен! Максимум можно иметь ${maxSlots} наград.` });
+    }
+
+    await runQuery(
+      'INSERT INTO inventory (user_id, item_type, name, description, duration, origin_cell_number) VALUES (?, ?, ?, ?, ?, ?)',
+      [userId, 'remanga_card', card.name, card.cover, 0, cellNumber]
+    );
+
+    card.claimed_by_user_id = userId;
+    card.claimed_by_username = displayName;
+
+    await runQuery(
+      'UPDATE bosses SET reward_detail = ? WHERE cell_number = ?',
+      [JSON.stringify(cards), cellNumber]
+    );
+
+    await runQuery(
+      'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+      [
+        userId,
+        'claim_reward',
+        `Забрана карта от босса ${boss.name}: ${card.name}`,
+        new Date().toISOString()
+      ]
+    );
+
+    await broadcastPlayersList();
+    const updatedBosses = await allQuery('SELECT * FROM bosses ORDER BY cell_number ASC');
+    io.emit('bosses_update', updatedBosses);
+
+    res.json({ success: true, updatedBosses });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 const PORT = 3000;
 initDb().then(() => {
