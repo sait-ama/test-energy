@@ -1148,7 +1148,25 @@ app.post('/api/board/roll', async (req, res) => {
         if (specialEffect.type === 'guild_tax') detailMsg += ` Наложен налог гильдии в размере ${specialEffect.value} молний.`;
       }
       if (rewardTriggered) {
-        detailMsg += ` Получена награда: ${rewardTriggered.name} (${rewardTriggered.detail}).`;
+        if (rewardTriggered.type === 'multi') {
+          const names = rewardTriggered.rewards.map(r => {
+            if (r.type === 'coins') return `+${r.value} монет`;
+            if (r.type === 'premium') return 'Премиум';
+            if (r.type === 'card') return `Карта "${r.name}"`;
+            return r.name || r.type;
+          });
+          detailMsg += ` Получены награды: ${names.join(', ')}.`;
+        } else {
+          let rewardStr = rewardTriggered.name || '';
+          if (rewardTriggered.type === 'currency') {
+            rewardStr = `+${rewardTriggered.detail} монет`;
+          } else if (rewardTriggered.type === 'card') {
+            rewardStr = `Карта "${rewardTriggered.name}"`;
+          } else if (rewardTriggered.type === 'premium') {
+            rewardStr = 'Премиум';
+          }
+          detailMsg += ` Получена награда: ${rewardStr}.`;
+        }
       }
     }
 
@@ -2717,6 +2735,16 @@ app.post('/api/board/claim-reward', async (req, res) => {
 
       await broadcastPlayersList();
       await broadcastCells();
+    } else {
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [
+          userId,
+          'decline_reward',
+          `Отказ от награды на ячейке ${cellNumber}: ${cell.reward_name}`,
+          new Date().toISOString()
+        ]
+      );
     }
 
     res.json({ success: true });
@@ -2808,6 +2836,16 @@ app.post('/api/board/claim-multi-reward', async (req, res) => {
 
       await broadcastPlayersList();
       await broadcastCells();
+    } else {
+      await runQuery(
+        'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+        [
+          userId,
+          'decline_reward',
+          `Отказ от награды на ячейке ${cellNumber}: ${name}`,
+          new Date().toISOString()
+        ]
+      );
     }
     res.json({ success: true });
   } catch (err) {
@@ -3252,7 +3290,7 @@ app.post('/api/boss/claim-reward-card', async (req, res) => {
 const PORT = 3000;
 initDb().then(() => {
   server.listen(PORT, () => {
-    startGuildScanner(io);
+    startGuildScanner(io, broadcastGlobalHistory);
     startTelegramPolling();
     startPublishingLoop();
   });

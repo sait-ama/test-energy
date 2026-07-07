@@ -8,6 +8,7 @@ const GUILDS = [
 ];
 
 let ioInstance = null;
+let onHistoryInserted = null;
 
 export function setIoInstance(io) {
   ioInstance = io;
@@ -108,6 +109,10 @@ export async function runGuildScan() {
                 ]
               );
 
+              if (onHistoryInserted) {
+                onHistoryInserted();
+              }
+
               if (ioInstance) {
                 ioInstance.to(`user_${user.id}`).emit('balance_update', {
                   balance: newBalance,
@@ -135,8 +140,11 @@ export async function runGuildScan() {
   }
 }
 
-export function startGuildScanner(io) {
+export function startGuildScanner(io, onHistoryCallback) {
   setIoInstance(io);
+  if (onHistoryCallback) {
+    onHistoryInserted = onHistoryCallback;
+  }
   runGuildScan();
   setInterval(runGuildScan, 5 * 60 * 1000);
 }
