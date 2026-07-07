@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ew-assets-cache-v9';
+const CACHE_NAME = 'ew-assets-cache-v10';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -45,6 +45,7 @@ self.addEventListener('fetch', (event) => {
     url.pathname.endsWith('.jpg') ||
     url.pathname.endsWith('.jpeg') ||
     url.pathname.endsWith('.webp') ||
+    url.pathname.endsWith('.webm') ||
     url.pathname.endsWith('.css') ||
     url.pathname.endsWith('.js') ||
     url.pathname.endsWith('.woff') ||
@@ -55,6 +56,7 @@ self.addEventListener('fetch', (event) => {
   const isExternalImage = url.origin.includes('remanga.org') && (
     url.pathname.includes('/media/') ||
     url.pathname.endsWith('.webp') ||
+    url.pathname.endsWith('.webm') ||
     url.pathname.endsWith('.png') ||
     url.pathname.endsWith('.jpg') ||
     url.pathname.endsWith('.jpeg')

@@ -13,16 +13,18 @@ function getAvatarUrl(avatarPath) {
 
 function getCardMediaHTML(src, className, style, attrs) {
   if (!src) return '';
-  let finalSrc = src;
-  if (finalSrc.toLowerCase().endsWith('.webm')) {
-    finalSrc = finalSrc.slice(0, -5) + '.webp';
-  } else if (finalSrc.toLowerCase().includes('.webm')) {
-    finalSrc = finalSrc.replace(/\.webm/gi, '.webp');
-  }
+  const isWebm = src.toLowerCase().endsWith('.webm') || src.toLowerCase().includes('.webm');
   const classAttr = className ? `class="${className}"` : '';
   const styleAttr = style ? `style="${style}"` : '';
   let otherAttrs = attrs || '';
-  return `<img src="${finalSrc}" referrerpolicy="no-referrer" ${classAttr} ${styleAttr} ${otherAttrs}>`;
+  if (isWebm) {
+    if (otherAttrs.includes('onload=')) {
+      otherAttrs = otherAttrs.replace('onload=', 'onloadeddata=');
+    }
+    return `<video src="${src}" muted playsinline ${classAttr} ${styleAttr} ${otherAttrs} preload="metadata"></video>`;
+  } else {
+    return `<img src="${src}" referrerpolicy="no-referrer" ${classAttr} ${styleAttr} ${otherAttrs}>`;
+  }
 }
 
 function loadAvatar(imgEl, fallbackEl, user) {
@@ -6704,17 +6706,19 @@ function showMultiRewardChoiceModal(rewardTriggered) {
         spinner.style.cssText = 'position: absolute; width: 20px; height: 20px; border: 2px solid rgba(0,240,255,0.1); border-radius: 50%; border-top-color: #00f0ff; animation: spin 1s linear infinite;';
         imgContainer.appendChild(spinner);
         
-        let finalCover = item.cover;
-        if (finalCover && finalCover.toLowerCase().endsWith('.webm')) {
-          finalCover = finalCover.slice(0, -5) + '.webp';
-        } else if (finalCover && finalCover.toLowerCase().includes('.webm')) {
-          finalCover = finalCover.replace(/\.webm/gi, '.webp');
+        const isWebm = item.cover && (item.cover.toLowerCase().endsWith('.webm') || item.cover.toLowerCase().includes('.webm'));
+        const img = document.createElement(isWebm ? 'video' : 'img');
+        img.src = item.cover;
+        if (isWebm) {
+          img.muted = true;
+          img.playsInline = true;
+          img.setAttribute('preload', 'metadata');
+          img.onloadeddata = () => { spinner.remove(); img.style.opacity = '1'; };
+        } else {
+          img.referrerPolicy = 'no-referrer';
+          img.onload = () => { spinner.remove(); img.style.opacity = '1'; };
         }
-        const img = document.createElement('img');
-        img.src = finalCover;
-        img.referrerPolicy = 'no-referrer';
         img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.3s;';
-        img.onload = () => { spinner.remove(); img.style.opacity = '1'; };
         img.onerror = () => { spinner.remove(); img.src = 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp'; img.style.opacity = '1'; };
         imgContainer.appendChild(img);
         cardEl.appendChild(imgContainer);
