@@ -1787,6 +1787,7 @@ function initJoystick() {
   container.addEventListener('touchstart', handleStart, { passive: true });
   window.addEventListener('touchmove', handleMove, { passive: false });
   window.addEventListener('touchend', handleEnd, { passive: true });
+  window.addEventListener('touchcancel', handleEnd, { passive: true });
 
   container.addEventListener('mousedown', handleStart);
   window.addEventListener('mousemove', handleMove);
