@@ -1599,7 +1599,7 @@ app.post('/api/boss/attack', async (req, res) => {
         bossHp: 0,
         reward,
         elementMatch,
-        rewardCard: rewardCardName
+        rewardCard: null
       });
     }
 
