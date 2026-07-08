@@ -2491,6 +2491,7 @@ function checkOnboardingStage(user) {
   initGameComponents();
 }
 
+let isInitialProfileLoad = true;
 let gameInitialized = false;
 async function initGameComponents() {
   if (gameInitialized) return;
@@ -2888,14 +2889,30 @@ async function refreshProfile() {
       updateDrawerEquipment();
     }
 
-    if (data.pendingBoss && !data.pendingBoss.defeated) {
-      showPendingBossModal(data.pendingBoss);
-    } else {
-      const isBoss = (state.user.current_cell > 0 && state.user.current_cell % 30 === 0) || state.user.current_cell === 299;
-      if (isBoss) {
-        checkAndShowBossModal(state.user.current_cell);
+    if (data.pendingBoss) {
+      let shouldShow = false;
+      if (!data.pendingBoss.defeated) {
+        shouldShow = true;
+      } else {
+        let cards = [];
+        if (data.pendingBoss.bossRewardType === 'card' && data.pendingBoss.bossRewardDetail) {
+          try {
+            if (data.pendingBoss.bossRewardDetail.startsWith('[')) {
+              cards = JSON.parse(data.pendingBoss.bossRewardDetail);
+            }
+          } catch (e) {}
+        }
+        const hasUnclaimed = cards.some(c => c.claimed_by_user_id === null || c.claimed_by_user_id === undefined);
+        if (hasUnclaimed) {
+          shouldShow = true;
+        }
+      }
+
+      if (shouldShow && isInitialProfileLoad) {
+        showPendingBossModal(data.pendingBoss);
       }
     }
+    isInitialProfileLoad = false;
 
   } catch (err) {
 

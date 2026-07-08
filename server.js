@@ -761,8 +761,10 @@ app.get('/api/profile/:id', async (req, res) => {
           remainingSteps: user.pending_boss_remaining || 0
         };
         if (pBoss.defeated) {
-          await runQuery('UPDATE users SET pending_boss_cell = NULL, pending_boss_remaining = 0 WHERE id = ?', [user.id]);
-          pendingBoss = null;
+          if (!hasUnclaimedBossRewards(pBoss)) {
+            await runQuery('UPDATE users SET pending_boss_cell = NULL, pending_boss_remaining = 0 WHERE id = ?', [user.id]);
+            pendingBoss = null;
+          }
         }
       } else {
         await runQuery('UPDATE users SET pending_boss_cell = NULL, pending_boss_remaining = 0 WHERE id = ?', [user.id]);
