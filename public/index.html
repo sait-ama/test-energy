@@ -1140,8 +1140,9 @@
         <div id="pvp-setup-container" class="hidden">
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
             <div id="pvp-setup-p1" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-              <div id="pvp-p1-avatar-container" style="width: 60px; height: 60px; margin: 0 auto 8px auto; border-radius: 50%; overflow: hidden; border: 2px solid #00f0ff;">
+              <div id="pvp-p1-avatar-container" style="width: 60px; height: 60px; margin: 0 auto 8px auto; border-radius: 50%; overflow: hidden; border: 2px solid #00f0ff; position: relative;">
                 <img id="pvp-p1-avatar" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                <div id="pvp-p1-avatar-fallback" class="avatar-placeholder hidden" style="line-height: 60px; font-size: 20px;"></div>
               </div>
               <div id="pvp-p1-name" style="font-weight: 700; color: #fff; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Игрок 1</div>
               <div style="font-size: 11px; color: #8c9ba5; margin-top: 4px;">Ставка:</div>
@@ -1152,8 +1153,9 @@
             </div>
 
             <div id="pvp-setup-p2" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-              <div id="pvp-p2-avatar-container" style="width: 60px; height: 60px; margin: 0 auto 8px auto; border-radius: 50%; overflow: hidden; border: 2px solid #ff007c;">
+              <div id="pvp-p2-avatar-container" style="width: 60px; height: 60px; margin: 0 auto 8px auto; border-radius: 50%; overflow: hidden; border: 2px solid #ff007c; position: relative;">
                 <img id="pvp-p2-avatar" src="" style="width: 100%; height: 100%; object-fit: cover;">
+                <div id="pvp-p2-avatar-fallback" class="avatar-placeholder hidden" style="line-height: 60px; font-size: 20px;"></div>
               </div>
               <div id="pvp-p2-name" style="font-weight: 700; color: #fff; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Игрок 2</div>
               <div style="font-size: 11px; color: #8c9ba5; margin-top: 4px;">Ставка:</div>

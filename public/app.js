@@ -7496,7 +7496,7 @@ function renderDuelState(duel) {
     const oppObj = isP1 ? p2 : p1;
 
     document.getElementById('pvp-p1-name').textContent = meObj.name;
-    document.getElementById('pvp-p1-avatar').src = meObj.avatar ? getAvatarUrl(meObj.avatar) : 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';
+    loadAvatar(document.getElementById('pvp-p1-avatar'), document.getElementById('pvp-p1-avatar-fallback'), meObj);
     document.getElementById('pvp-p1-ready-status').textContent = meObj.ready ? 'ГОТОВ' : 'Не готов';
     document.getElementById('pvp-p1-ready-status').style.color = meObj.ready ? '#2ecc71' : '#ffb800';
 
@@ -7520,7 +7520,13 @@ function renderDuelState(duel) {
     }
 
     document.getElementById('pvp-p2-name').textContent = oppObj ? oppObj.name : 'Ожидание...';
-    document.getElementById('pvp-p2-avatar').src = (oppObj && oppObj.avatar) ? getAvatarUrl(oppObj.avatar) : 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';
+    if (oppObj) {
+      loadAvatar(document.getElementById('pvp-p2-avatar'), document.getElementById('pvp-p2-avatar-fallback'), oppObj);
+    } else {
+      document.getElementById('pvp-p2-avatar').src = 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';
+      const fb = document.getElementById('pvp-p2-avatar-fallback');
+      if (fb) fb.classList.add('hidden');
+    }
     document.getElementById('pvp-p2-ready-status').textContent = (oppObj && oppObj.ready) ? 'ГОТОВ' : 'Не готов';
     document.getElementById('pvp-p2-ready-status').style.color = (oppObj && oppObj.ready) ? '#2ecc71' : '#ffb800';
 

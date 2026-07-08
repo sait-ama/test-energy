@@ -3349,8 +3349,8 @@ async function getDuelState(duelId) {
   const duel = await getQuery('SELECT * FROM duels WHERE id = ?', [duelId]);
   if (!duel) return null;
 
-  const player1 = await getQuery('SELECT id, tg_username, tg_first_name, remanga_username, remanga_avatar, character_data FROM users WHERE id = ?', [duel.player1_id]);
-  const player2 = await getQuery('SELECT id, tg_username, tg_first_name, remanga_username, remanga_avatar, character_data FROM users WHERE id = ?', [duel.player2_id]);
+  const player1 = await getQuery('SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, character_data FROM users WHERE id = ?', [duel.player1_id]);
+  const player2 = await getQuery('SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, character_data FROM users WHERE id = ?', [duel.player2_id]);
 
   let player1_cards = [];
   if (duel.player1_cards_json) {
@@ -3382,8 +3382,11 @@ async function getDuelState(duelId) {
     id: duel.id,
     player1: player1 ? {
       id: player1.id,
+      tg_id: player1.tg_id,
+      tg_first_name: player1.tg_first_name,
       name: player1.tg_first_name || player1.tg_username || `Игрок ${player1.id}`,
       avatar: player1.remanga_avatar,
+      remanga_avatar: player1.remanga_avatar,
       character_data: player1.character_data ? JSON.parse(player1.character_data) : null,
       hp: duel.player1_hp,
       ready: duel.player1_ready,
@@ -3393,8 +3396,11 @@ async function getDuelState(duelId) {
     } : null,
     player2: player2 ? {
       id: player2.id,
+      tg_id: player2.tg_id,
+      tg_first_name: player2.tg_first_name,
       name: player2.tg_first_name || player2.tg_username || `Игрок ${player2.id}`,
       avatar: player2.remanga_avatar,
+      remanga_avatar: player2.remanga_avatar,
       character_data: player2.character_data ? JSON.parse(player2.character_data) : null,
       hp: duel.player2_hp,
       ready: duel.player2_ready,
