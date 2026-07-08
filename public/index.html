@@ -80,6 +80,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
   <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 
 <body>
@@ -248,8 +249,8 @@
   <div id="app-screen" class="app-container hidden">
     <!-- Mobile top navigation buttons -->
     <div class="mobile-nav-buttons mobile-only">
-      <button id="mobile-pvp-btn" class="btn btn-glow" style="background: linear-gradient(135deg, #ff007c 0%, #ff4b00 100%); border: none; box-shadow: 0 0 10px rgba(255, 0, 124, 0.4); flex: 1.2;">⚔️ Дуэль</button>
       <button id="mobile-open-shop-btn" class="btn">Магазин</button>
+      <button id="mobile-pvp-btn" class="btn btn-glow" style="background: linear-gradient(135deg, #ff007c 0%, #ff4b00 100%); border: none; box-shadow: 0 0 10px rgba(255, 0, 124, 0.4); flex: 1.2;">⚔️ Дуэль</button>
       <button id="mobile-open-profile-btn" class="btn">Мой Профиль</button>
     </div>
 
@@ -1206,6 +1207,7 @@
           <div id="pvp-action-section" style="min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
             <div id="pvp-dice-area" style="font-size: 40px; margin-bottom: 10px; min-height: 60px;">🎲</div>
             <button id="pvp-roll-btn" class="btn btn-primary btn-glow" style="width: 200px; background: linear-gradient(135deg, #ff007c 0%, #ff4b00 100%); border: none; font-size: 16px; font-weight: bold; padding: 12px;">Бросить Кубик</button>
+            <button id="pvp-surrender-btn" class="btn btn-secondary" style="width: 200px; margin-top: 5px; background: rgba(231, 76, 60, 0.15); border: 1px solid #e74c3c; color: #ff4a4a; font-size: 13px; font-weight: bold; padding: 8px;">Сдаться</button>
           </div>
 
           <div id="pvp-battle-log" style="margin-top: 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 8px; max-height: 80px; overflow-y: auto; font-size: 11px; text-align: left; color: #8c9ba5; line-height: 1.4;"></div>

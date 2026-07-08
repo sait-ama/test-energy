@@ -3781,6 +3781,77 @@ app.post('/api/pvp/roll', async (req, res) => {
   }
 });
 
+app.post('/api/pvp/surrender', async (req, res) => {
+  const { userId, duelId } = req.body;
+  if (!userId || !duelId) return res.status(400).json({ error: 'Missing parameters' });
+  try {
+    const duel = await getQuery("SELECT * FROM duels WHERE id = ?", [duelId]);
+    if (!duel || duel.status !== 'active') {
+      return res.status(400).json({ error: 'Дуэль не активна или уже завершена' });
+    }
+    const loserId = parseInt(userId);
+    if (duel.player1_id !== loserId && duel.player2_id !== loserId) {
+      return res.status(400).json({ error: 'Вы не являетесь участником этой дуэли' });
+    }
+    const winnerId = (duel.player1_id === loserId) ? duel.player2_id : duel.player1_id;
+    const now = new Date();
+
+    const loserCardsJson = (duel.player1_id === loserId) ? duel.player1_cards_json : duel.player2_cards_json;
+    const loserCardId = (duel.player1_id === loserId) ? duel.player1_card_id : duel.player2_card_id;
+
+    if (loserCardsJson) {
+      try {
+        const ids = JSON.parse(loserCardsJson);
+        if (Array.isArray(ids) && ids.length > 0) {
+          for (const cid of ids) {
+            const item = await getQuery("SELECT * FROM inventory WHERE id = ? AND user_id = ?", [cid, loserId]);
+            if (item) {
+              await runQuery("UPDATE inventory SET user_id = ?, is_pvp_trophy = 1 WHERE id = ?", [winnerId, cid]);
+              await runQuery("INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, 'pvp_victory', ?, ?)", [
+                winnerId, `Победа в дуэли (соперник сдался). Выиграна карта: ${item.name}`, now.toISOString()
+              ]);
+              await runQuery("INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, 'pvp_defeat', ?, ?)", [
+                loserId, `Поражение в дуэли (сдался). Потеряна карта: ${item.name}`, now.toISOString()
+              ]);
+            }
+          }
+        }
+      } catch (e) {}
+    } else if (loserCardId) {
+      const item = await getQuery("SELECT * FROM inventory WHERE id = ? AND user_id = ?", [loserCardId, loserId]);
+      if (item) {
+        await runQuery("UPDATE inventory SET user_id = ?, is_pvp_trophy = 1 WHERE id = ?", [winnerId, loserCardId]);
+        await runQuery("INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, 'pvp_victory', ?, ?)", [
+          winnerId, `Победа в дуэли (соперник сдался). Выиграна карта: ${item.name}`, now.toISOString()
+        ]);
+        await runQuery("INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, 'pvp_defeat', ?, ?)", [
+          loserId, `Поражение в дуэли (сдался). Потеряна карта: ${item.name}`, now.toISOString()
+        ]);
+      }
+    }
+
+    const p1Hp = (duel.player1_id === loserId) ? 0 : duel.player1_hp;
+    const p2Hp = (duel.player2_id === loserId) ? 0 : duel.player2_hp;
+
+    await runQuery(
+      "UPDATE duels SET player1_hp = ?, player2_hp = ?, status = 'finished', winner_user_id = ?, updated_at = ? WHERE id = ?",
+      [p1Hp, p2Hp, winnerId, now.toISOString(), duelId]
+    );
+
+    await broadcastPlayersList();
+    const state = await getDuelState(duelId);
+
+    if (io) {
+      io.to(`user_${duel.player1_id}`).emit('pvp_finished', { duel: state, surrenderId: loserId });
+      io.to(`user_${duel.player2_id}`).emit('pvp_finished', { duel: state, surrenderId: loserId });
+    }
+
+    res.json({ success: true, duel: state });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/api/pvp/invite', async (req, res) => {
   const { userId, targetUserId } = req.body;
   if (!userId || !targetUserId) return res.status(400).json({ error: 'Missing parameters' });

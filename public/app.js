@@ -7463,6 +7463,15 @@ function renderDuelState(duel) {
     return;
   }
 
+  const cancelBtn = document.getElementById('pvp-lobby-cancel-btn');
+  if (cancelBtn) {
+    if (duel.status === 'active') {
+      cancelBtn.classList.add('hidden');
+    } else {
+      cancelBtn.classList.remove('hidden');
+    }
+  }
+
   const searchContainer = document.getElementById('pvp-searching-container');
   const setupContainer = document.getElementById('pvp-setup-container');
   const activeContainer = document.getElementById('pvp-active-container');
@@ -7843,6 +7852,28 @@ function initPvpListeners() {
     });
   }
 
+  const surrenderBtn = document.getElementById('pvp-surrender-btn');
+  if (surrenderBtn) {
+    surrenderBtn.addEventListener('click', async () => {
+      if (!pvpState.currentDuel) return;
+      if (!confirm('Вы уверены, что хотите сдаться? Вы автоматически проиграете дуэль и потеряете поставленные карты!')) {
+        return;
+      }
+      try {
+        const res = await fetch('/api/pvp/surrender', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: state.user.id, duelId: pvpState.currentDuel.id })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        renderDuelState(data.duel);
+      } catch (err) {
+        showNotification(err.message, 'error');
+      }
+    });
+  }
+
   const resultCloseBtn = document.getElementById('pvp-result-close-btn');
   if (resultCloseBtn) {
     resultCloseBtn.addEventListener('click', () => {
@@ -7890,8 +7921,129 @@ function initPvpListeners() {
   }
 }
 
+function initTelegramBackButton() {
+  const tg = window.Telegram?.WebApp;
+  if (!tg || !tg.BackButton) return;
+
+  tg.BackButton.onClick(() => {
+    closeAllActiveModals();
+  });
+
+  setInterval(updateTelegramBackButton, 200);
+}
+
+function updateTelegramBackButton() {
+  const tg = window.Telegram?.WebApp;
+  if (!tg || !tg.BackButton) return;
+
+  const profileDrawer = document.getElementById('profile-drawer');
+  const profileOpen = profileDrawer && profileDrawer.classList.contains('open');
+
+  const shopCard = document.querySelector('.shop-card');
+  const shopOpen = shopCard && shopCard.classList.contains('open');
+
+  const pvpLobbyModal = document.getElementById('pvp-lobby-modal');
+  const pvpLobbyOpen = pvpLobbyModal && !pvpLobbyModal.classList.contains('hidden');
+
+  const bossBattleModal = document.getElementById('boss-battle-modal');
+  const bossBattleOpen = bossBattleModal && !bossBattleModal.classList.contains('hidden');
+
+  const guildTaxModal = document.getElementById('guild-tax-modal');
+  const guildTaxOpen = guildTaxModal && !guildTaxModal.classList.contains('hidden');
+
+  const depositModal = document.getElementById('deposit-modal');
+  const depositOpen = depositModal && !depositModal.classList.contains('hidden');
+
+  const useItemModal = document.getElementById('use-item-modal');
+  const useItemOpen = useItemModal && !useItemModal.classList.contains('hidden');
+
+  const adminEditModal = document.getElementById('admin-edit-modal');
+  const adminEditOpen = adminEditModal && !adminEditModal.classList.contains('hidden');
+
+  const rewardChoiceModal = document.getElementById('reward-choice-modal');
+  const rewardChoiceOpen = rewardChoiceModal && !rewardChoiceModal.classList.contains('hidden');
+
+  const multiRewardModal = document.getElementById('multi-reward-modal');
+  const multiRewardOpen = multiRewardModal && !multiRewardModal.classList.contains('hidden');
+
+  const anyOpen = profileOpen || shopOpen || pvpLobbyOpen || bossBattleOpen || guildTaxOpen || depositOpen || useItemOpen || adminEditOpen || rewardChoiceOpen || multiRewardOpen;
+
+  if (anyOpen) {
+    tg.BackButton.show();
+  } else {
+    tg.BackButton.hide();
+  }
+}
+
+function closeAllActiveModals() {
+  const profileDrawer = document.getElementById('profile-drawer');
+  if (profileDrawer && profileDrawer.classList.contains('open')) {
+    profileDrawer.classList.remove('open');
+  }
+
+  const shopCard = document.querySelector('.shop-card');
+  if (shopCard && shopCard.classList.contains('open')) {
+    shopCard.classList.remove('open');
+  }
+
+  const pvpLobbyModal = document.getElementById('pvp-lobby-modal');
+  if (pvpLobbyModal && !pvpLobbyModal.classList.contains('hidden')) {
+    if (pvpState.currentDuel && pvpState.currentDuel.status === 'active') {
+    } else {
+      if (pvpState.currentDuel && pvpState.currentDuel.status === 'setup') {
+        fetch('/api/pvp/cancel-setup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: state.user.id, duelId: pvpState.currentDuel.id })
+        }).catch(console.error);
+      }
+      pvpLobbyModal.classList.add('hidden');
+      renderDuelState(null);
+    }
+  }
+
+  const bossBattleModal = document.getElementById('boss-battle-modal');
+  if (bossBattleModal && !bossBattleModal.classList.contains('hidden')) {
+    bossBattleModal.classList.add('hidden');
+  }
+
+  const guildTaxModal = document.getElementById('guild-tax-modal');
+  if (guildTaxModal && !guildTaxModal.classList.contains('hidden')) {
+    guildTaxModal.classList.add('hidden');
+  }
+
+  const depositModal = document.getElementById('deposit-modal');
+  if (depositModal && !depositModal.classList.contains('hidden')) {
+    depositModal.classList.add('hidden');
+  }
+
+  const useItemModal = document.getElementById('use-item-modal');
+  if (useItemModal && !useItemModal.classList.contains('hidden')) {
+    useItemModal.classList.add('hidden');
+  }
+
+  const adminEditModal = document.getElementById('admin-edit-modal');
+  if (adminEditModal && !adminEditModal.classList.contains('hidden')) {
+    adminEditModal.classList.add('hidden');
+  }
+
+  const rewardChoiceModal = document.getElementById('reward-choice-modal');
+  if (rewardChoiceModal && !rewardChoiceModal.classList.contains('hidden')) {
+    rewardChoiceModal.classList.add('hidden');
+  }
+
+  const multiRewardModal = document.getElementById('multi-reward-modal');
+  if (multiRewardModal && !multiRewardModal.classList.contains('hidden')) {
+    multiRewardModal.classList.add('hidden');
+  }
+
+  updateBodyScrollLock();
+  updateTelegramBackButton();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => {
     initPvpListeners();
+    initTelegramBackButton();
   }, 1000);
 });
