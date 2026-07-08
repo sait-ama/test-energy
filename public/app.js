@@ -7213,7 +7213,34 @@ window.claimBossCard = async (cellNumber, cardId) => {
     const data = await res.json();
     if (!res.ok) throw new Error(data.error);
 
-    showNotification('Карта босса добавлена в инвентарь!', 'success');
+    let hasMoreUnclaimed = false;
+    if (data.updatedBosses) {
+      const boss = data.updatedBosses.find(b => b.cell_number === cellNumber);
+      if (boss && boss.reward_type === 'card' && boss.reward_detail) {
+        try {
+          let cards = [];
+          if (boss.reward_detail.startsWith('[')) {
+            cards = JSON.parse(boss.reward_detail);
+          }
+          hasMoreUnclaimed = cards.some(c => c.claimed_by_user_id === null || c.claimed_by_user_id === undefined);
+        } catch (e) {}
+      }
+    }
+
+    if (!hasMoreUnclaimed && state.user && state.user.pending_boss_cell === cellNumber && state.user.pending_boss_remaining > 0) {
+      try {
+        const skipRes = await fetch('/api/boss/skip', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: state.user.id })
+        });
+        if (skipRes.ok) {
+          hideBossModal();
+          return;
+        }
+      } catch (e) {}
+    }
+
     refreshProfile();
     await refreshBosses();
     showCellInfoTag(cellNumber);
