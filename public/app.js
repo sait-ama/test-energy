@@ -7498,7 +7498,7 @@ function renderDuelState(duel) {
             let cover = card.description || '';
             if (cover.includes('|')) cover = cover.split('|')[0];
             return `
-              <div style="text-align: center; width: 50px;">
+              <div style="text-align: center; width: 65px;">
                 ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 4px;"`)}
                 <div style="font-size: 8px; font-weight: bold; color: #00f0ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${card.name}">${card.name}</div>
               </div>
@@ -7522,7 +7522,7 @@ function renderDuelState(duel) {
             let cover = card.description || '';
             if (cover.includes('|')) cover = cover.split('|')[0];
             return `
-              <div style="text-align: center; width: 50px;">
+              <div style="text-align: center; width: 65px;">
                 ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 4px;"`)}
                 <div style="font-size: 8px; font-weight: bold; color: #ff007c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${card.name}">${card.name}</div>
               </div>
@@ -7614,7 +7614,7 @@ function renderDuelState(duel) {
             let cover = card.description || '';
             if (cover.includes('|')) cover = cover.split('|')[0];
             return `
-              <div style="text-align: center; width: 50px;">
+              <div style="text-align: center; width: 65px;">
                 ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 4px;"`)}
                 <div style="font-size: 8px; font-weight: bold; color: #00f0ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${card.name}">${card.name}</div>
               </div>
@@ -7637,7 +7637,7 @@ function renderDuelState(duel) {
             let cover = card.description || '';
             if (cover.includes('|')) cover = cover.split('|')[0];
             return `
-              <div style="text-align: center; width: 50px;">
+              <div style="text-align: center; width: 65px;">
                 ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 4px;"`)}
                 <div style="font-size: 8px; font-weight: bold; color: #ff007c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${card.name}">${card.name}</div>
               </div>
@@ -7691,7 +7691,7 @@ function renderDuelState(duel) {
               let cover = card.description || '';
               if (cover.includes('|')) cover = cover.split('|')[0];
               return `
-                <div style="text-align: center; width: 80px;">
+                <div style="text-align: center; width: 105px;">
                   ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 6px; box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);"`)}
                   <div style="font-size: 10px; font-weight: bold; color: #2ecc71; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${card.name}</div>
                 </div>
