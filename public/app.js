@@ -1035,17 +1035,17 @@ function updateBossModalUI(boss) {
               <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px; border: 1px solid rgba(255,200,0,0.2);">
                 <div style="position: relative; width: 45px; height: 63px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 4px; overflow: hidden; flex-shrink: 0;">
                   <div class="image-loader-spinner" style="position: absolute; width: 16px; height: 16px; border: 2px solid rgba(0,240,255,0.1); border-radius: 50%; border-top-color: #00f0ff; animation: spin 1s linear infinite;"></div>
-                  \${isWebm ? `
+                  ${isWebm ? `
                     <video autoplay muted loop playsinline preload="auto" onloadstart="this.previousElementSibling.remove(); this.style.opacity='1';" onerror="this.previousElementSibling.remove();" style="width: 45px; height: 63px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); opacity: 0; transition: opacity 0.3s;">
-                      <source src="\${card.cover}" type="video/webm">
+                      <source src="${card.cover}" type="video/webm">
                     </video>
                   ` : `
-                    <img src="\${card.cover}" referrerpolicy="no-referrer" onload="this.previousElementSibling.remove(); this.style.opacity='1';" onerror="this.previousElementSibling.remove(); if(typeof window.handleRewardImageError === 'function') window.handleRewardImageError(this, '\${card.cover}');" style="width: 45px; height: 63px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); opacity: 0; transition: opacity 0.3s;">
+                    <img src="${card.cover}" referrerpolicy="no-referrer" onload="this.previousElementSibling.remove(); this.style.opacity='1';" onerror="this.previousElementSibling.remove(); if(typeof window.handleRewardImageError === 'function') window.handleRewardImageError(this, '${card.cover}');" style="width: 45px; height: 63px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); opacity: 0; transition: opacity 0.3s;">
                   `}
                 </div>
                 <div>
-                  <div style="font-size: 12px; color: #ffcc00; font-weight: 600; text-align: left;">\${card.name}</div>
-                  <div style="font-size: 10px; color: #8c9ba5; text-align: left;">\${card.char || ''}</div>
+                  <div style="font-size: 12px; color: #ffcc00; font-weight: 600; text-align: left;">${card.name}</div>
+                  <div style="font-size: 10px; color: #8c9ba5; text-align: left;">${card.char || ''}</div>
                 </div>
               </div>
             `;
