@@ -115,6 +115,27 @@ export function initDb() {
       db.run(`ALTER TABLE users ADD COLUMN pending_boss_cell INTEGER DEFAULT NULL`, () => {});
       db.run(`ALTER TABLE users ADD COLUMN pending_boss_remaining INTEGER DEFAULT 0`, () => {});
       db.run(`ALTER TABLE users ADD COLUMN pending_boss_time TEXT`, () => {});
+      db.run(`ALTER TABLE inventory ADD COLUMN is_pvp_trophy INTEGER DEFAULT 0`, () => {});
+      db.run(`
+        CREATE TABLE IF NOT EXISTS duels (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          player1_id INTEGER,
+          player2_id INTEGER,
+          player1_hp INTEGER DEFAULT 12,
+          player2_hp INTEGER DEFAULT 12,
+          player1_card_id INTEGER,
+          player2_card_id INTEGER,
+          player1_ready INTEGER DEFAULT 0,
+          player2_ready INTEGER DEFAULT 0,
+          turn_user_id INTEGER,
+          status TEXT,
+          winner_user_id INTEGER,
+          player1_disconnected_at TEXT,
+          player2_disconnected_at TEXT,
+          created_at TEXT,
+          updated_at TEXT
+        )
+      `);
       db.run(`
         CREATE TABLE IF NOT EXISTS bosses (
           cell_number INTEGER PRIMARY KEY,

@@ -2769,6 +2769,94 @@ function initSocket() {
     }
     updateGlobalHistoryUI();
   });
+
+  state.socket.on('pvp_match_found', (duel) => {
+    document.getElementById('pvp-lobby-modal').classList.remove('hidden');
+    renderDuelState(duel);
+  });
+
+  state.socket.on('pvp_update', (duel) => {
+    renderDuelState(duel);
+  });
+
+  state.socket.on('pvp_start', (duel) => {
+    renderDuelState(duel);
+  });
+
+  state.socket.on('pvp_turn', (data) => {
+    const duel = data.duel;
+    const roll = data.roll;
+    const rollerId = data.rollerId;
+    const diceArea = document.getElementById('pvp-dice-area');
+    if (diceArea) {
+      diceArea.textContent = '🎲';
+      let count = 0;
+      const interval = setInterval(() => {
+        diceArea.textContent = ['⚀','⚁','⚂','⚃','⚄','⚅'][Math.floor(Math.random() * 6)];
+        count++;
+        if (count > 6) {
+          clearInterval(interval);
+          const diceMap = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+          diceArea.textContent = diceMap[roll - 1] || '🎲';
+        }
+      }, 100);
+    }
+    const p1 = duel.player1;
+    const p2 = duel.player2;
+    const roller = (p1.id === parseInt(rollerId)) ? p1 : p2;
+    const target = (p1.id === parseInt(rollerId)) ? p2 : p1;
+    addDuelLog(`${roller.name} выбросил ${roll} и нанес ${roll} урона по ${target.name}!`);
+    setTimeout(() => {
+      renderDuelState(duel);
+    }, 800);
+  });
+
+  state.socket.on('pvp_finished', (data) => {
+    if (data.timeout) {
+      const winnerId = data.winnerId;
+      if (state.user.id === parseInt(winnerId)) {
+        showNotification('Техническая победа! Соперник не вернулся за 30 минут.', 'success');
+      } else {
+        showNotification('Техническое поражение из-за долгого дисконнекта.', 'error');
+      }
+      refreshProfile();
+      checkActiveDuel();
+      return;
+    }
+    const duel = data.duel;
+    const roll = data.roll;
+    const rollerId = data.rollerId;
+    const diceArea = document.getElementById('pvp-dice-area');
+    if (diceArea) {
+      const diceMap = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+      diceArea.textContent = diceMap[roll - 1] || '🎲';
+    }
+    const p1 = duel.player1;
+    const p2 = duel.player2;
+    const roller = (p1.id === parseInt(rollerId)) ? p1 : p2;
+    const target = (p1.id === parseInt(rollerId)) ? p2 : p1;
+    addDuelLog(`${roller.name} выбросил ${roll} и нанес смертельный урон!`);
+    setTimeout(() => {
+      renderDuelState(duel);
+      refreshProfile();
+    }, 1000);
+  });
+
+  state.socket.on('pvp_invite_received', (data) => {
+    const inviteText = document.getElementById('pvp-invite-text');
+    if (inviteText) {
+      inviteText.textContent = `Игрок ${data.initiatorName} вызывает вас на дуэль на карты! Примите вызов?`;
+    }
+    const modal = document.getElementById('pvp-invite-modal');
+    if (modal) {
+      modal.setAttribute('data-initiator-id', data.initiatorId);
+      modal.classList.remove('hidden');
+    }
+  });
+
+  state.socket.on('pvp_invite_declined', () => {
+    showNotification('Соперник отклонил ваш вызов на дуэль.', 'info');
+  });
 }
 
 async function loadCells() {
@@ -2913,6 +3001,7 @@ async function refreshProfile() {
       }
     }
     isInitialProfileLoad = false;
+    checkActiveDuel();
 
   } catch (err) {
 
@@ -4788,6 +4877,11 @@ function updateOnlineList() {
 
     const statusColor = player.isOnline ? '#2ecc71' : '#95a5a6';
 
+    let challengeBtnHtml = '';
+    if (player.isOnline && String(player.id) !== String(state.user.id)) {
+      challengeBtnHtml = `<button class="btn btn-sm" style="padding: 3px 6px; font-size: 9px; line-height: 1; margin-left: auto; margin-right: 6px; background: linear-gradient(135deg, #ff007c 0%, #ff4b00 100%); border: none; color: #fff; border-radius: 4px;" onclick="event.stopPropagation(); challengePlayer(${player.id})">⚔️</button>`;
+    }
+
     item.innerHTML = `
       <div class="online-user-info" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
         <div style="display:flex; align-items:center; gap:8px;">
@@ -4797,6 +4891,7 @@ function updateOnlineList() {
             <span class="online-cell text-cyan" style="font-size: 10px;">Ячейка: ${player.current_cell}</span>
           </div>
         </div>
+        ${challengeBtnHtml}
         <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:${statusColor}; box-shadow: 0 0 6px ${statusColor};"></span>
       </div>
     `;
@@ -5213,7 +5308,8 @@ function updateInventoryUI() {
   }
 
   const maxSlots = (state.user && state.user.inventory_slots) || 10;
-  const prizes = state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription');
+  const prizes = state.inventory.filter(item => (item.item_type === 'remanga_card' || item.item_type === 'premium_subscription') && !item.is_pvp_trophy);
+  const pvpTrophies = state.inventory.filter(item => (item.item_type === 'remanga_card' || item.item_type === 'premium_subscription') && item.is_pvp_trophy);
   const slotsInfoEl = document.getElementById('drawer-inventory-slots-info');
   if (slotsInfoEl) {
     slotsInfoEl.textContent = `(${prizes.length} / ${maxSlots})`;
@@ -5285,6 +5381,39 @@ function updateInventoryUI() {
               <span class="inventory-item-desc">${item.description}</span>
             `;
           }
+          drawerInv.appendChild(div);
+        });
+      }
+
+      const pvpHeader = document.createElement('div');
+      pvpHeader.style.cssText = 'grid-column: 1 / -1; font-size: 12px; font-weight: 600; color: #ff007c; margin-top: 15px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 4px;';
+      pvpHeader.innerHTML = `Трофеи PvP (заполнено: ${pvpTrophies.length} из 30)`;
+      drawerInv.appendChild(pvpHeader);
+
+      if (pvpTrophies.length === 0) {
+        const emptyPvp = document.createElement('div');
+        emptyPvp.className = 'info-note';
+        emptyPvp.style.cssText = 'grid-column: 1 / -1; margin-bottom: 15px;';
+        emptyPvp.textContent = 'Нет PvP трофеев';
+        drawerInv.appendChild(emptyPvp);
+      } else {
+        pvpTrophies.forEach(item => {
+          const div = document.createElement('div');
+          let discardBtn = `<button class="btn btn-danger btn-sm" style="display: block; width: 100%; margin-top: 8px; font-size: 11px; padding: 4px 8px; border-radius: 6px; background: linear-gradient(135deg, #ff4b00 0%, #ff007c 100%); border: none;" onclick="discardPvpCard(${item.id})">Слить (500 🪙)</button>`;
+          let cover = item.description || '';
+          if (cover.includes('|')) {
+            cover = cover.split('|')[0];
+          }
+          div.className = 'inventory-item card-item-container';
+          div.style.border = '1px solid rgba(255, 0, 124, 0.2)';
+          div.innerHTML = `
+            <div class="card-item-cover-wrapper" style="text-align: center; margin-bottom: 8px;">
+              ${getCardMediaHTML(cover, 'card-item-cover', '', `alt="${item.name}" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';"`)}
+            </div>
+            <div class="card-item-name" style="text-align: center; font-size: 11px; font-weight: 700; color: #ff007c;">${item.name}</div>
+            <div style="font-size: 10px; color: #8c9ba5; text-align: center; margin-top: 4px;">🏆 Трофей PvP</div>
+            ${discardBtn}
+          `;
           drawerInv.appendChild(div);
         });
       }
@@ -7254,3 +7383,441 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js').catch(() => { });
   });
 }
+
+let pvpState = {
+  currentDuel: null,
+  isRolling: false
+};
+
+window.discardPvpCard = async (itemId) => {
+  const confirmMsg = 'Вы хотите слить эту карту за 500 монет? Карта исчезнет из вашего инвентаря и вернется на ячейку поля.';
+  if (!(await showConfirm(confirmMsg))) return;
+  try {
+    const res = await fetch('/api/pvp/discard-card', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: state.user.id, itemId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    showNotification('Карта успешно слита за 500 монет!', 'success');
+    refreshProfile();
+  } catch (err) {
+    showNotification(err.message, 'error');
+  }
+};
+
+window.challengePlayer = async (targetUserId) => {
+  try {
+    const res = await fetch('/api/pvp/invite', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: state.user.id, targetUserId })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error);
+
+    showNotification('Вызов отправлен игроку!', 'success');
+  } catch (err) {
+    showNotification(err.message, 'error');
+  }
+};
+
+async function checkActiveDuel() {
+  if (!state.user) return;
+  try {
+    const res = await fetch('/api/pvp/active-duel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: state.user.id })
+    });
+    const data = await res.json();
+    if (res.ok && data.duel) {
+      document.getElementById('pvp-lobby-modal').classList.remove('hidden');
+      renderDuelState(data.duel);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function addDuelLog(msg) {
+  const logEl = document.getElementById('pvp-battle-log');
+  if (!logEl) return;
+  const item = document.createElement('div');
+  item.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+  logEl.appendChild(item);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function renderDuelState(duel) {
+  pvpState.currentDuel = duel;
+  if (!duel) {
+    document.getElementById('pvp-lobby-modal').classList.add('hidden');
+    return;
+  }
+
+  const searchContainer = document.getElementById('pvp-searching-container');
+  const setupContainer = document.getElementById('pvp-setup-container');
+  const activeContainer = document.getElementById('pvp-active-container');
+  const resultContainer = document.getElementById('pvp-result-container');
+
+  searchContainer.classList.add('hidden');
+  setupContainer.classList.add('hidden');
+  activeContainer.classList.add('hidden');
+  resultContainer.classList.add('hidden');
+
+  if (duel.status === 'searching') {
+    searchContainer.classList.remove('hidden');
+    document.getElementById('pvp-lobby-title').textContent = '⚔️ Поиск Дуэли';
+  } else if (duel.status === 'setup') {
+    setupContainer.classList.remove('hidden');
+    document.getElementById('pvp-lobby-title').textContent = '⚔️ Подготовка к Дуэли';
+
+    const p1 = duel.player1;
+    const p2 = duel.player2;
+    const isP1 = p1.id === state.user.id;
+    const meObj = isP1 ? p1 : p2;
+    const oppObj = isP1 ? p2 : p1;
+
+    document.getElementById('pvp-p1-name').textContent = meObj.name;
+    document.getElementById('pvp-p1-avatar').src = meObj.avatar ? getAvatarUrl(meObj.avatar) : 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';
+    document.getElementById('pvp-p1-ready-status').textContent = meObj.ready ? 'ГОТОВ' : 'Не готов';
+    document.getElementById('pvp-p1-ready-status').style.color = meObj.ready ? '#2ecc71' : '#ffb800';
+
+    if (meObj.card) {
+      let cover = meObj.card.description || '';
+      if (cover.includes('|')) cover = cover.split('|')[0];
+      document.getElementById('pvp-p1-card-preview').innerHTML = `
+        <div style="text-align: center; width: 100%;">
+          ${getCardMediaHTML(cover, 'card-item-cover', '', `style="max-width: 90px; border-radius: 6px;"`)}
+          <div style="font-size: 11px; font-weight: bold; color: #00f0ff; margin-top: 4px;">${meObj.card.name}</div>
+        </div>
+      `;
+    } else {
+      document.getElementById('pvp-p1-card-preview').innerHTML = `<span style="font-size: 11px; color: #8c9ba5;">Выбирает карту...</span>`;
+    }
+
+    document.getElementById('pvp-p2-name').textContent = oppObj ? oppObj.name : 'Ожидание...';
+    document.getElementById('pvp-p2-avatar').src = (oppObj && oppObj.avatar) ? getAvatarUrl(oppObj.avatar) : 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';
+    document.getElementById('pvp-p2-ready-status').textContent = (oppObj && oppObj.ready) ? 'ГОТОВ' : 'Не готов';
+    document.getElementById('pvp-p2-ready-status').style.color = (oppObj && oppObj.ready) ? '#2ecc71' : '#ffb800';
+
+    if (oppObj && oppObj.card) {
+      let cover = oppObj.card.description || '';
+      if (cover.includes('|')) cover = cover.split('|')[0];
+      document.getElementById('pvp-p2-card-preview').innerHTML = `
+        <div style="text-align: center; width: 100%;">
+          ${getCardMediaHTML(cover, 'card-item-cover', '', `style="max-width: 90px; border-radius: 6px;"`)}
+          <div style="font-size: 11px; font-weight: bold; color: #ff007c; margin-top: 4px;">${oppObj.card.name}</div>
+        </div>
+      `;
+    } else {
+      document.getElementById('pvp-p2-card-preview').innerHTML = `<span style="font-size: 11px; color: #8c9ba5;">Выбирает карту...</span>`;
+    }
+
+    const dropdown = document.getElementById('pvp-card-select-dropdown');
+    dropdown.innerHTML = '';
+    const defOpt = document.createElement('option');
+    defOpt.value = '';
+    defOpt.textContent = '-- Выберите карту --';
+    dropdown.appendChild(defOpt);
+
+    const cards = state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription');
+    cards.forEach(item => {
+      const opt = document.createElement('option');
+      opt.value = item.id;
+      opt.textContent = `${item.name} (${item.is_pvp_trophy ? 'PvP' : 'Поле'})`;
+      if (meObj.card && meObj.card.id === item.id) {
+        opt.selected = true;
+      }
+      dropdown.appendChild(opt);
+    });
+
+  } else if (duel.status === 'active') {
+    activeContainer.classList.remove('hidden');
+    document.getElementById('pvp-lobby-title').textContent = '⚔️ ИДЕТ БОЙ!';
+
+    const p1 = duel.player1;
+    const p2 = duel.player2;
+    const isP1 = p1.id === state.user.id;
+    const meObj = isP1 ? p1 : p2;
+    const oppObj = isP1 ? p2 : p1;
+
+    document.getElementById('pvp-active-p1-name').textContent = meObj.name;
+    document.getElementById('pvp-active-p1-hp').textContent = meObj.hp;
+    document.getElementById('pvp-active-p1-hp-bar').style.width = `${(meObj.hp / 12) * 100}%`;
+
+    if (meObj.card) {
+      let cover = meObj.card.description || '';
+      if (cover.includes('|')) cover = cover.split('|')[0];
+      document.getElementById('pvp-active-p1-card').innerHTML = `
+        <div style="text-align: center; width: 100%;">
+          ${getCardMediaHTML(cover, 'card-item-cover', '', `style="max-width: 90px; border-radius: 6px;"`)}
+          <div style="font-size: 11px; font-weight: bold; color: #00f0ff; margin-top: 4px;">${meObj.card.name}</div>
+        </div>
+      `;
+    }
+
+    document.getElementById('pvp-active-p2-name').textContent = oppObj.name;
+    document.getElementById('pvp-active-p2-hp').textContent = oppObj.hp;
+    document.getElementById('pvp-active-p2-hp-bar').style.width = `${(oppObj.hp / 12) * 100}%`;
+
+    if (oppObj.card) {
+      let cover = oppObj.card.description || '';
+      if (cover.includes('|')) cover = cover.split('|')[0];
+      document.getElementById('pvp-active-p2-card').innerHTML = `
+        <div style="text-align: center; width: 100%;">
+          ${getCardMediaHTML(cover, 'card-item-cover', '', `style="max-width: 90px; border-radius: 6px;"`)}
+          <div style="font-size: 11px; font-weight: bold; color: #ff007c; margin-top: 4px;">${oppObj.card.name}</div>
+        </div>
+      `;
+    }
+
+    const myTurn = duel.turn_user_id === state.user.id;
+    const turnEl = document.getElementById('pvp-turn-indicator');
+    const rollBtn = document.getElementById('pvp-roll-btn');
+
+    if (myTurn) {
+      turnEl.textContent = 'ВАШ ХОД! Бросайте кубик!';
+      turnEl.style.color = '#2ecc71';
+      if (!pvpState.isRolling) {
+        rollBtn.disabled = false;
+      }
+    } else {
+      turnEl.textContent = `Ходит ${oppObj.name}...`;
+      turnEl.style.color = '#ffb800';
+      rollBtn.disabled = true;
+    }
+
+  } else if (duel.status === 'finished') {
+    resultContainer.classList.remove('hidden');
+    document.getElementById('pvp-lobby-title').textContent = '⚔️ Конец дуэли';
+
+    const p1 = duel.player1;
+    const p2 = duel.player2;
+    const isP1 = p1.id === state.user.id;
+    const meObj = isP1 ? p1 : p2;
+    const oppObj = isP1 ? p2 : p1;
+
+    const win = duel.winner_user_id === state.user.id;
+    const titleEl = document.getElementById('pvp-result-title');
+    const textEl = document.getElementById('pvp-result-text');
+    const prizeEl = document.getElementById('pvp-result-prize-card');
+
+    if (win) {
+      titleEl.textContent = 'ПОБЕДА!';
+      titleEl.style.color = '#2ecc71';
+      textEl.textContent = 'Вы одолели соперника и забрали его карту в PvP инвентарь!';
+      if (oppObj && oppObj.card) {
+        let cover = oppObj.card.description || '';
+        if (cover.includes('|')) cover = cover.split('|')[0];
+        prizeEl.innerHTML = `
+          <div style="text-align: center; width: 100%;">
+            ${getCardMediaHTML(cover, 'card-item-cover', '', `style="max-width: 120px; border-radius: 8px; box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);"`)}
+            <div style="font-size: 13px; font-weight: bold; color: #2ecc71; margin-top: 8px;">${oppObj.card.name}</div>
+          </div>
+        `;
+      } else {
+        prizeEl.innerHTML = '';
+      }
+    } else {
+      titleEl.textContent = 'ПОРАЖЕНИЕ';
+      titleEl.style.color = '#e74c3c';
+      textEl.textContent = 'Вы проиграли дуэль и потеряли карту ставки.';
+      prizeEl.innerHTML = '';
+    }
+  }
+}
+
+function initPvpListeners() {
+  const startSearch = async () => {
+    try {
+      const res = await fetch('/api/pvp/matchmaking/search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: state.user.id })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      document.getElementById('pvp-lobby-modal').classList.remove('hidden');
+      renderDuelState(data.duel || { status: 'searching' });
+    } catch (err) {
+      showNotification(err.message, 'error');
+    }
+  };
+
+  const pvpBtn = document.getElementById('pvp-matchmaking-btn');
+  if (pvpBtn) {
+    pvpBtn.addEventListener('click', startSearch);
+  }
+  const mobilePvpBtn = document.getElementById('mobile-pvp-btn');
+  if (mobilePvpBtn) {
+    mobilePvpBtn.addEventListener('click', startSearch);
+  }
+
+  const cancelSearchBtn = document.getElementById('pvp-searching-cancel-btn');
+  if (cancelSearchBtn) {
+    cancelSearchBtn.addEventListener('click', async () => {
+      try {
+        await fetch('/api/pvp/matchmaking/cancel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: state.user.id })
+        });
+        renderDuelState(null);
+      } catch (e) {}
+    });
+  }
+
+  const cancelLobbyBtn = document.getElementById('pvp-lobby-cancel-btn');
+  if (cancelLobbyBtn) {
+    cancelLobbyBtn.addEventListener('click', () => {
+      if (pvpState.currentDuel && pvpState.currentDuel.status === 'searching') {
+        cancelSearchBtn.click();
+      } else if (pvpState.currentDuel && pvpState.currentDuel.status === 'setup') {
+        document.getElementById('pvp-lobby-exit-btn').click();
+      } else {
+        renderDuelState(null);
+      }
+    });
+  }
+
+  const lobbyExitBtn = document.getElementById('pvp-lobby-exit-btn');
+  if (lobbyExitBtn) {
+    lobbyExitBtn.addEventListener('click', () => {
+      renderDuelState(null);
+    });
+  }
+
+  const dropdown = document.getElementById('pvp-card-select-dropdown');
+  if (dropdown) {
+    dropdown.addEventListener('change', async () => {
+      if (!pvpState.currentDuel) return;
+      const itemId = dropdown.value;
+      try {
+        const res = await fetch('/api/pvp/select-card', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: state.user.id, duelId: pvpState.currentDuel.id, itemId: itemId ? parseInt(itemId) : null })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        renderDuelState(data.duel);
+      } catch (err) {
+        showNotification(err.message, 'error');
+      }
+    });
+  }
+
+  const agreeBtn = document.getElementById('pvp-agree-btn');
+  if (agreeBtn) {
+    agreeBtn.addEventListener('click', async () => {
+      if (!pvpState.currentDuel) return;
+      try {
+        const res = await fetch('/api/pvp/ready', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: state.user.id, duelId: pvpState.currentDuel.id })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+        renderDuelState(data.duel);
+      } catch (err) {
+        showNotification(err.message, 'error');
+      }
+    });
+  }
+
+  const rollBtn = document.getElementById('pvp-roll-btn');
+  if (rollBtn) {
+    rollBtn.addEventListener('click', async () => {
+      if (!pvpState.currentDuel || pvpState.isRolling) return;
+      pvpState.isRolling = true;
+      rollBtn.disabled = true;
+
+      const diceArea = document.getElementById('pvp-dice-area');
+      let count = 0;
+      const animInterval = setInterval(() => {
+        if (diceArea) diceArea.textContent = ['⚀','⚁','⚂','⚃','⚄','⚅'][Math.floor(Math.random() * 6)];
+        count++;
+        if (count > 8) {
+          clearInterval(animInterval);
+        }
+      }, 80);
+
+      try {
+        const res = await fetch('/api/pvp/roll', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: state.user.id, duelId: pvpState.currentDuel.id })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        setTimeout(() => {
+          pvpState.isRolling = false;
+        }, 1000);
+      } catch (err) {
+        clearInterval(animInterval);
+        pvpState.isRolling = false;
+        rollBtn.disabled = false;
+        showNotification(err.message, 'error');
+      }
+    });
+  }
+
+  const resultCloseBtn = document.getElementById('pvp-result-close-btn');
+  if (resultCloseBtn) {
+    resultCloseBtn.addEventListener('click', () => {
+      renderDuelState(null);
+    });
+  }
+
+  const inviteAcceptBtn = document.getElementById('pvp-invite-accept-btn');
+  if (inviteAcceptBtn) {
+    inviteAcceptBtn.addEventListener('click', async () => {
+      const inviteModal = document.getElementById('pvp-invite-modal');
+      const initId = inviteModal.getAttribute('data-initiator-id');
+      inviteModal.classList.add('hidden');
+      try {
+        const res = await fetch('/api/pvp/invite/accept', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: state.user.id, initiatorUserId: parseInt(initId) })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error);
+
+        document.getElementById('pvp-lobby-modal').classList.remove('hidden');
+        renderDuelState(data.duel);
+      } catch (err) {
+        showNotification(err.message, 'error');
+      }
+    });
+  }
+
+  const inviteDeclineBtn = document.getElementById('pvp-invite-decline-btn');
+  if (inviteDeclineBtn) {
+    inviteDeclineBtn.addEventListener('click', async () => {
+      const inviteModal = document.getElementById('pvp-invite-modal');
+      const initId = inviteModal.getAttribute('data-initiator-id');
+      inviteModal.classList.add('hidden');
+      try {
+        await fetch('/api/pvp/invite/decline', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ userId: state.user.id, initiatorUserId: parseInt(initId) })
+        });
+      } catch (e) {}
+    });
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    initPvpListeners();
+  }, 1000);
+});
