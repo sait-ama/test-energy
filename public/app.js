@@ -6370,7 +6370,7 @@ function showCellInfoTag(cellIndex) {
               const claimed = card.claimed_by_user_id !== null && card.claimed_by_user_id !== undefined;
               let claimStatusText = '';
               if (claimed) {
-                claimStatusText = `<span style="font-size: 9px; color: #ff4a4a; font-weight: bold;">Забрано</span>`;
+                claimStatusText = `<span style="font-size: 9px; color: #ff4a4a; font-weight: bold;">Забрано (${card.claimed_by_username || ''})</span>`;
               } else {
                 const isKiller = (state.user && boss.defeated_by_user_id === state.user.id) || boss.defeated_by_username === displayName;
                 const killerIsOnBossCell = boss.killer_current_cell === boss.cell_number;

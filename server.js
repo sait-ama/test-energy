@@ -2928,27 +2928,46 @@ app.post('/api/inventory/remove-reward', async (req, res) => {
 
     await runQuery('DELETE FROM inventory WHERE id = ?', [itemId]);
 
-    const cell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [item.origin_cell_number]);
-    if (cell && cell.rewards_json) {
-      let rewards = [];
-      try {
-        rewards = JSON.parse(cell.rewards_json);
-      } catch (e) { }
-      const itemType = item.item_type === 'remanga_card' ? 'card' : 'premium';
-      const match = rewards.find(r => r.type === itemType && r.name === item.name && r.claimed_by_user_id === userId);
-      if (match) {
-        match.claimed_by_user_id = null;
-        match.claimed_by_username = null;
-        await runQuery(
-          'UPDATE cells SET rewards_json = ? WHERE cell_number = ?',
-          [JSON.stringify(rewards), item.origin_cell_number]
-        );
+    const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270, 299];
+    if (bossCells.includes(item.origin_cell_number)) {
+      const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [item.origin_cell_number]);
+      if (boss && boss.reward_detail) {
+        try {
+          if (boss.reward_detail.startsWith('[')) {
+            const cards = JSON.parse(boss.reward_detail);
+            const match = cards.find(c => c.name === item.name && c.claimed_by_user_id === userId);
+            if (match) {
+              match.claimed_by_user_id = null;
+              match.claimed_by_username = null;
+              await runQuery('UPDATE bosses SET reward_detail = ? WHERE cell_number = ?', [JSON.stringify(cards), item.origin_cell_number]);
+              await broadcastBossesList();
+            }
+          }
+        } catch (e) { }
       }
     } else {
-      await runQuery(
-        'UPDATE cells SET claimed_by_user_id = NULL, claimed_by_username = NULL WHERE cell_number = ?',
-        [item.origin_cell_number]
-      );
+      const cell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [item.origin_cell_number]);
+      if (cell && cell.rewards_json) {
+        let rewards = [];
+        try {
+          rewards = JSON.parse(cell.rewards_json);
+        } catch (e) { }
+        const itemType = item.item_type === 'remanga_card' ? 'card' : 'premium';
+        const match = rewards.find(r => r.type === itemType && r.name === item.name && r.claimed_by_user_id === userId);
+        if (match) {
+          match.claimed_by_user_id = null;
+          match.claimed_by_username = null;
+          await runQuery(
+            'UPDATE cells SET rewards_json = ? WHERE cell_number = ?',
+            [JSON.stringify(rewards), item.origin_cell_number]
+          );
+        }
+      } else {
+        await runQuery(
+          'UPDATE cells SET claimed_by_user_id = NULL, claimed_by_username = NULL WHERE cell_number = ?',
+          [item.origin_cell_number]
+        );
+      }
     }
 
     await runQuery(
