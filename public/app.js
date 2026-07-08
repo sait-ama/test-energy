@@ -6677,12 +6677,13 @@ function showMultiRewardChoiceModal(rewardTriggered) {
     claimBtn.removeAttribute('disabled');
   }
 
+  const maxSlots = (state.user && state.user.inventory_slots) || 10;
   const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
-  const freeSlots = Math.max(0, 10 - claimedCount);
+  const freeSlots = Math.max(0, maxSlots - claimedCount);
   
   const slotsInfo = document.getElementById('multi-reward-slots-info');
   if (slotsInfo) {
-    slotsInfo.textContent = `Свободных мест для наград: ${freeSlots} из 10.`;
+    slotsInfo.textContent = `Свободных мест для наград: ${freeSlots} из ${maxSlots}.`;
     slotsInfo.style.color = freeSlots > 0 ? '#2ecc71' : '#e74c3c';
   }
 
