@@ -7409,6 +7409,11 @@ window.discardPvpCard = async (itemId) => {
 };
 
 window.challengePlayer = async (targetUserId) => {
+  const pvpTrophies = state.inventory.filter(item => (item.item_type === 'remanga_card' || item.item_type === 'premium_subscription') && item.is_pvp_trophy);
+  if (pvpTrophies.length >= 30) {
+    showNotification('Освободите место в PvP-инвентаре перед началом дуэли (макс. 30)', 'warning');
+    return;
+  }
   try {
     const res = await fetch('/api/pvp/invite', {
       method: 'POST',
@@ -7486,17 +7491,23 @@ function renderDuelState(duel) {
     document.getElementById('pvp-p1-ready-status').textContent = meObj.ready ? 'ГОТОВ' : 'Не готов';
     document.getElementById('pvp-p1-ready-status').style.color = meObj.ready ? '#2ecc71' : '#ffb800';
 
-    if (meObj.card) {
-      let cover = meObj.card.description || '';
-      if (cover.includes('|')) cover = cover.split('|')[0];
+    if (meObj.cards && meObj.cards.length > 0) {
       document.getElementById('pvp-p1-card-preview').innerHTML = `
-        <div style="text-align: center; width: 100%;">
-          ${getCardMediaHTML(cover, 'card-item-cover', '', `style="max-width: 90px; border-radius: 6px;"`)}
-          <div style="font-size: 11px; font-weight: bold; color: #00f0ff; margin-top: 4px;">${meObj.card.name}</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; padding: 8px 4px;">
+          ${meObj.cards.map(card => {
+            let cover = card.description || '';
+            if (cover.includes('|')) cover = cover.split('|')[0];
+            return `
+              <div style="text-align: center; width: 50px;">
+                ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 4px;"`)}
+                <div style="font-size: 8px; font-weight: bold; color: #00f0ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${card.name}">${card.name}</div>
+              </div>
+            `;
+          }).join('')}
         </div>
       `;
     } else {
-      document.getElementById('pvp-p1-card-preview').innerHTML = `<span style="font-size: 11px; color: #8c9ba5;">Выбирает карту...</span>`;
+      document.getElementById('pvp-p1-card-preview').innerHTML = `<span style="font-size: 11px; color: #8c9ba5;">Выбирает карты...</span>`;
     }
 
     document.getElementById('pvp-p2-name').textContent = oppObj ? oppObj.name : 'Ожидание...';
@@ -7504,36 +7515,83 @@ function renderDuelState(duel) {
     document.getElementById('pvp-p2-ready-status').textContent = (oppObj && oppObj.ready) ? 'ГОТОВ' : 'Не готов';
     document.getElementById('pvp-p2-ready-status').style.color = (oppObj && oppObj.ready) ? '#2ecc71' : '#ffb800';
 
-    if (oppObj && oppObj.card) {
-      let cover = oppObj.card.description || '';
-      if (cover.includes('|')) cover = cover.split('|')[0];
+    if (oppObj && oppObj.cards && oppObj.cards.length > 0) {
       document.getElementById('pvp-p2-card-preview').innerHTML = `
-        <div style="text-align: center; width: 100%;">
-          ${getCardMediaHTML(cover, 'card-item-cover', '', `style="max-width: 90px; border-radius: 6px;"`)}
-          <div style="font-size: 11px; font-weight: bold; color: #ff007c; margin-top: 4px;">${oppObj.card.name}</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; padding: 8px 4px;">
+          ${oppObj.cards.map(card => {
+            let cover = card.description || '';
+            if (cover.includes('|')) cover = cover.split('|')[0];
+            return `
+              <div style="text-align: center; width: 50px;">
+                ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 4px;"`)}
+                <div style="font-size: 8px; font-weight: bold; color: #ff007c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${card.name}">${card.name}</div>
+              </div>
+            `;
+          }).join('')}
         </div>
       `;
     } else {
-      document.getElementById('pvp-p2-card-preview').innerHTML = `<span style="font-size: 11px; color: #8c9ba5;">Выбирает карту...</span>`;
+      document.getElementById('pvp-p2-card-preview').innerHTML = `<span style="font-size: 11px; color: #8c9ba5;">Выбирает карты...</span>`;
     }
 
-    const dropdown = document.getElementById('pvp-card-select-dropdown');
-    dropdown.innerHTML = '';
-    const defOpt = document.createElement('option');
-    defOpt.value = '';
-    defOpt.textContent = '-- Выберите карту --';
-    dropdown.appendChild(defOpt);
-
-    const cards = state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription');
-    cards.forEach(item => {
-      const opt = document.createElement('option');
-      opt.value = item.id;
-      opt.textContent = `${item.name} (${item.is_pvp_trophy ? 'PvP' : 'Поле'})`;
-      if (meObj.card && meObj.card.id === item.id) {
-        opt.selected = true;
+    const grid = document.getElementById('pvp-cards-selection-grid');
+    if (grid) {
+      grid.innerHTML = '';
+      const cards = state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription');
+      if (cards.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; font-size: 11px; color: #8c9ba5; padding: 10px;">У вас нет карт для ставки.</div>';
+      } else {
+        const currentlySelectedIds = (meObj.cards || []).map(c => c.id);
+        cards.forEach(item => {
+          let cover = item.description || '';
+          if (cover.includes('|')) cover = cover.split('|')[0];
+          const isSelected = currentlySelectedIds.includes(item.id);
+          
+          const cardDiv = document.createElement('div');
+          cardDiv.style.cssText = `
+            position: relative;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid ${isSelected ? '#00f0ff' : 'rgba(255,255,255,0.05)'};
+            border-radius: 6px;
+            padding: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: ${isSelected ? '0 0 8px rgba(0, 240, 255, 0.3)' : 'none'};
+          `;
+          cardDiv.innerHTML = `
+            <div style="position: relative; width: 100%; padding-bottom: 140%; overflow: hidden; border-radius: 4px;">
+              ${getCardMediaHTML(cover, 'card-item-cover', '', `style="position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover;"`)}
+              ${isSelected ? `<div style="position: absolute; top: 4px; right: 4px; background: #00f0ff; color: #000; border-radius: 50%; width: 14px; height: 14px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: bold;">✓</div>` : ''}
+            </div>
+            <div style="font-size: 9px; font-weight: bold; color: ${isSelected ? '#00f0ff' : '#fff'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px;">${item.name}</div>
+          `;
+          
+          cardDiv.addEventListener('click', async () => {
+            let newSelectedIds = [...currentlySelectedIds];
+            if (isSelected) {
+              newSelectedIds = newSelectedIds.filter(id => id !== item.id);
+            } else {
+              newSelectedIds.push(item.id);
+            }
+            try {
+              const res = await fetch('/api/pvp/select-card', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: state.user.id, duelId: duel.id, itemIds: newSelectedIds })
+              });
+              if (!res.ok) {
+                const errData = await res.json();
+                showNotification(errData.error || 'Ошибка при выборе карты', 'error');
+              }
+            } catch (err) {
+              console.error(err);
+            }
+          });
+          grid.appendChild(cardDiv);
+        });
       }
-      dropdown.appendChild(opt);
-    });
+    }
 
   } else if (duel.status === 'active') {
     activeContainer.classList.remove('hidden');
@@ -7549,30 +7607,46 @@ function renderDuelState(duel) {
     document.getElementById('pvp-active-p1-hp').textContent = meObj.hp;
     document.getElementById('pvp-active-p1-hp-bar').style.width = `${(meObj.hp / 12) * 100}%`;
 
-    if (meObj.card) {
-      let cover = meObj.card.description || '';
-      if (cover.includes('|')) cover = cover.split('|')[0];
+    if (meObj.cards && meObj.cards.length > 0) {
       document.getElementById('pvp-active-p1-card').innerHTML = `
-        <div style="text-align: center; width: 100%;">
-          ${getCardMediaHTML(cover, 'card-item-cover', '', `style="max-width: 90px; border-radius: 6px;"`)}
-          <div style="font-size: 11px; font-weight: bold; color: #00f0ff; margin-top: 4px;">${meObj.card.name}</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; padding: 4px;">
+          ${meObj.cards.map(card => {
+            let cover = card.description || '';
+            if (cover.includes('|')) cover = cover.split('|')[0];
+            return `
+              <div style="text-align: center; width: 50px;">
+                ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 4px;"`)}
+                <div style="font-size: 8px; font-weight: bold; color: #00f0ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${card.name}">${card.name}</div>
+              </div>
+            `;
+          }).join('')}
         </div>
       `;
+    } else {
+      document.getElementById('pvp-active-p1-card').innerHTML = '';
     }
 
     document.getElementById('pvp-active-p2-name').textContent = oppObj.name;
     document.getElementById('pvp-active-p2-hp').textContent = oppObj.hp;
     document.getElementById('pvp-active-p2-hp-bar').style.width = `${(oppObj.hp / 12) * 100}%`;
 
-    if (oppObj.card) {
-      let cover = oppObj.card.description || '';
-      if (cover.includes('|')) cover = cover.split('|')[0];
+    if (oppObj.cards && oppObj.cards.length > 0) {
       document.getElementById('pvp-active-p2-card').innerHTML = `
-        <div style="text-align: center; width: 100%;">
-          ${getCardMediaHTML(cover, 'card-item-cover', '', `style="max-width: 90px; border-radius: 6px;"`)}
-          <div style="font-size: 11px; font-weight: bold; color: #ff007c; margin-top: 4px;">${oppObj.card.name}</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; padding: 4px;">
+          ${oppObj.cards.map(card => {
+            let cover = card.description || '';
+            if (cover.includes('|')) cover = cover.split('|')[0];
+            return `
+              <div style="text-align: center; width: 50px;">
+                ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 4px;"`)}
+                <div style="font-size: 8px; font-weight: bold; color: #ff007c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${card.name}">${card.name}</div>
+              </div>
+            `;
+          }).join('')}
         </div>
       `;
+    } else {
+      document.getElementById('pvp-active-p2-card').innerHTML = '';
     }
 
     const myTurn = duel.turn_user_id === state.user.id;
@@ -7609,14 +7683,20 @@ function renderDuelState(duel) {
     if (win) {
       titleEl.textContent = 'ПОБЕДА!';
       titleEl.style.color = '#2ecc71';
-      textEl.textContent = 'Вы одолели соперника и забрали его карту в PvP инвентарь!';
-      if (oppObj && oppObj.card) {
-        let cover = oppObj.card.description || '';
-        if (cover.includes('|')) cover = cover.split('|')[0];
+      textEl.textContent = 'Вы одолели соперника и забрали его карты в PvP инвентарь!';
+      if (oppObj && oppObj.cards && oppObj.cards.length > 0) {
         prizeEl.innerHTML = `
-          <div style="text-align: center; width: 100%;">
-            ${getCardMediaHTML(cover, 'card-item-cover', '', `style="max-width: 120px; border-radius: 8px; box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);"`)}
-            <div style="font-size: 13px; font-weight: bold; color: #2ecc71; margin-top: 8px;">${oppObj.card.name}</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; width: 100%; padding: 10px;">
+            ${oppObj.cards.map(card => {
+              let cover = card.description || '';
+              if (cover.includes('|')) cover = cover.split('|')[0];
+              return `
+                <div style="text-align: center; width: 80px;">
+                  ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 6px; box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);"`)}
+                  <div style="font-size: 10px; font-weight: bold; color: #2ecc71; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${card.name}</div>
+                </div>
+              `;
+            }).join('')}
           </div>
         `;
       } else {
@@ -7625,7 +7705,7 @@ function renderDuelState(duel) {
     } else {
       titleEl.textContent = 'ПОРАЖЕНИЕ';
       titleEl.style.color = '#e74c3c';
-      textEl.textContent = 'Вы проиграли дуэль и потеряли карту ставки.';
+      textEl.textContent = 'Вы проиграли дуэль и потеряли карты ставки.';
       prizeEl.innerHTML = '';
     }
   }
@@ -7633,6 +7713,11 @@ function renderDuelState(duel) {
 
 function initPvpListeners() {
   const startSearch = async () => {
+    const pvpTrophies = state.inventory.filter(item => (item.item_type === 'remanga_card' || item.item_type === 'premium_subscription') && item.is_pvp_trophy);
+    if (pvpTrophies.length >= 30) {
+      showNotification('Освободите место в PvP-инвентаре перед началом дуэли (макс. 30)', 'warning');
+      return;
+    }
     try {
       const res = await fetch('/api/pvp/matchmaking/search', {
         method: 'POST',
@@ -7687,28 +7772,17 @@ function initPvpListeners() {
 
   const lobbyExitBtn = document.getElementById('pvp-lobby-exit-btn');
   if (lobbyExitBtn) {
-    lobbyExitBtn.addEventListener('click', () => {
-      renderDuelState(null);
-    });
-  }
-
-  const dropdown = document.getElementById('pvp-card-select-dropdown');
-  if (dropdown) {
-    dropdown.addEventListener('change', async () => {
-      if (!pvpState.currentDuel) return;
-      const itemId = dropdown.value;
-      try {
-        const res = await fetch('/api/pvp/select-card', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ userId: state.user.id, duelId: pvpState.currentDuel.id, itemId: itemId ? parseInt(itemId) : null })
-        });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error);
-        renderDuelState(data.duel);
-      } catch (err) {
-        showNotification(err.message, 'error');
+    lobbyExitBtn.addEventListener('click', async () => {
+      if (pvpState.currentDuel && pvpState.currentDuel.status === 'setup') {
+        try {
+          await fetch('/api/pvp/cancel-setup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: state.user.id, duelId: pvpState.currentDuel.id })
+          });
+        } catch (e) {}
       }
+      renderDuelState(null);
     });
   }
 

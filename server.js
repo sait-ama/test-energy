@@ -3352,13 +3352,30 @@ async function getDuelState(duelId) {
   const player1 = await getQuery('SELECT id, tg_username, tg_first_name, remanga_username, remanga_avatar, character_data FROM users WHERE id = ?', [duel.player1_id]);
   const player2 = await getQuery('SELECT id, tg_username, tg_first_name, remanga_username, remanga_avatar, character_data FROM users WHERE id = ?', [duel.player2_id]);
 
-  let player1_card = null;
-  if (duel.player1_card_id) {
-    player1_card = await getQuery('SELECT * FROM inventory WHERE id = ?', [duel.player1_card_id]);
+  let player1_cards = [];
+  if (duel.player1_cards_json) {
+    try {
+      const ids = JSON.parse(duel.player1_cards_json);
+      if (Array.isArray(ids) && ids.length > 0) {
+        player1_cards = await allQuery(`SELECT * FROM inventory WHERE id IN (${ids.map(() => '?').join(',')})`, ids);
+      }
+    } catch (e) {}
+  } else if (duel.player1_card_id) {
+    const card = await getQuery('SELECT * FROM inventory WHERE id = ?', [duel.player1_card_id]);
+    if (card) player1_cards = [card];
   }
-  let player2_card = null;
-  if (duel.player2_card_id) {
-    player2_card = await getQuery('SELECT * FROM inventory WHERE id = ?', [duel.player2_card_id]);
+
+  let player2_cards = [];
+  if (duel.player2_cards_json) {
+    try {
+      const ids = JSON.parse(duel.player2_cards_json);
+      if (Array.isArray(ids) && ids.length > 0) {
+        player2_cards = await allQuery(`SELECT * FROM inventory WHERE id IN (${ids.map(() => '?').join(',')})`, ids);
+      }
+    } catch (e) {}
+  } else if (duel.player2_card_id) {
+    const card = await getQuery('SELECT * FROM inventory WHERE id = ?', [duel.player2_card_id]);
+    if (card) player2_cards = [card];
   }
 
   return {
@@ -3370,7 +3387,8 @@ async function getDuelState(duelId) {
       character_data: player1.character_data ? JSON.parse(player1.character_data) : null,
       hp: duel.player1_hp,
       ready: duel.player1_ready,
-      card: player1_card,
+      cards: player1_cards,
+      card: player1_cards[0] || null,
       disconnected: duel.player1_disconnected_at !== null
     } : null,
     player2: player2 ? {
@@ -3380,7 +3398,8 @@ async function getDuelState(duelId) {
       character_data: player2.character_data ? JSON.parse(player2.character_data) : null,
       hp: duel.player2_hp,
       ready: duel.player2_ready,
-      card: player2_card,
+      cards: player2_cards,
+      card: player2_cards[0] || null,
       disconnected: duel.player2_disconnected_at !== null
     } : null,
     turn_user_id: duel.turn_user_id,
@@ -3396,9 +3415,28 @@ async function resolveDuelTimeout(duelId, winnerId, loserId) {
   if (!duel) return;
 
   const now = new Date();
+  const loserCardsJson = (duel.player1_id === loserId) ? duel.player1_cards_json : duel.player2_cards_json;
   const loserCardId = (duel.player1_id === loserId) ? duel.player1_card_id : duel.player2_card_id;
 
-  if (loserCardId) {
+  if (loserCardsJson) {
+    try {
+      const ids = JSON.parse(loserCardsJson);
+      if (Array.isArray(ids) && ids.length > 0) {
+        for (const cid of ids) {
+          const item = await getQuery('SELECT * FROM inventory WHERE id = ? AND user_id = ?', [cid, loserId]);
+          if (item) {
+            await runQuery('UPDATE inventory SET user_id = ?, is_pvp_trophy = 1 WHERE id = ?', [winnerId, cid]);
+            await runQuery('INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)', [
+              winnerId, 'pvp_victory', `Победа в дуэли (техническая из-за дисконнекта соперника). Выиграна карта: ${item.name}`, now.toISOString()
+            ]);
+            await runQuery('INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)', [
+              loserId, 'pvp_defeat', `Поражение в дуэли (дисконнект более 30 минут). Потеряна карта: ${item.name}`, now.toISOString()
+            ]);
+          }
+        }
+      }
+    } catch (e) {}
+  } else if (loserCardId) {
     const item = await getQuery('SELECT * FROM inventory WHERE id = ? AND user_id = ?', [loserCardId, loserId]);
     if (item) {
       await runQuery('UPDATE inventory SET user_id = ?, is_pvp_trophy = 1 WHERE id = ?', [winnerId, loserCardId]);
@@ -3537,22 +3575,50 @@ app.post('/api/pvp/matchmaking/cancel', async (req, res) => {
   }
 });
 
+app.post('/api/pvp/cancel-setup', async (req, res) => {
+  const { userId, duelId } = req.body;
+  if (!userId || !duelId) return res.status(400).json({ error: 'Missing parameters' });
+  try {
+    const duel = await getQuery("SELECT * FROM duels WHERE id = ? AND status = 'setup'", [duelId]);
+    if (duel) {
+      const now = new Date();
+      await runQuery("UPDATE duels SET status = 'cancelled', updated_at = ? WHERE id = ?", [now.toISOString(), duelId]);
+      if (io) {
+        io.to(`user_${duel.player1_id}`).emit('pvp_update', null);
+        io.to(`user_${duel.player2_id}`).emit('pvp_update', null);
+      }
+    }
+    res.json({ success: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.post('/api/pvp/select-card', async (req, res) => {
-  const { userId, duelId, itemId } = req.body;
+  const { userId, duelId, itemId, itemIds } = req.body;
   if (!userId || !duelId) return res.status(400).json({ error: 'Missing parameters' });
   try {
     const duel = await getQuery("SELECT * FROM duels WHERE id = ? AND status = 'setup'", [duelId]);
     if (!duel) return res.status(400).json({ error: 'Дуэль не найдена или уже началась' });
 
-    if (itemId) {
+    let finalIds = [];
+    if (Array.isArray(itemIds)) {
+      for (const cid of itemIds) {
+        const item = await getQuery("SELECT id FROM inventory WHERE id = ? AND user_id = ?", [cid, userId]);
+        if (item) finalIds.push(cid);
+      }
+    } else if (itemId) {
       const item = await getQuery("SELECT id FROM inventory WHERE id = ? AND user_id = ?", [itemId, userId]);
-      if (!item) return res.status(400).json({ error: 'Карта не найдена в вашем инвентаре' });
+      if (item) finalIds.push(itemId);
     }
 
+    const cardsJson = finalIds.length > 0 ? JSON.stringify(finalIds) : null;
+    const singleCardId = finalIds.length > 0 ? finalIds[0] : null;
+
     if (duel.player1_id === parseInt(userId)) {
-      await runQuery("UPDATE duels SET player1_card_id = ?, player1_ready = 0 WHERE id = ?", [itemId || null, duelId]);
+      await runQuery("UPDATE duels SET player1_card_id = ?, player1_cards_json = ?, player1_ready = 0 WHERE id = ?", [singleCardId, cardsJson, duelId]);
     } else if (duel.player2_id === parseInt(userId)) {
-      await runQuery("UPDATE duels SET player2_card_id = ?, player2_ready = 0 WHERE id = ?", [itemId || null, duelId]);
+      await runQuery("UPDATE duels SET player2_card_id = ?, player2_cards_json = ?, player2_ready = 0 WHERE id = ?", [singleCardId, cardsJson, duelId]);
     } else {
       return res.status(400).json({ error: 'Вы не являетесь участником этой дуэли' });
     }
@@ -3576,10 +3642,12 @@ app.post('/api/pvp/ready', async (req, res) => {
     if (!duel) return res.status(400).json({ error: 'Дуэль не найдена или уже началась' });
 
     if (duel.player1_id === parseInt(userId)) {
-      if (!duel.player1_card_id) return res.status(400).json({ error: 'Сначала выберите карту для ставки!' });
+      const hasCard = duel.player1_card_id || (duel.player1_cards_json && JSON.parse(duel.player1_cards_json).length > 0);
+      if (!hasCard) return res.status(400).json({ error: 'Сначала выберите карту для ставки!' });
       await runQuery("UPDATE duels SET player1_ready = 1 WHERE id = ?", [duelId]);
     } else if (duel.player2_id === parseInt(userId)) {
-      if (!duel.player2_card_id) return res.status(400).json({ error: 'Сначала выберите карту для ставки!' });
+      const hasCard = duel.player2_card_id || (duel.player2_cards_json && JSON.parse(duel.player2_cards_json).length > 0);
+      if (!hasCard) return res.status(400).json({ error: 'Сначала выберите карту для ставки!' });
       await runQuery("UPDATE duels SET player2_ready = 1 WHERE id = ?", [duelId]);
     } else {
       return res.status(400).json({ error: 'Вы не являетесь участником этой дуэли' });
@@ -3650,8 +3718,28 @@ app.post('/api/pvp/roll', async (req, res) => {
     }
 
     if (ended) {
+      const loserCardsJson = (duel.player1_id === loserId) ? duel.player1_cards_json : duel.player2_cards_json;
       const loserCardId = (duel.player1_id === loserId) ? duel.player1_card_id : duel.player2_card_id;
-      if (loserCardId) {
+
+      if (loserCardsJson) {
+        try {
+          const ids = JSON.parse(loserCardsJson);
+          if (Array.isArray(ids) && ids.length > 0) {
+            for (const cid of ids) {
+              const item = await getQuery("SELECT * FROM inventory WHERE id = ? AND user_id = ?", [cid, loserId]);
+              if (item) {
+                await runQuery("UPDATE inventory SET user_id = ?, is_pvp_trophy = 1 WHERE id = ?", [winnerId, cid]);
+                await runQuery("INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, 'pvp_victory', ?, ?)", [
+                  winnerId, `Победа в дуэли. Выиграна карта: ${item.name}`, now.toISOString()
+                ]);
+                await runQuery("INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, 'pvp_defeat', ?, ?)", [
+                  loserId, `Поражение в дуэли. Потеряна карта: ${item.name}`, now.toISOString()
+                ]);
+              }
+            }
+          }
+        } catch (e) {}
+      } else if (loserCardId) {
         const item = await getQuery("SELECT * FROM inventory WHERE id = ? AND user_id = ?", [loserCardId, loserId]);
         if (item) {
           await runQuery("UPDATE inventory SET user_id = ?, is_pvp_trophy = 1 WHERE id = ?", [winnerId, loserCardId]);
@@ -3786,7 +3874,7 @@ app.post('/api/pvp/discard-card', async (req, res) => {
         if (boss.reward_type === 'card' && boss.reward_detail) {
           try {
             let cards = JSON.parse(boss.reward_detail);
-            const card = cards.find(c => c.name === item.name && c.claimed_by_user_id === parseInt(userId));
+            const card = cards.find(c => c.name === item.name && c.claimed_by_user_id !== null);
             if (card) {
               card.claimed_by_user_id = null;
               card.claimed_by_username = null;
@@ -3799,12 +3887,12 @@ app.post('/api/pvp/discard-card', async (req, res) => {
       } else {
         const cell = await getQuery("SELECT * FROM cells WHERE cell_number = ?", [cellNumber]);
         if (cell) {
-          if (cell.claimed_by_user_id === parseInt(userId) && cell.reward_name === item.name) {
+          if (cell.reward_name === item.name) {
             await runQuery("UPDATE cells SET claimed_by_user_id = NULL, claimed_by_username = NULL WHERE cell_number = ?", [cellNumber]);
           } else if (cell.rewards_json) {
             try {
               let rewards = JSON.parse(cell.rewards_json);
-              const rItem = rewards.find(r => r.name === item.name && r.claimed_by_user_id === parseInt(userId));
+              const rItem = rewards.find(r => r.name === item.name && r.claimed_by_user_id !== null);
               if (rItem) {
                 rItem.claimed_by_user_id = null;
                 rItem.claimed_by_username = null;

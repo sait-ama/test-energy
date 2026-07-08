@@ -136,6 +136,8 @@ export function initDb() {
           updated_at TEXT
         )
       `);
+      db.run(`ALTER TABLE duels ADD COLUMN player1_cards_json TEXT DEFAULT NULL`, () => {});
+      db.run(`ALTER TABLE duels ADD COLUMN player2_cards_json TEXT DEFAULT NULL`, () => {});
       db.run(`
         CREATE TABLE IF NOT EXISTS bosses (
           cell_number INTEGER PRIMARY KEY,
