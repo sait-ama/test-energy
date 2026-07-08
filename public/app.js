@@ -1005,49 +1005,52 @@ function updateBossModalUI(boss) {
     const cardImgBlock = document.getElementById('boss-reward-card-img');
     if (cardImgBlock) {
       if (boss.reward_type === 'card' && boss.reward_detail) {
-        const parts = boss.reward_detail.split('|');
-        if (parts.length >= 2) {
+        let cards = [];
+        try {
+          if (boss.reward_detail.startsWith('[')) {
+            cards = JSON.parse(boss.reward_detail);
+          } else {
+            const parts = boss.reward_detail.split('|');
+            if (parts.length >= 2) {
+              cards = [{ cover: parts[0], name: parts[1], char: parts[2] || '' }];
+            }
+          }
+        } catch (e) {}
+
+        if (cards.length > 0) {
           cardImgBlock.classList.remove('hidden');
           cardImgBlock.style.display = 'flex';
-          const coverImg = document.getElementById('boss-reward-card-cover');
-          coverImg.dataset.src = parts[0];
-          coverImg.dataset.retries = '0';
-          let spinner = coverImg.previousElementSibling;
-          if (!spinner || !spinner.classList.contains('image-loader-spinner')) {
-            spinner = document.createElement('div');
-            spinner.className = 'image-loader-spinner';
-            spinner.style.position = 'absolute';
-            spinner.style.width = '20px';
-            spinner.style.height = '20px';
-            spinner.style.border = '2px solid rgba(0,240,255,0.1)';
-            spinner.style.borderRadius = '50%';
-            spinner.style.borderTopColor = '#00f0ff';
-            spinner.style.animation = 'spin 1s linear infinite';
-            coverImg.parentNode.insertBefore(spinner, coverImg);
-          }
-          coverImg.onload = () => {
-            const prev = coverImg.previousElementSibling;
-            if (prev && prev.classList.contains('image-loader-spinner')) {
-              prev.remove();
-            }
-            coverImg.style.opacity = '1';
-          };
-          coverImg.onerror = () => {
-            const prev = coverImg.previousElementSibling;
-            if (prev && prev.classList.contains('image-loader-spinner')) {
-              prev.remove();
-            }
-            if (typeof window.handleRewardImageError === 'function') {
-              window.handleRewardImageError(coverImg, coverImg.dataset.src || coverImg.src);
-            }
-          };
-          coverImg.style.opacity = '0';
-          coverImg.src = parts[0];
-          if (coverImg.complete) {
-            coverImg.onload();
-          }
-          document.getElementById('boss-reward-card-name').textContent = parts[1];
-          document.getElementById('boss-reward-card-char').textContent = parts[2] || '';
+          cardImgBlock.style.flexDirection = 'column';
+          cardImgBlock.style.alignItems = 'stretch';
+          cardImgBlock.style.gap = '8px';
+          cardImgBlock.style.background = 'transparent';
+          cardImgBlock.style.border = 'none';
+          cardImgBlock.style.padding = '0';
+          cardImgBlock.style.marginTop = '8px';
+
+          let html = '';
+          cards.forEach(card => {
+            const isWebm = card.cover && (card.cover.toLowerCase().endsWith('.webm') || card.cover.toLowerCase().includes('.webm'));
+            html += `
+              <div style="display: flex; align-items: center; gap: 10px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px; border: 1px solid rgba(255,200,0,0.2);">
+                <div style="position: relative; width: 45px; height: 63px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 4px; overflow: hidden; flex-shrink: 0;">
+                  <div class="image-loader-spinner" style="position: absolute; width: 16px; height: 16px; border: 2px solid rgba(0,240,255,0.1); border-radius: 50%; border-top-color: #00f0ff; animation: spin 1s linear infinite;"></div>
+                  \${isWebm ? `
+                    <video autoplay muted loop playsinline preload="auto" onloadstart="this.previousElementSibling.remove(); this.style.opacity='1';" onerror="this.previousElementSibling.remove();" style="width: 45px; height: 63px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); opacity: 0; transition: opacity 0.3s;">
+                      <source src="\${card.cover}" type="video/webm">
+                    </video>
+                  ` : `
+                    <img src="\${card.cover}" referrerpolicy="no-referrer" onload="this.previousElementSibling.remove(); this.style.opacity='1';" onerror="this.previousElementSibling.remove(); if(typeof window.handleRewardImageError === 'function') window.handleRewardImageError(this, '\${card.cover}');" style="width: 45px; height: 63px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); opacity: 0; transition: opacity 0.3s;">
+                  `}
+                </div>
+                <div>
+                  <div style="font-size: 12px; color: #ffcc00; font-weight: 600; text-align: left;">\${card.name}</div>
+                  <div style="font-size: 10px; color: #8c9ba5; text-align: left;">\${card.char || ''}</div>
+                </div>
+              </div>
+            `;
+          });
+          cardImgBlock.innerHTML = html;
         } else {
           cardImgBlock.classList.add('hidden');
           cardImgBlock.style.display = 'none';
@@ -1089,10 +1092,17 @@ function translateElement(el) {
 function formatBossReward(boss) {
   const rt = boss.reward_type || 'coins';
   if (rt === 'card' && boss.reward_detail) {
-    const parts = boss.reward_detail.split('|');
-    if (parts.length >= 2) {
-      return `🃏 ${parts[1]}`;
-    }
+    try {
+      if (boss.reward_detail.startsWith('[')) {
+        const cards = JSON.parse(boss.reward_detail);
+        return `🃏 ${cards.map(c => c.name).join(', ')}`;
+      } else {
+        const parts = boss.reward_detail.split('|');
+        if (parts.length >= 2) {
+          return `🃏 ${parts[1]}`;
+        }
+      }
+    } catch (e) {}
     return `🃏 ${boss.reward_detail}`;
   }
   return `${boss.reward_coins || 500} монет`;
