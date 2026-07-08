@@ -6274,7 +6274,8 @@ function showCellInfoTag(cellIndex) {
 
           if (cards.length > 0) {
             html += `<div style="margin-top: 8px; border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 6px;">`;
-            html += `<div style="font-size: 10px; font-weight: 700; color: #00f0ff; margin-bottom: 6px;">Наградные карты:</div>`;
+            html += `<div style="font-size: 10px; font-weight: 700; color: #00f0ff; margin-bottom: 2px;">Наградные карты:</div>`;
+            html += `<div style="font-size: 9px; color: #8c9ba5; margin-bottom: 6px; font-style: italic;">Можно забрать одну или все карты</div>`;
             html += `<div style="display: flex; flex-direction: column; gap: 6px;">`;
             cards.forEach(card => {
               const claimed = card.claimed_by_user_id !== null && card.claimed_by_user_id !== undefined;
@@ -6664,9 +6665,16 @@ function showMultiRewardChoiceModal(rewardTriggered) {
   state.pendingMultiReward = rewardTriggered;
   selectedMultiRewardId = null;
   
+  const choiceItems = rewardTriggered.rewards.filter(r => r.type === 'card' || r.type === 'premium');
+  const unclaimedItems = choiceItems.filter(item => item.claimed_by_user_id === null || item.claimed_by_user_id === undefined);
+  
+  if (unclaimedItems.length === 1) {
+    selectedMultiRewardId = unclaimedItems[0].id;
+  }
+
   const claimBtn = document.getElementById('claim-multi-reward-yes-btn');
   if (claimBtn) {
-    claimBtn.setAttribute('disabled', 'true');
+    claimBtn.removeAttribute('disabled');
   }
 
   const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
@@ -6682,8 +6690,6 @@ function showMultiRewardChoiceModal(rewardTriggered) {
   if (grid) {
     grid.innerHTML = '';
     
-    const choiceItems = rewardTriggered.rewards.filter(r => r.type === 'card' || r.type === 'premium');
-    
     choiceItems.forEach(item => {
       const cardEl = document.createElement('div');
       cardEl.className = 'reward-card-choice-item';
@@ -6697,6 +6703,11 @@ function showMultiRewardChoiceModal(rewardTriggered) {
         cardEl.style.borderColor = 'rgba(255,0,0,0.2)';
       }
       
+      if (!isClaimed && unclaimedItems.length === 1 && item.id === selectedMultiRewardId) {
+        cardEl.style.borderColor = '#00f0ff';
+        cardEl.style.boxShadow = '0 0 10px rgba(0,240,255,0.4)';
+      }
+
       if (item.type === 'card') {
         const imgContainer = document.createElement('div');
         imgContainer.style.cssText = 'position: relative; width: 80px; height: 110px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 4px; overflow: hidden;';
@@ -6756,7 +6767,7 @@ function showMultiRewardChoiceModal(rewardTriggered) {
           }
           const allCards = grid.querySelectorAll('.reward-card-choice-item');
           allCards.forEach(c => {
-            if (c.style.borderColor !== 'rgba(255, 0, 0, 0.2)') {
+            if (c.style.borderColor !== 'rgba(255, 0, 0, 0.2)' && c.style.opacity !== '0.5') {
               c.style.borderColor = 'rgba(255, 255, 255, 0.1)';
               c.style.boxShadow = 'none';
             }
@@ -6764,9 +6775,6 @@ function showMultiRewardChoiceModal(rewardTriggered) {
           cardEl.style.borderColor = '#00f0ff';
           cardEl.style.boxShadow = '0 0 10px rgba(0,240,255,0.4)';
           selectedMultiRewardId = item.id;
-          if (claimBtn) {
-            claimBtn.removeAttribute('disabled');
-          }
         });
       }
       grid.appendChild(cardEl);
@@ -6778,7 +6786,39 @@ function showMultiRewardChoiceModal(rewardTriggered) {
 const claimMultiYesBtn = document.getElementById('claim-multi-reward-yes-btn');
 if (claimMultiYesBtn) {
   claimMultiYesBtn.addEventListener('click', async () => {
-    if (!state.pendingMultiReward || !selectedMultiRewardId) return;
+    if (!state.pendingMultiReward) return;
+
+    if (!selectedMultiRewardId) {
+      showNotification('Выберите одну из доступных карт!', 'error');
+      const grid = document.getElementById('multi-rewards-grid');
+      if (grid) {
+        const unclaimedCards = grid.querySelectorAll('.reward-card-choice-item');
+        unclaimedCards.forEach(c => {
+          if (c.style.opacity !== '0.5') {
+            c.style.transition = 'all 0.15s ease';
+            const originalBorder = c.style.borderColor || 'rgba(255, 255, 255, 0.1)';
+            const originalShadow = c.style.boxShadow || 'none';
+            let flashCount = 0;
+            const interval = setInterval(() => {
+              if (flashCount % 2 === 0) {
+                c.style.borderColor = '#ff3860';
+                c.style.boxShadow = '0 0 12px rgba(255, 56, 96, 0.8)';
+              } else {
+                c.style.borderColor = originalBorder;
+                c.style.boxShadow = originalShadow;
+              }
+              flashCount++;
+              if (flashCount >= 6) {
+                clearInterval(interval);
+                c.style.borderColor = originalBorder;
+                c.style.boxShadow = originalShadow;
+              }
+            }, 150);
+          }
+        });
+      }
+      return;
+    }
 
     const maxSlots = (state.user && state.user.inventory_slots) || 10;
     const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
@@ -7053,6 +7093,9 @@ window.claimBossCard = async (cellNumber, cardId) => {
     }
     return;
   }
+
+  const confirmMsg = 'Вы можете выбрать и забрать одну или несколько карт из наград босса. Хотите забрать эту карту?';
+  if (!(await showConfirm(confirmMsg))) return;
 
   try {
     const res = await fetch('/api/boss/claim-reward-card', {
