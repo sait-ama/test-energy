@@ -3958,8 +3958,10 @@ app.post('/api/pvp/discard-card', async (req, res) => {
       } else {
         const cell = await getQuery("SELECT * FROM cells WHERE cell_number = ?", [cellNumber]);
         if (cell) {
+          let cellUpdated = false;
           if (cell.reward_name === item.name) {
             await runQuery("UPDATE cells SET claimed_by_user_id = NULL, claimed_by_username = NULL WHERE cell_number = ?", [cellNumber]);
+            cellUpdated = true;
           } else if (cell.rewards_json) {
             try {
               let rewards = JSON.parse(cell.rewards_json);
@@ -3968,8 +3970,12 @@ app.post('/api/pvp/discard-card', async (req, res) => {
                 rItem.claimed_by_user_id = null;
                 rItem.claimed_by_username = null;
                 await runQuery("UPDATE cells SET rewards_json = ? WHERE cell_number = ?", [JSON.stringify(rewards), cellNumber]);
+                cellUpdated = true;
               }
             } catch (e) {}
+          }
+          if (cellUpdated) {
+            await broadcastCells();
           }
         }
       }
