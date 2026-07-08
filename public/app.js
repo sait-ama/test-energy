@@ -953,7 +953,80 @@ function updateBossModalUI(boss) {
   if (boss.defeated) {
     document.getElementById('boss-status-defeated').classList.remove('hidden');
     document.getElementById('boss-victor-name').textContent = boss.defeated_by_username || 'Неизвестно';
-    document.getElementById('boss-btn-close').classList.remove('hidden');
+    
+    const isPending = state.user && state.user.pending_boss_cell === boss.cell_number;
+    if (isPending) {
+      document.getElementById('boss-btn-bypass-only').classList.remove('hidden');
+      document.getElementById('boss-btn-close').classList.add('hidden');
+    } else {
+      document.getElementById('boss-btn-close').classList.remove('hidden');
+      document.getElementById('boss-btn-bypass-only').classList.add('hidden');
+    }
+
+    const rewardsContainer = document.getElementById('boss-defeated-rewards-container');
+    const rewardsList = document.getElementById('boss-defeated-rewards-list');
+    if (rewardsContainer && rewardsList) {
+      let cards = [];
+      if (boss.reward_type === 'card' && boss.reward_detail) {
+        try {
+          if (boss.reward_detail.startsWith('[')) {
+            cards = JSON.parse(boss.reward_detail);
+          } else {
+            const parts = boss.reward_detail.split('|');
+            cards = [{
+              id: 'card_legacy',
+              type: 'card',
+              cover: parts[0] || '',
+              name: parts[1] || boss.name + ' — Карта',
+              char: parts[2] || '',
+              claimed_by_user_id: null,
+              claimed_by_username: null
+            }];
+          }
+        } catch (e) {}
+      }
+
+      const hasUnclaimed = cards.some(c => c.claimed_by_user_id === null || c.claimed_by_user_id === undefined);
+
+      if (cards.length > 0 && hasUnclaimed) {
+        rewardsContainer.classList.remove('hidden');
+        let html = '';
+        const displayName = (state.user && (state.user.tg_first_name || state.user.tg_username)) || `Игрок ${state.user ? state.user.id : ''}`;
+        cards.forEach(card => {
+          const claimed = card.claimed_by_user_id !== null && card.claimed_by_user_id !== undefined;
+          let claimStatusText = '';
+          if (claimed) {
+            claimStatusText = `<span style="font-size: 11px; color: #ff4a4a; font-weight: bold;">Забрано (${card.claimed_by_username || ''})</span>`;
+          } else {
+            const isKiller = (state.user && boss.defeated_by_user_id === state.user.id) || boss.defeated_by_username === displayName;
+            const killerIsOnBossCell = boss.killer_current_cell === boss.cell_number;
+            const userIsOnBossCell = state.user && state.user.current_cell === boss.cell_number;
+            const canClaim = userIsOnBossCell && (isKiller || !killerIsOnBossCell);
+
+            if (canClaim) {
+              claimStatusText = `<button class="btn btn-primary btn-sm" style="padding: 4px 8px; font-size: 11px; background: #00f0ff; color: #000; font-weight: bold; border: none; border-radius: 4px; cursor: pointer;" onclick="claimBossCard(${boss.cell_number}, '${card.id}')">Забрать</button>`;
+            } else if (killerIsOnBossCell) {
+              claimStatusText = `<span style="font-size: 10px; color: #ffb800;">Ожидание выбора</span>`;
+            } else {
+              claimStatusText = `<span style="font-size: 10px; color: #8c9ba5;">Встаньте на ячейку</span>`;
+            }
+          }
+
+          html += `
+            <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 6px 10px;">
+              <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+                ${getCardMediaHTML(card.cover, '', 'width: 35px; height: 49px; object-fit: cover; border-radius: 4px; flex-shrink: 0;')}
+                <span style="font-size: 12px; color: #fff; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; text-align: left;" title="${card.name}">${card.name}</span>
+              </div>
+              <div style="flex-shrink: 0; margin-left: 10px;">${claimStatusText}</div>
+            </div>
+          `;
+        });
+        rewardsList.innerHTML = html;
+      } else {
+        rewardsContainer.classList.add('hidden');
+      }
+    }
   } else if (boss.current_fighter_id && boss.current_fighter_id !== state.user.id) {
     document.getElementById('boss-status-occupied').classList.remove('hidden');
     document.getElementById('boss-fighter-name').textContent = boss.current_fighter_username || 'Неизвестно';
@@ -2834,6 +2907,12 @@ function showPendingBossModal(pendingBoss) {
   const modal = document.getElementById('boss-battle-modal');
   if (!modal) return;
   modal.classList.remove('hidden');
+
+  const boss = (state.bosses || []).find(b => b.cell_number === pendingBoss.cellNumber);
+  if (boss) {
+    updateBossModalUI(boss);
+    return;
+  }
 
   document.getElementById('boss-status-defeated').classList.add('hidden');
   document.getElementById('boss-status-occupied').classList.add('hidden');

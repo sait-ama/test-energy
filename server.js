@@ -915,6 +915,22 @@ app.get('/api/board/config', async (req, res) => {
   }
 });
 
+function hasUnclaimedBossRewards(boss) {
+  if (boss.reward_type !== 'card' || !boss.reward_detail) {
+    return false;
+  }
+  try {
+    if (boss.reward_detail.startsWith('[')) {
+      const cards = JSON.parse(boss.reward_detail);
+      return cards.some(c => c.claimed_by_user_id === null || c.claimed_by_user_id === undefined);
+    } else {
+      return true;
+    }
+  } catch (e) {
+    return false;
+  }
+}
+
 app.post('/api/board/roll', async (req, res) => {
   const { userId } = req.body;
   if (!userId) {
@@ -1002,26 +1018,37 @@ app.post('/api/board/roll', async (req, res) => {
       path.push(i);
       if (bossCells.includes(i)) {
         const bossOnCell = allBosses.find(b => b.cell_number === i);
-        if (bossOnCell && !bossOnCell.defeated) {
-          const remainingSteps = Math.min(endCell, 299) - i;
-          const pendingTime = remainingSteps > 0 ? new Date().toISOString() : null;
-          await runQuery('UPDATE users SET pending_boss_cell = ?, pending_boss_remaining = ?, pending_boss_time = ? WHERE id = ?', [i, remainingSteps, pendingTime, user.id]);
-          endCell = i;
-          bossEncounter = {
-            cellNumber: i,
-            bossName: bossOnCell.name,
-            bossHp: bossOnCell.hp,
-            bossMaxHp: bossOnCell.max_hp,
-            bossDmg: bossOnCell.dmg,
-            bossWeakness: bossOnCell.weakness,
-            bossReward: bossOnCell.reward_coins,
-            currentFighterId: bossOnCell.current_fighter_id,
-            currentFighterName: bossOnCell.current_fighter_username,
-            remainingSteps: remainingSteps
-          };
-          stoppedAtBoss = true;
-          path = path.slice(0, path.indexOf(i) + 1);
-          break;
+        if (bossOnCell) {
+          let shouldStop = false;
+          if (!bossOnCell.defeated) {
+            shouldStop = true;
+          } else {
+            shouldStop = hasUnclaimedBossRewards(bossOnCell);
+          }
+
+          if (shouldStop) {
+            const remainingSteps = Math.min(endCell, 299) - i;
+            const pendingTime = remainingSteps > 0 ? new Date().toISOString() : null;
+            await runQuery('UPDATE users SET pending_boss_cell = ?, pending_boss_remaining = ?, pending_boss_time = ? WHERE id = ?', [i, remainingSteps, pendingTime, user.id]);
+            endCell = i;
+            bossEncounter = {
+              cellNumber: i,
+              bossName: bossOnCell.name,
+              bossHp: bossOnCell.hp,
+              bossMaxHp: bossOnCell.max_hp,
+              bossDmg: bossOnCell.dmg,
+              bossWeakness: bossOnCell.weakness,
+              bossReward: bossOnCell.reward_coins,
+              bossRewardType: bossOnCell.reward_type || 'coins',
+              bossRewardDetail: bossOnCell.reward_detail || '',
+              currentFighterId: bossOnCell.current_fighter_id,
+              currentFighterName: bossOnCell.current_fighter_username,
+              remainingSteps: remainingSteps
+            };
+            stoppedAtBoss = true;
+            path = path.slice(0, path.indexOf(i) + 1);
+            break;
+          }
         }
       }
     }
@@ -1304,43 +1331,52 @@ async function autoSkipPendingBoss(user) {
     path.push(i);
     if (bossCells.includes(i)) {
       const bossOnCell = allBosses.find(b => b.cell_number === i);
-      if (bossOnCell && !bossOnCell.defeated) {
-        const newRemaining = Math.min(finalCell, 299) - i;
-        const pendingTime = newRemaining > 0 ? new Date().toISOString() : null;
-        await runQuery(
-          'UPDATE users SET current_cell = ?, pending_boss_cell = ?, pending_boss_remaining = ?, pending_boss_time = ? WHERE id = ?',
-          [i, i, newRemaining, pendingTime, user.id]
-        );
-        path = path.slice(0, path.indexOf(i) + 1);
-        newBossEncounter = {
-          cellNumber: i,
-          bossName: bossOnCell.name,
-          bossHp: bossOnCell.hp,
-          bossMaxHp: bossOnCell.max_hp,
-          bossDmg: bossOnCell.dmg,
-          bossWeakness: bossOnCell.weakness,
-          bossReward: bossOnCell.reward_coins,
-          bossRewardType: bossOnCell.reward_type || 'coins',
-          bossRewardDetail: bossOnCell.reward_detail || '',
-          currentFighterId: bossOnCell.current_fighter_id,
-          currentFighterName: bossOnCell.current_fighter_username,
-          remainingSteps: newRemaining
-        };
-        if (onlineUsers.has(String(user.id))) {
-          onlineUsers.get(String(user.id)).current_cell = i;
+      if (bossOnCell) {
+        let shouldStop = false;
+        if (!bossOnCell.defeated) {
+          shouldStop = true;
+        } else {
+          shouldStop = hasUnclaimedBossRewards(bossOnCell);
         }
-        io.emit('player_move', {
-          userId: user.id,
-          tg_username: user.tg_username,
-          path,
-          startCell,
-          endCell: i,
-          specialEffect: null,
-          rewardTriggered: null,
-          win: false
-        });
-        await broadcastPlayersList();
-        return { path, endCell: i, bossEncounter: newBossEncounter, win: false };
+
+        if (shouldStop) {
+          const newRemaining = Math.min(finalCell, 299) - i;
+          const pendingTime = newRemaining > 0 ? new Date().toISOString() : null;
+          await runQuery(
+            'UPDATE users SET current_cell = ?, pending_boss_cell = ?, pending_boss_remaining = ?, pending_boss_time = ? WHERE id = ?',
+            [i, i, newRemaining, pendingTime, user.id]
+          );
+          path = path.slice(0, path.indexOf(i) + 1);
+          newBossEncounter = {
+            cellNumber: i,
+            bossName: bossOnCell.name,
+            bossHp: bossOnCell.hp,
+            bossMaxHp: bossOnCell.max_hp,
+            bossDmg: bossOnCell.dmg,
+            bossWeakness: bossOnCell.weakness,
+            bossReward: bossOnCell.reward_coins,
+            bossRewardType: bossOnCell.reward_type || 'coins',
+            bossRewardDetail: bossOnCell.reward_detail || '',
+            currentFighterId: bossOnCell.current_fighter_id,
+            currentFighterName: bossOnCell.current_fighter_username,
+            remainingSteps: newRemaining
+          };
+          if (onlineUsers.has(String(user.id))) {
+            onlineUsers.get(String(user.id)).current_cell = i;
+          }
+          io.emit('player_move', {
+            userId: user.id,
+            tg_username: user.tg_username,
+            path,
+            startCell,
+            endCell: i,
+            specialEffect: null,
+            rewardTriggered: null,
+            win: false
+          });
+          await broadcastPlayersList();
+          return { path, endCell: i, bossEncounter: newBossEncounter, win: false };
+        }
       }
     }
   }
