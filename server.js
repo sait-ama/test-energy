@@ -3531,6 +3531,15 @@ app.post('/api/pvp/matchmaking/search', async (req, res) => {
   const { userId } = req.body;
   if (!userId) return res.status(400).json({ error: 'Missing parameters' });
   try {
+    const userCards = await getQuery(
+      "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+      [userId]
+    );
+    const userCardsCount = userCards ? userCards.count : 0;
+    if (userCardsCount === 0) {
+      return res.status(400).json({ error: 'У вас нет карт для участия в дуэли!' });
+    }
+
     const countRow = await getQuery("SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND is_pvp_trophy = 1", [userId]);
     const count = countRow ? countRow.count : 0;
     if (count >= 30) {
@@ -3856,6 +3865,26 @@ app.post('/api/pvp/invite', async (req, res) => {
   const { userId, targetUserId } = req.body;
   if (!userId || !targetUserId) return res.status(400).json({ error: 'Missing parameters' });
   try {
+    const senderCards = await getQuery(
+      "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+      [userId]
+    );
+    const senderCardsCount = senderCards ? senderCards.count : 0;
+    if (senderCardsCount === 0) {
+      return res.status(400).json({ error: 'У вас нет карт для участия в дуэли!' });
+    }
+
+    const targetCards = await getQuery(
+      "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+      [targetUserId]
+    );
+    const targetCardsCount = targetCards ? targetCards.count : 0;
+    if (targetCardsCount === 0) {
+      const targetUser = await getQuery("SELECT tg_first_name, tg_username FROM users WHERE id = ?", [targetUserId]);
+      const targetName = targetUser ? (targetUser.tg_first_name || targetUser.tg_username || `Игрок ${targetUserId}`) : `Игрок ${targetUserId}`;
+      return res.status(400).json({ error: `У игрока ${targetName} нет карт для дуэли!` });
+    }
+
     const targetOnline = onlineUsers.has(String(targetUserId));
     if (!targetOnline) return res.status(400).json({ error: 'Игрок сейчас не в сети!' });
 
@@ -3881,6 +3910,24 @@ app.post('/api/pvp/invite/accept', async (req, res) => {
   const { userId, initiatorUserId } = req.body;
   if (!userId || !initiatorUserId) return res.status(400).json({ error: 'Missing parameters' });
   try {
+    const acceptorCards = await getQuery(
+      "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+      [userId]
+    );
+    const acceptorCardsCount = acceptorCards ? acceptorCards.count : 0;
+    if (acceptorCardsCount === 0) {
+      return res.status(400).json({ error: 'У вас нет карт для участия в дуэли!' });
+    }
+
+    const initiatorCards = await getQuery(
+      "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+      [initiatorUserId]
+    );
+    const initiatorCardsCount = initiatorCards ? initiatorCards.count : 0;
+    if (initiatorCardsCount === 0) {
+      return res.status(400).json({ error: 'У соперника нет карт для дуэли!' });
+    }
+
     const countRow = await getQuery("SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND is_pvp_trophy = 1", [userId]);
     const count = countRow ? countRow.count : 0;
     if (count >= 30) return res.status(400).json({ error: 'Ваш PvP-инвентарь заполнен!' });
