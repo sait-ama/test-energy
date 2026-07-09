@@ -156,6 +156,35 @@ setInterval(async () => {
   }
   await checkDuelTimeouts();
 }, 10000);
+async function sendTelegramMessage(tgId, text) {
+  if (!TELEGRAM_BOT_TOKEN || !tgId) return;
+  try {
+    await fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: tgId, text })
+    });
+  } catch (err) {
+    console.error('Error sending tg message:', err);
+  }
+}
+
+setInterval(async () => {
+  try {
+    const nowIso = new Date().toISOString();
+    const usersToNotify = await allQuery(
+      'SELECT id, tg_id FROM users WHERE tg_id IS NOT NULL AND dice_cooldown_until IS NOT NULL AND dice_cooldown_until <= ? AND dice_cooldown_notified = 0',
+      [nowIso]
+    );
+    for (const u of usersToNotify) {
+      await sendTelegramMessage(u.tg_id, 'Твой кубик снова готов к броску! Время сделать ход 🎲');
+      await runQuery('UPDATE users SET dice_cooldown_notified = 1 WHERE id = ?', [u.id]);
+    }
+  } catch (err) {
+    console.error('Error in cooldown notifier:', err);
+  }
+}, 10000);
+
 const pendingAuthTokens = new Map();
 let telegramPollingOffset = 0;
 let telegramPollingActive = false;
@@ -445,6 +474,22 @@ async function checkTelegramMembership(tgUserId) {
 
 app.get('/api/config/telegram', (req, res) => {
   res.json({ botUsername: TELEGRAM_BOT_USERNAME });
+});
+
+app.get('/api/leaders', async (req, res) => {
+  try {
+    const sortBy = req.query.sortBy === 'wins' ? 'wins' : 'balance';
+    const query = `
+      SELECT id, tg_username, tg_first_name, remanga_username, remanga_avatar, balance, wins
+      FROM users
+      ORDER BY ${sortBy} DESC
+      LIMIT 50
+    `;
+    const list = await allQuery(query);
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 app.post('/api/auth/telegram-start', (req, res) => {
@@ -1171,7 +1216,7 @@ app.post('/api/board/roll', async (req, res) => {
     }
 
     await runQuery(
-      'UPDATE users SET current_cell = ?, balance = ?, wins = ?, dice_cooldown_until = ?, guild_tax_required = ?, guild_tax_paid = ? WHERE id = ?',
+      'UPDATE users SET current_cell = ?, balance = ?, wins = ?, dice_cooldown_until = ?, guild_tax_required = ?, guild_tax_paid = ?, dice_cooldown_notified = 0 WHERE id = ?',
       [finalCell, newBalance, winsCount, nextCooldown, nextRequired, nextPaid, user.id]
     );
 

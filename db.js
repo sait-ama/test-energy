@@ -27,7 +27,8 @@ export function initDb() {
           wins INTEGER DEFAULT 0,
           is_admin INTEGER DEFAULT 0,
           guild_tax_required INTEGER DEFAULT 0,
-          guild_tax_paid INTEGER DEFAULT 0
+          guild_tax_paid INTEGER DEFAULT 0,
+          dice_cooldown_notified INTEGER DEFAULT 1
         )
       `);
 
@@ -38,6 +39,7 @@ export function initDb() {
       db.run(`ALTER TABLE users ADD COLUMN starting_weapon TEXT DEFAULT NULL`, () => {});
       db.run(`ALTER TABLE users ADD COLUMN starting_costume TEXT DEFAULT NULL`, () => {});
       db.run(`ALTER TABLE users ADD COLUMN inventory_slots INTEGER DEFAULT 10`, () => {});
+      db.run(`ALTER TABLE users ADD COLUMN dice_cooldown_notified INTEGER DEFAULT 1`, () => {});
 
       db.run(`
         CREATE TABLE IF NOT EXISTS equipment_inventory (

@@ -248,10 +248,11 @@
 
   <div id="app-screen" class="app-container hidden">
     <!-- Mobile top navigation buttons -->
-    <div class="mobile-nav-buttons mobile-only">
-      <button id="mobile-open-shop-btn" class="btn">Магазин</button>
-      <button id="mobile-pvp-btn" class="btn btn-glow" style="background: linear-gradient(135deg, #ff007c 0%, #ff4b00 100%); border: none; box-shadow: 0 0 10px rgba(255, 0, 124, 0.4); flex: 1.2;">⚔️ Дуэль</button>
-      <button id="mobile-open-profile-btn" class="btn">Мой Профиль</button>
+    <div class="mobile-nav-buttons mobile-only" style="display: flex; gap: 6px; padding: 10px; width: 100%; box-sizing: border-box;">
+      <button id="mobile-open-shop-btn" class="btn" style="flex: 1; padding: 8px 4px; font-size: 11px;">Магазин</button>
+      <button id="mobile-open-leaders-btn" class="btn" style="flex: 1; padding: 8px 4px; font-size: 11px; background: #27ae60; border-color: #27ae60; color: #fff; box-shadow: 0 0 8px rgba(39, 174, 96, 0.3);">🏆 Топ</button>
+      <button id="mobile-pvp-btn" class="btn btn-glow" style="background: linear-gradient(135deg, #ff007c 0%, #ff4b00 100%); border: none; box-shadow: 0 0 10px rgba(255, 0, 124, 0.4); flex: 1.2; padding: 8px 4px; font-size: 11px;">⚔️ Дуэль</button>
+      <button id="mobile-open-profile-btn" class="btn" style="flex: 1; padding: 8px 4px; font-size: 11px;">Профиль</button>
     </div>
 
     <header class="app-header">
@@ -282,6 +283,7 @@
         </div>
         <div class="user-actions-group">
           <button id="pvp-matchmaking-btn" class="btn btn-primary btn-sm btn-glow" style="background: linear-gradient(135deg, #ff007c 0%, #ff4b00 100%); border: none; box-shadow: 0 0 10px rgba(255, 0, 124, 0.4);">⚔️ Дуэль</button>
+          <button id="open-leaders-btn" class="btn btn-primary btn-sm btn-glow" style="background: #27ae60; border-color: #27ae60; box-shadow: 0 0 10px rgba(39, 174, 96, 0.4);">🏆 Лидеры</button>
           <button id="open-profile-btn" class="btn btn-primary btn-sm btn-glow">Мой Профиль</button>
           <button id="logout-btn" class="btn btn-secondary btn-sm">Выйти</button>
         </div>
@@ -1118,6 +1120,23 @@
         <div style="display: flex; gap: 10px;">
           <button id="claim-reward-yes-btn" class="btn btn-primary" style="flex: 1;">Забрать</button>
           <button id="claim-reward-no-btn" class="btn btn-secondary" style="flex: 1;">Отказаться</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="leaders-modal" class="modal hidden" style="z-index: 9999;">
+    <div class="modal-content modal-md" style="max-width: 500px; width: 95%;">
+      <div class="modal-header">
+        <h2 style="color: #ffb800; font-family: 'Orbitron', sans-serif;">🏆 Таблица Лидеров</h2>
+        <button id="close-leaders-modal-btn" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+          <button id="leaders-tab-balance" class="btn btn-primary" style="flex: 1; background: #27ae60; border-color: #27ae60; font-size: 13px; font-weight: bold; padding: 10px;">🪙 По золоту</button>
+          <button id="leaders-tab-wins" class="btn btn-secondary" style="flex: 1; font-size: 13px; font-weight: bold; padding: 10px;">⚔️ По победам</button>
+        </div>
+        <div id="leaders-list-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; padding-right: 4px;">
         </div>
       </div>
     </div>

@@ -1305,24 +1305,40 @@ function initBossModalEvents() {
       }
 
       if (data.status === 'victory') {
-        let msg = `Победа! Вы победили босса и получили ${data.reward} монет!`;
-        showNotification(msg, 'success');
-        hideBossModal();
-        await refreshProfile();
-        await refreshBosses();
-        showCellInfoTag(currentOpenedBossCell);
+        showDamageFloatingText('battle-boss-name-label', data.dmgDealt, !!data.elementMatch);
+        triggerScreenShake('boss-battle-modal');
+        setTimeout(async () => {
+          let msg = `Победа! Вы победили босса и получили ${data.reward} монет!`;
+          showNotification(msg, 'success');
+          hideBossModal();
+          await refreshProfile();
+          await refreshBosses();
+          showCellInfoTag(currentOpenedBossCell);
+        }, 1200);
       } else if (data.status === 'defeat') {
-        const msg = data.isCrit
-          ? 'Смертельный критический удар босса! Вы потеряли 300 монет и отступили назад.'
-          : 'Поражение! Вы потеряли 300 монет и отступили назад.';
-        showNotification(msg, 'error');
-        hideBossModal();
-        await refreshProfile();
-        await refreshBosses();
+        showDamageFloatingText('battle-boss-name-label', data.dmgDealt, !!data.elementMatch);
+        if (data.bossDmg > 0) {
+          showDamageFloatingText('battle-player-hp-text', data.bossDmg, !!data.isCrit);
+        }
+        triggerScreenShake('boss-battle-modal');
+        setTimeout(async () => {
+          const msg = data.isCrit
+            ? 'Смертельный критический удар босса! Вы потеряли 300 монет и отступили назад.'
+            : 'Поражение! Вы потеряли 300 монет и отступили назад.';
+          showNotification(msg, 'error');
+          hideBossModal();
+          await refreshProfile();
+          await refreshBosses();
+        }, 1200);
       } else {
         const logEl = document.getElementById('battle-log');
         let matchText = data.elementMatch ? ' (Критический урон от стихии!)' : '';
         logEl.textContent = `Вы нанесли ${data.dmgDealt} урона${matchText}. Босс нанес вам ${data.bossDmg} урона.`;
+        showDamageFloatingText('battle-boss-name-label', data.dmgDealt, !!data.elementMatch);
+        if (data.bossDmg > 0) {
+          showDamageFloatingText('battle-player-hp-text', data.bossDmg, !!data.isCrit);
+        }
+        triggerScreenShake('boss-battle-modal');
         await refreshProfile();
         await refreshBosses();
       }
@@ -1687,6 +1703,32 @@ const state = {
   diceRolling: false,
   pendingSelfMove: null
 };
+
+function showDamageFloatingText(targetElId, amount, isCrit = false) {
+  const parent = document.getElementById(targetElId);
+  if (!parent) return;
+  const originalPosition = parent.style.position;
+  parent.style.position = 'relative';
+  const floating = document.createElement('div');
+  floating.className = 'damage-floating-text' + (isCrit ? ' crit' : '');
+  floating.textContent = `-${amount} HP`;
+  parent.appendChild(floating);
+  setTimeout(() => {
+    floating.remove();
+    parent.style.position = originalPosition;
+  }, 1000);
+}
+
+function triggerScreenShake(containerId) {
+  const el = document.querySelector(`#${containerId} .modal-content`);
+  if (!el) return;
+  el.classList.remove('shake-effect');
+  void el.offsetWidth;
+  el.classList.add('shake-effect');
+  setTimeout(() => {
+    el.classList.remove('shake-effect');
+  }, 400);
+}
 
 function showNotification(message, type = 'info') {
   let container = document.getElementById('toast-container');
@@ -2061,8 +2103,70 @@ function createTileMaterials(i, baseColor) {
   canvas.height = 128;
   const ctx = canvas.getContext('2d');
 
-  ctx.fillStyle = baseColor;
+  const isNormal = (baseColor === '#121d33');
+  let sideColor = baseColor;
+  let emissiveColorVal = '#000000';
+
+  if (isNormal) {
+    let grd = ctx.createRadialGradient(64, 64, 5, 64, 64, 80);
+    if (i >= 0 && i < 90) {
+      grd.addColorStop(0, '#1b4224');
+      grd.addColorStop(1, '#091c0e');
+      sideColor = '#0c2614';
+    } else if (i >= 90 && i < 180) {
+      grd.addColorStop(0, '#1d4866');
+      grd.addColorStop(1, '#091a26');
+      sideColor = '#0b2030';
+    } else if (i >= 180 && i < 270) {
+      grd.addColorStop(0, '#541717');
+      grd.addColorStop(1, '#1f0707');
+      sideColor = '#240808';
+    } else {
+      grd.addColorStop(0, '#785b13');
+      grd.addColorStop(1, '#2e2104');
+      sideColor = '#382805';
+    }
+    ctx.fillStyle = grd;
+  } else {
+    let grd = ctx.createRadialGradient(64, 64, 5, 64, 64, 80);
+    grd.addColorStop(0, baseColor);
+    grd.addColorStop(1, '#05070c');
+    ctx.fillStyle = grd;
+    emissiveColorVal = baseColor;
+  }
   ctx.fillRect(0, 0, 128, 128);
+
+  if (isNormal) {
+    if (i >= 0 && i < 90) {
+      ctx.fillStyle = 'rgba(46, 204, 113, 0.05)';
+      ctx.beginPath();
+      ctx.arc(20, 20, 8, 0, Math.PI * 2);
+      ctx.arc(108, 108, 8, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (i >= 90 && i < 180) {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(15, 15); ctx.lineTo(25, 25);
+      ctx.moveTo(25, 15); ctx.lineTo(15, 25);
+      ctx.moveTo(103, 103); ctx.lineTo(113, 113);
+      ctx.moveTo(113, 103); ctx.lineTo(103, 113);
+      ctx.stroke();
+    } else if (i >= 180 && i < 270) {
+      ctx.strokeStyle = 'rgba(231, 76, 60, 0.08)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(10, 20); ctx.lineTo(30, 10); ctx.lineTo(20, 30);
+      ctx.moveTo(100, 110); ctx.lineTo(120, 100); ctx.lineTo(110, 120);
+      ctx.stroke();
+    } else {
+      ctx.fillStyle = 'rgba(241, 196, 15, 0.08)';
+      ctx.beginPath();
+      ctx.moveTo(20, 12); ctx.lineTo(23, 18); ctx.lineTo(30, 20); ctx.lineTo(23, 22); ctx.lineTo(20, 28); ctx.lineTo(17, 22); ctx.lineTo(10, 20); ctx.lineTo(17, 18); ctx.closePath();
+      ctx.moveTo(108, 100); ctx.lineTo(111, 106); ctx.lineTo(118, 108); ctx.lineTo(111, 110); ctx.lineTo(108, 116); ctx.lineTo(105, 110); ctx.lineTo(98, 108); ctx.lineTo(105, 106); ctx.closePath();
+      ctx.fill();
+    }
+  }
 
   ctx.font = 'bold 36px Orbitron, Montserrat, sans-serif';
   ctx.fillStyle = '#ffffff';
@@ -2070,7 +2174,15 @@ function createTileMaterials(i, baseColor) {
   ctx.textBaseline = 'middle';
   ctx.fillText(String(i), 64, 64);
 
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+  if (i >= 0 && i < 90) {
+    ctx.strokeStyle = 'rgba(46, 204, 113, 0.25)';
+  } else if (i >= 90 && i < 180) {
+    ctx.strokeStyle = 'rgba(52, 152, 219, 0.25)';
+  } else if (i >= 180 && i < 270) {
+    ctx.strokeStyle = 'rgba(231, 76, 60, 0.25)';
+  } else {
+    ctx.strokeStyle = 'rgba(241, 196, 15, 0.25)';
+  }
   ctx.lineWidth = 4;
   ctx.strokeRect(2, 2, 124, 124);
 
@@ -2078,11 +2190,11 @@ function createTileMaterials(i, baseColor) {
   texture.needsUpdate = true;
 
   const isBossCell = (i > 0 && i % 30 === 0) || i === 299;
-  const emissiveColor = isBossCell ? new THREE.Color(baseColor) : new THREE.Color('#000000');
+  const emissiveColor = new THREE.Color(emissiveColorVal);
   const emissiveIntensity = isBossCell ? 0.85 : 0;
 
   const sideMat = new THREE.MeshStandardMaterial({
-    color: baseColor,
+    color: sideColor,
     roughness: 0.4,
     metalness: 0.1,
     emissive: emissiveColor,
@@ -2808,6 +2920,10 @@ function initSocket() {
     addDuelLog(`${roller.name} выбросил ${roll} и нанес ${roll} урона по ${target.name}!`);
     setTimeout(() => {
       renderDuelState(duel);
+      const isOpponentTarget = (parseInt(rollerId) === state.user.id);
+      const targetElementId = isOpponentTarget ? 'pvp-active-p2-name' : 'pvp-active-p1-name';
+      showDamageFloatingText(targetElementId, roll, roll >= 5);
+      triggerScreenShake('pvp-lobby-modal');
     }, 800);
   });
 
@@ -4039,6 +4155,13 @@ function buildBoardTiles() {
   }
   state.floatingIcons = [];
 
+  if (state.biomeDecorations) {
+    state.biomeDecorations.forEach(prop => {
+      if (prop) state.boardScene.remove(prop);
+    });
+  }
+  state.biomeDecorations = [];
+
   for (let i = 0; i < 300; i++) {
     const cellData = state.cells[i] || { type: 'normal' };
     const pos = getTilePosition(i);
@@ -4060,6 +4183,35 @@ function buildBoardTiles() {
     tileMesh.receiveShadow = true;
     state.boardScene.add(tileMesh);
     state.tileObjects.push(tileMesh);
+
+    if (i % 5 === 2 && i > 0 && i !== 299 && !isBossCell) {
+      let decGeo;
+      let decMat;
+      let heightOffset = 0;
+      if (i < 90) {
+        decGeo = new THREE.ConeGeometry(0.5, 1.6, 5);
+        decMat = new THREE.MeshStandardMaterial({ color: '#27ae60', roughness: 0.8 });
+        heightOffset = 0.8;
+      } else if (i < 180) {
+        decGeo = new THREE.DodecahedronGeometry(0.4);
+        decMat = new THREE.MeshStandardMaterial({ color: '#74b9ff', roughness: 0.1, metalness: 0.9 });
+        heightOffset = 0.4;
+      } else if (i < 270) {
+        decGeo = new THREE.OctahedronGeometry(0.5);
+        decMat = new THREE.MeshStandardMaterial({ color: '#c0392b', roughness: 0.9, emissive: '#5f0808' });
+        heightOffset = 0.5;
+      } else {
+        decGeo = new THREE.CylinderGeometry(0.1, 0.4, 0.6, 5);
+        decMat = new THREE.MeshStandardMaterial({ color: '#f1c40f', roughness: 0.1, metalness: 0.9 });
+        heightOffset = 0.3;
+      }
+      const decMesh = new THREE.Mesh(decGeo, decMat);
+      const sideOffset = (i % 10 === 2) ? 2.5 : -2.5;
+      decMesh.position.set(pos.x, pos.y + heightOffset, pos.z + sideOffset);
+      decMesh.castShadow = true;
+      state.boardScene.add(decMesh);
+      state.biomeDecorations.push(decMesh);
+    }
 
     const iconMesh = createFloatingIconMesh(cellData);
     if (iconMesh) {
@@ -4459,6 +4611,117 @@ function setupUI() {
       updateDrawerEquipment();
       refreshProfile();
       updateBodyScrollLock();
+    });
+  }
+
+  let currentLeadersSort = 'balance';
+
+  async function refreshLeadersList() {
+    const container = document.getElementById('leaders-list-container');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align: center; color: #8c9ba5; font-size: 13px; padding: 20px;">Загрузка лидеров...</div>';
+    
+    try {
+      const res = await fetch(`/api/leaders?sortBy=${currentLeadersSort}`);
+      const data = await res.json();
+      container.innerHTML = '';
+      
+      if (!data || data.length === 0) {
+        container.innerHTML = '<div style="text-align: center; color: #8c9ba5; font-size: 13px; padding: 20px;">Нет данных</div>';
+        return;
+      }
+      
+      data.forEach((item, index) => {
+        const rank = index + 1;
+        let rankClass = '';
+        let rankNumClass = '';
+        if (rank === 1) { rankClass = 'leader-rank-1'; rankNumClass = 'gold'; }
+        else if (rank === 2) { rankClass = 'leader-rank-2'; rankNumClass = 'silver'; }
+        else if (rank === 3) { rankClass = 'leader-rank-3'; rankNumClass = 'bronze'; }
+        
+        const name = item.remanga_username || item.tg_first_name || item.tg_username || 'Игрок';
+        let avatarUrl = item.remanga_avatar || '';
+        
+        let avatarHtml = `<div class="avatar-placeholder" style="width: 32px; height: 32px; font-size: 12px;">${name.charAt(0).toUpperCase()}</div>`;
+        if (avatarUrl) {
+          avatarHtml = `<img class="avatar-img" src="${avatarUrl}" referrerpolicy="no-referrer" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" alt="">`;
+        }
+        
+        const row = document.createElement('div');
+        row.className = `leader-row ${rankClass}`;
+        
+        let scoreHtml = '';
+        if (currentLeadersSort === 'wins') {
+          scoreHtml = `<div style="margin-left: auto; text-align: right;"><span style="font-weight: bold; color: #00f0ff;">${item.wins}</span> <span style="font-size: 10px; color: #8c9ba5;">побед</span></div>`;
+        } else {
+          scoreHtml = `<div style="margin-left: auto; text-align: right;"><span style="font-weight: bold; color: #ffb800;">${item.balance}</span> <span style="font-size: 10px; color: #8c9ba5;">монет</span></div>`;
+        }
+        
+        row.innerHTML = `
+          <div class="leader-rank-num ${rankNumClass}">${rank}</div>
+          ${avatarHtml}
+          <div style="font-weight: 600; font-size: 13px; color: #fff;">${name}</div>
+          ${scoreHtml}
+        `;
+        
+        container.appendChild(row);
+      });
+    } catch (err) {
+      container.innerHTML = '<div style="text-align: center; color: #ff4a4a; font-size: 13px; padding: 20px;">Ошибка при загрузке</div>';
+    }
+  }
+
+  const openLeadersBtn = document.getElementById('open-leaders-btn');
+  const mobileOpenLeadersBtn = document.getElementById('mobile-open-leaders-btn');
+  const leadersModal = document.getElementById('leaders-modal');
+  const closeLeadersModalBtn = document.getElementById('close-leaders-modal-btn');
+  
+  if (openLeadersBtn) {
+    openLeadersBtn.addEventListener('click', () => {
+      leadersModal.classList.remove('hidden');
+      refreshLeadersList();
+    });
+  }
+  
+  if (mobileOpenLeadersBtn) {
+    mobileOpenLeadersBtn.addEventListener('click', () => {
+      leadersModal.classList.remove('hidden');
+      refreshLeadersList();
+    });
+  }
+  
+  if (closeLeadersModalBtn) {
+    closeLeadersModalBtn.addEventListener('click', () => {
+      leadersModal.classList.add('hidden');
+    });
+  }
+
+  const tabBalance = document.getElementById('leaders-tab-balance');
+  const tabWins = document.getElementById('leaders-tab-wins');
+
+  if (tabBalance) {
+    tabBalance.addEventListener('click', () => {
+      currentLeadersSort = 'balance';
+      tabBalance.className = 'btn btn-primary';
+      tabBalance.style.background = '#27ae60';
+      tabBalance.style.borderColor = '#27ae60';
+      tabWins.className = 'btn btn-secondary';
+      tabWins.style.background = '';
+      tabWins.style.borderColor = '';
+      refreshLeadersList();
+    });
+  }
+
+  if (tabWins) {
+    tabWins.addEventListener('click', () => {
+      currentLeadersSort = 'wins';
+      tabWins.className = 'btn btn-primary';
+      tabWins.style.background = '#ff007c';
+      tabWins.style.borderColor = '#ff007c';
+      tabBalance.className = 'btn btn-secondary';
+      tabBalance.style.background = '';
+      tabBalance.style.borderColor = '';
+      refreshLeadersList();
     });
   }
 
@@ -8041,6 +8304,11 @@ function closeAllActiveModals() {
   const multiRewardModal = document.getElementById('multi-reward-modal');
   if (multiRewardModal && !multiRewardModal.classList.contains('hidden')) {
     multiRewardModal.classList.add('hidden');
+  }
+
+  const leadersModal = document.getElementById('leaders-modal');
+  if (leadersModal && !leadersModal.classList.contains('hidden')) {
+    leadersModal.classList.add('hidden');
   }
 
   updateBodyScrollLock();
