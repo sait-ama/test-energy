@@ -480,7 +480,7 @@ app.get('/api/leaders', async (req, res) => {
   try {
     const sortBy = req.query.sortBy === 'wins' ? 'wins' : 'balance';
     const query = `
-      SELECT id, tg_username, tg_first_name, remanga_username, remanga_avatar, balance, wins
+      SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, balance, wins
       FROM users
       ORDER BY ${sortBy} DESC
       LIMIT 50

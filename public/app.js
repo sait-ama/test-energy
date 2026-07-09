@@ -2103,70 +2103,8 @@ function createTileMaterials(i, baseColor) {
   canvas.height = 128;
   const ctx = canvas.getContext('2d');
 
-  const isNormal = (baseColor === '#121d33');
-  let sideColor = baseColor;
-  let emissiveColorVal = '#000000';
-
-  if (isNormal) {
-    let grd = ctx.createRadialGradient(64, 64, 5, 64, 64, 80);
-    if (i >= 0 && i < 90) {
-      grd.addColorStop(0, '#1b4224');
-      grd.addColorStop(1, '#091c0e');
-      sideColor = '#0c2614';
-    } else if (i >= 90 && i < 180) {
-      grd.addColorStop(0, '#1d4866');
-      grd.addColorStop(1, '#091a26');
-      sideColor = '#0b2030';
-    } else if (i >= 180 && i < 270) {
-      grd.addColorStop(0, '#541717');
-      grd.addColorStop(1, '#1f0707');
-      sideColor = '#240808';
-    } else {
-      grd.addColorStop(0, '#785b13');
-      grd.addColorStop(1, '#2e2104');
-      sideColor = '#382805';
-    }
-    ctx.fillStyle = grd;
-  } else {
-    let grd = ctx.createRadialGradient(64, 64, 5, 64, 64, 80);
-    grd.addColorStop(0, baseColor);
-    grd.addColorStop(1, '#05070c');
-    ctx.fillStyle = grd;
-    emissiveColorVal = baseColor;
-  }
+  ctx.fillStyle = baseColor;
   ctx.fillRect(0, 0, 128, 128);
-
-  if (isNormal) {
-    if (i >= 0 && i < 90) {
-      ctx.fillStyle = 'rgba(46, 204, 113, 0.05)';
-      ctx.beginPath();
-      ctx.arc(20, 20, 8, 0, Math.PI * 2);
-      ctx.arc(108, 108, 8, 0, Math.PI * 2);
-      ctx.fill();
-    } else if (i >= 90 && i < 180) {
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(15, 15); ctx.lineTo(25, 25);
-      ctx.moveTo(25, 15); ctx.lineTo(15, 25);
-      ctx.moveTo(103, 103); ctx.lineTo(113, 113);
-      ctx.moveTo(113, 103); ctx.lineTo(103, 113);
-      ctx.stroke();
-    } else if (i >= 180 && i < 270) {
-      ctx.strokeStyle = 'rgba(231, 76, 60, 0.08)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(10, 20); ctx.lineTo(30, 10); ctx.lineTo(20, 30);
-      ctx.moveTo(100, 110); ctx.lineTo(120, 100); ctx.lineTo(110, 120);
-      ctx.stroke();
-    } else {
-      ctx.fillStyle = 'rgba(241, 196, 15, 0.08)';
-      ctx.beginPath();
-      ctx.moveTo(20, 12); ctx.lineTo(23, 18); ctx.lineTo(30, 20); ctx.lineTo(23, 22); ctx.lineTo(20, 28); ctx.lineTo(17, 22); ctx.lineTo(10, 20); ctx.lineTo(17, 18); ctx.closePath();
-      ctx.moveTo(108, 100); ctx.lineTo(111, 106); ctx.lineTo(118, 108); ctx.lineTo(111, 110); ctx.lineTo(108, 116); ctx.lineTo(105, 110); ctx.lineTo(98, 108); ctx.lineTo(105, 106); ctx.closePath();
-      ctx.fill();
-    }
-  }
 
   ctx.font = 'bold 36px Orbitron, Montserrat, sans-serif';
   ctx.fillStyle = '#ffffff';
@@ -2174,15 +2112,7 @@ function createTileMaterials(i, baseColor) {
   ctx.textBaseline = 'middle';
   ctx.fillText(String(i), 64, 64);
 
-  if (i >= 0 && i < 90) {
-    ctx.strokeStyle = 'rgba(46, 204, 113, 0.25)';
-  } else if (i >= 90 && i < 180) {
-    ctx.strokeStyle = 'rgba(52, 152, 219, 0.25)';
-  } else if (i >= 180 && i < 270) {
-    ctx.strokeStyle = 'rgba(231, 76, 60, 0.25)';
-  } else {
-    ctx.strokeStyle = 'rgba(241, 196, 15, 0.25)';
-  }
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
   ctx.lineWidth = 4;
   ctx.strokeRect(2, 2, 124, 124);
 
@@ -2190,11 +2120,11 @@ function createTileMaterials(i, baseColor) {
   texture.needsUpdate = true;
 
   const isBossCell = (i > 0 && i % 30 === 0) || i === 299;
-  const emissiveColor = new THREE.Color(emissiveColorVal);
+  const emissiveColor = isBossCell ? new THREE.Color(baseColor) : new THREE.Color('#000000');
   const emissiveIntensity = isBossCell ? 0.85 : 0;
 
   const sideMat = new THREE.MeshStandardMaterial({
-    color: sideColor,
+    color: baseColor,
     roughness: 0.4,
     metalness: 0.1,
     emissive: emissiveColor,
@@ -4155,13 +4085,6 @@ function buildBoardTiles() {
   }
   state.floatingIcons = [];
 
-  if (state.biomeDecorations) {
-    state.biomeDecorations.forEach(prop => {
-      if (prop) state.boardScene.remove(prop);
-    });
-  }
-  state.biomeDecorations = [];
-
   for (let i = 0; i < 300; i++) {
     const cellData = state.cells[i] || { type: 'normal' };
     const pos = getTilePosition(i);
@@ -4183,35 +4106,6 @@ function buildBoardTiles() {
     tileMesh.receiveShadow = true;
     state.boardScene.add(tileMesh);
     state.tileObjects.push(tileMesh);
-
-    if (i % 5 === 2 && i > 0 && i !== 299 && !isBossCell) {
-      let decGeo;
-      let decMat;
-      let heightOffset = 0;
-      if (i < 90) {
-        decGeo = new THREE.ConeGeometry(0.5, 1.6, 5);
-        decMat = new THREE.MeshStandardMaterial({ color: '#27ae60', roughness: 0.8 });
-        heightOffset = 0.8;
-      } else if (i < 180) {
-        decGeo = new THREE.DodecahedronGeometry(0.4);
-        decMat = new THREE.MeshStandardMaterial({ color: '#74b9ff', roughness: 0.1, metalness: 0.9 });
-        heightOffset = 0.4;
-      } else if (i < 270) {
-        decGeo = new THREE.OctahedronGeometry(0.5);
-        decMat = new THREE.MeshStandardMaterial({ color: '#c0392b', roughness: 0.9, emissive: '#5f0808' });
-        heightOffset = 0.5;
-      } else {
-        decGeo = new THREE.CylinderGeometry(0.1, 0.4, 0.6, 5);
-        decMat = new THREE.MeshStandardMaterial({ color: '#f1c40f', roughness: 0.1, metalness: 0.9 });
-        heightOffset = 0.3;
-      }
-      const decMesh = new THREE.Mesh(decGeo, decMat);
-      const sideOffset = (i % 10 === 2) ? 2.5 : -2.5;
-      decMesh.position.set(pos.x, pos.y + heightOffset, pos.z + sideOffset);
-      decMesh.castShadow = true;
-      state.boardScene.add(decMesh);
-      state.biomeDecorations.push(decMesh);
-    }
 
     const iconMesh = createFloatingIconMesh(cellData);
     if (iconMesh) {
@@ -4640,12 +4534,19 @@ function setupUI() {
         else if (rank === 3) { rankClass = 'leader-rank-3'; rankNumClass = 'bronze'; }
         
         const name = item.remanga_username || item.tg_first_name || item.tg_username || 'Игрок';
-        let avatarUrl = item.remanga_avatar || '';
-        
-        let avatarHtml = `<div class="avatar-placeholder" style="width: 32px; height: 32px; font-size: 12px;">${name.charAt(0).toUpperCase()}</div>`;
-        if (avatarUrl) {
-          avatarHtml = `<img class="avatar-img" src="${avatarUrl}" referrerpolicy="no-referrer" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" alt="">`;
-        }
+        const tgSrc = `/api/tg-avatar/${item.tg_id}`;
+        const remangaSrc = item.remanga_avatar ? getAvatarUrl(item.remanga_avatar) : '';
+        const fallbackText = name.substring(0, 2).toUpperCase();
+
+        const avatarHtml = `
+          <div class="online-avatar" style="width: 32px; height: 32px; flex-shrink: 0; position: relative;">
+            <img src="${tgSrc}" referrerpolicy="no-referrer"
+                 onload="this.style.display='block'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';" 
+                 onerror="if(this.getAttribute('data-tried-remanga')!=='true' && '${remangaSrc}'){this.setAttribute('data-tried-remanga','true');this.src='${remangaSrc}';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex';}" 
+                 style="display:none; width:100%; height:100%; object-fit:cover; border-radius:50%;">
+            <div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; border-radius:50%; background:rgba(255,255,255,0.05); color:#00f0ff; font-size:10px; font-weight:bold;">${fallbackText}</div>
+          </div>
+        `;
         
         const row = document.createElement('div');
         row.className = `leader-row ${rankClass}`;
