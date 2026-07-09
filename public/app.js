@@ -2273,7 +2273,7 @@ let tgAuthPollingInterval = null;
 
 async function initAuth() {
   const savedUser = localStorage.getItem('ew_event_user');
-  if (savedUser) {
+  if (savedUser && savedUser !== 'undefined' && savedUser !== 'null') {
     try {
       const userObj = JSON.parse(savedUser);
       const res = await fetch(`/api/profile/${userObj.id}`);
@@ -2287,13 +2287,20 @@ async function initAuth() {
         }
       }
       const data = await res.json();
-      state.user = data.user;
-      localStorage.setItem('ew_event_user', JSON.stringify(data.user));
-      checkOnboardingStage(state.user);
+      if (data && data.user) {
+        state.user = data.user;
+        localStorage.setItem('ew_event_user', JSON.stringify(data.user));
+        checkOnboardingStage(state.user);
+      } else {
+        localStorage.removeItem('ew_event_user');
+        state.user = null;
+        checkOnboardingStage(null);
+      }
     } catch (e) {
       console.error('Ошибка проверки сессии при старте:', e);
-      state.user = JSON.parse(savedUser);
-      checkOnboardingStage(state.user);
+      localStorage.removeItem('ew_event_user');
+      state.user = null;
+      checkOnboardingStage(null);
     }
   } else {
     checkOnboardingStage(null);
