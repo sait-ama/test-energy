@@ -89,7 +89,15 @@ app.use((req, res, next) => {
   console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.path}`, req.method === 'POST' ? req.body : '');
   next();
 });
-app.use(express.static('public'));
+app.use(express.static('public', {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.html')) {
+      res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+    }
+  }
+}));
 app.use('/bosses', express.static(path.join(process.cwd(), 'Боссы')));
 
 const onlineUsers = new Map();
