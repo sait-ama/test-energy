@@ -2718,7 +2718,7 @@ function initSocket() {
   document.addEventListener('touchstart', sendHeartbeatNow);
 
   state.socket.on('connect', () => {
-    state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.8' });
+    state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.9' });
     startHeartbeat();
   });
 
@@ -2734,7 +2734,7 @@ function initSocket() {
       if (!state.socket.connected) {
         state.socket.connect();
       } else {
-        state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.8' });
+        state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.9' });
         sendHeartbeatNow();
       }
     }
