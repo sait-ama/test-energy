@@ -397,7 +397,7 @@ io.on('connection', (socket) => {
     userId = data.userId;
     socket.join(`user_${userId}`);
 
-    if (!data.version || data.version !== '1.4.5') {
+    if (!data.version || data.version !== '1.4.6') {
       setTimeout(() => {
         socket.emit('effect_notification', { message: 'Доступно обновление! Пожалуйста, перезагрузите страницу (F5), чтобы таблица лидеров и дуэли работали корректно.' });
       }, 3000);
@@ -2790,8 +2790,10 @@ app.post('/api/board/claim-reward', async (req, res) => {
       return res.status(400).json({ error: 'Игрок не найден' });
     }
 
-    if (user.current_cell !== cellNumber) {
-      return res.status(400).json({ error: 'Вы находитесь на другой ячейке!' });
+    console.log(`[CLAIM REWARD] User ID: ${userId}, DB cell: ${user.current_cell}, Request cell: ${cellNumber}, Claim: ${claim}`);
+
+    if (Number(user.current_cell) !== Number(cellNumber)) {
+      return res.status(400).json({ error: `Вы находитесь на другой ячейке! (Вы на ${user.current_cell}, а награда на ${cellNumber})` });
     }
 
     const cell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [cellNumber]);
@@ -2869,8 +2871,10 @@ app.post('/api/board/claim-multi-reward', async (req, res) => {
     const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
     if (!user) return res.status(400).json({ error: 'Игрок не найден' });
 
-    if (user.current_cell !== cellNumber) {
-      return res.status(400).json({ error: 'Вы находитесь на другой ячейке!' });
+    console.log(`[CLAIM MULTI REWARD] User ID: ${userId}, DB cell: ${user.current_cell}, Request cell: ${cellNumber}, Reward ID: ${rewardId}, Claim: ${claim}`);
+
+    if (Number(user.current_cell) !== Number(cellNumber)) {
+      return res.status(400).json({ error: `Вы находитесь на другой ячейке! (Вы на ${user.current_cell}, а награда на ${cellNumber})` });
     }
 
     const cell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [cellNumber]);

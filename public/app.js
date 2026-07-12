@@ -2646,19 +2646,24 @@ async function initGameComponents() {
   }
 }
 
-function performSelfMovement(moveData) {
+function performSelfMovement(moveData, onComplete) {
   if (!moveData) return;
   animatePlayerMovement(moveData);
   setTimeout(() => {
     refreshProfile().then(() => {
       const isBoss = (moveData.endCell > 0 && moveData.endCell % 30 === 0) || moveData.endCell === 299;
       if (isBoss) {
-        checkAndShowBossModal(moveData.endCell);
+        if (onComplete) {
+          onComplete();
+        } else {
+          checkAndShowBossModal(moveData.endCell);
+        }
       } else {
         const cell = state.cells ? state.cells[moveData.endCell] : null;
         if (cell && cell.type === 'guild_tax') {
           showGuildTaxModal(cell.value, moveData.endCell);
         }
+        if (onComplete) onComplete();
       }
     });
     if (moveData.rewardTriggered && moveData.rewardTriggered.type && moveData.rewardTriggered.type !== 'none') {
@@ -2713,7 +2718,7 @@ function initSocket() {
   document.addEventListener('touchstart', sendHeartbeatNow);
 
   state.socket.on('connect', () => {
-    state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.5' });
+    state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.6' });
     startHeartbeat();
   });
 
@@ -2729,7 +2734,7 @@ function initSocket() {
       if (!state.socket.connected) {
         state.socket.connect();
       } else {
-        state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.5' });
+        state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.6' });
         sendHeartbeatNow();
       }
     }
@@ -4824,15 +4829,13 @@ function setupUI() {
       animateDiceRoll(data.baseRoll !== undefined ? data.baseRoll : data.roll, () => {
         state.diceRolling = false;
         if (state.pendingSelfMove) {
-          performSelfMovement(state.pendingSelfMove);
+          const moveObj = state.pendingSelfMove;
           state.pendingSelfMove = null;
-          if (bossEnc) {
-            refreshProfile().then(() => {
+          performSelfMovement(moveObj, () => {
+            if (bossEnc) {
               showPendingBossModal(bossEnc);
-            });
-          } else {
-            refreshProfile();
-          }
+            }
+          });
         } else {
           refreshProfile().then(() => {
             if (bossEnc) {
@@ -6360,12 +6363,16 @@ window.editUserModal = async (userId, oldBalance, oldCell, isAdmin, name, taxReq
             if (cover.includes('|')) {
               cover = cover.split('|')[0];
             }
+            const isPvp = item.is_pvp_trophy === 1;
+            const typeText = isPvp ? 
+              `<div style="font-size: 9px; color: #ff007c; text-align: center; font-weight: bold;">🏆 Трофей PvP</div>` : 
+              `<div style="font-size: 9px; color: #8c9ba5; text-align: center;">Ячейка: ${item.origin_cell_number || '-'}</div>`;
             itemDiv.innerHTML = `
               <div style="text-align: center;">
                 ${getCardMediaHTML(cover, '', 'width: 50px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2);', `onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';"`)}
               </div>
               <div style="font-weight: bold; color: #00f0ff; text-align: center; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${item.name}</div>
-              <div style="font-size: 9px; color: #8c9ba5; text-align: center;">Ячейка: ${item.origin_cell_number || '-'}</div>
+              ${typeText}
             `;
           } else {
             itemDiv.innerHTML = `
