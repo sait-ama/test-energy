@@ -185,6 +185,104 @@ setInterval(async () => {
   }
 }, 10000);
 
+setInterval(async () => {
+  try {
+    const now = new Date();
+    
+    // 1. Уведомление об откате ударов у боссов
+    const bossCooldownUsers = await allQuery(`
+      SELECT u.id, u.tg_id, u.last_boss_attack_time, b.name AS boss_name, b.attack_cooldown_seconds
+      FROM users u
+      JOIN bosses b ON b.cell_number = u.current_cell AND b.current_fighter_id = u.id
+      WHERE u.tg_id IS NOT NULL 
+        AND u.last_boss_attack_time IS NOT NULL 
+        AND u.boss_attack_cooldown_notified = 0
+        AND b.defeated = 0
+    `);
+    
+    for (const u of bossCooldownUsers) {
+      const lastAttack = new Date(u.last_boss_attack_time);
+      const elapsedSeconds = (now.getTime() - lastAttack.getTime()) / 1000;
+      const cdSeconds = u.attack_cooldown_seconds || 300;
+      if (elapsedSeconds >= cdSeconds) {
+        await sendTelegramMessage(u.tg_id, `⚔️ Твой удар по боссу ${u.boss_name} снова готов! Пора нанести урон.`);
+        await runQuery('UPDATE users SET boss_attack_cooldown_notified = 1 WHERE id = ?', [u.id]);
+      }
+    }
+
+    // 2. Автоматическое поражение от босса при бездействии > 30 минут
+    const activeBosses = await allQuery('SELECT * FROM bosses WHERE current_fighter_id IS NOT NULL');
+    for (const boss of activeBosses) {
+      if (!boss.last_attack_time) continue;
+      const lastAttack = new Date(boss.last_attack_time);
+      const elapsedMinutes = (now.getTime() - lastAttack.getTime()) / (1000 * 60);
+      if (elapsedMinutes >= 30) {
+        const userId = boss.current_fighter_id;
+        const user = await getQuery('SELECT * FROM users WHERE id = ?', [userId]);
+        if (user) {
+          const loss = 300;
+          const newBalance = Math.max(0, user.balance - loss);
+          const pushbackAmount = Math.floor(Math.random() * 6) + 5;
+          const newCell = Math.max(0, user.current_cell - pushbackAmount);
+
+          const path = [];
+          for (let c = user.current_cell - 1; c >= newCell; c--) {
+            path.push(c);
+          }
+
+          await runQuery(
+            'UPDATE bosses SET current_fighter_id = NULL, current_fighter_username = NULL, current_fighter_hp = 0, last_attack_time = ? WHERE cell_number = ?',
+            [now.toISOString(), boss.cell_number]
+          );
+
+          await runQuery(
+            'UPDATE users SET current_cell = ?, balance = ?, boss_attack_cooldown_notified = 1 WHERE id = ?',
+            [newCell, newBalance, user.id]
+          );
+
+          const detailMsg = `Автоматическое поражение от босса ${boss.name} из-за бездействия более 30 минут! Потеряно ${loss} монет, откат на ячейку ${newCell}.`;
+          await runQuery(
+            'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+            [user.id, 'boss_defeat', detailMsg, now.toISOString()]
+          );
+
+          await broadcastBossesList();
+
+          if (onlineUsers.has(String(user.id))) {
+            const cached = onlineUsers.get(String(user.id));
+            cached.current_cell = newCell;
+          }
+
+          io.emit('player_move', {
+            userId: user.id,
+            tg_username: user.tg_username,
+            path,
+            startCell: user.current_cell,
+            endCell: newCell,
+            specialEffect: null,
+            rewardTriggered: null,
+            win: false
+          });
+
+          await broadcastPlayersList();
+
+          io.to(`user_${user.id}`).emit('balance_update', { balance: newBalance });
+
+          await sendTelegramMessage(user.tg_id, `💀 Вы автоматически проиграли боссу ${boss.name} из-за бездействия более 30 минут! Баланс уменьшен на ${loss} монет, вы отброшены на ячейку ${newCell}.`);
+        } else {
+          await runQuery(
+            'UPDATE bosses SET current_fighter_id = NULL, current_fighter_username = NULL, current_fighter_hp = 0, last_attack_time = ? WHERE cell_number = ?',
+            [now.toISOString(), boss.cell_number]
+          );
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error in boss timeout check:', err);
+  }
+}, 10000);
+
+
 const pendingAuthTokens = new Map();
 let telegramPollingOffset = 0;
 let telegramPollingActive = false;
@@ -1760,7 +1858,7 @@ app.post('/api/boss/start-fight', async (req, res) => {
 
     const stats = getPlayerBattleStats(user);
 
-    await runQuery('UPDATE users SET pending_boss_cell = NULL, pending_boss_remaining = 0 WHERE id = ?', [user.id]);
+    await runQuery('UPDATE users SET pending_boss_cell = NULL, pending_boss_remaining = 0, boss_attack_cooldown_notified = 1 WHERE id = ?', [user.id]);
 
     await runQuery(
       'UPDATE bosses SET current_fighter_id = ?, current_fighter_username = ?, current_fighter_hp = ?, last_attack_time = ? WHERE cell_number = ?',
@@ -1813,7 +1911,7 @@ app.post('/api/boss/attack', async (req, res) => {
 
     const newBossHp = Math.max(0, boss.hp - dmgDealt);
 
-    await runQuery('UPDATE users SET last_boss_attack_time = ? WHERE id = ?', [now.toISOString(), user.id]);
+    await runQuery('UPDATE users SET last_boss_attack_time = ?, boss_attack_cooldown_notified = 0 WHERE id = ?', [now.toISOString(), user.id]);
     user.last_boss_attack_time = now.toISOString();
 
     if (newBossHp <= 0) {

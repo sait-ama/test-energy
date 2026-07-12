@@ -28,7 +28,8 @@ export function initDb() {
           is_admin INTEGER DEFAULT 0,
           guild_tax_required INTEGER DEFAULT 0,
           guild_tax_paid INTEGER DEFAULT 0,
-          dice_cooldown_notified INTEGER DEFAULT 1
+          dice_cooldown_notified INTEGER DEFAULT 1,
+          boss_attack_cooldown_notified INTEGER DEFAULT 1
         )
       `);
 
@@ -119,6 +120,7 @@ export function initDb() {
       db.run(`ALTER TABLE users ADD COLUMN pending_boss_time TEXT`, () => { });
       db.run(`ALTER TABLE inventory ADD COLUMN is_pvp_trophy INTEGER DEFAULT 0`, () => { });
       db.run(`ALTER TABLE users ADD COLUMN has_claimed_reward_this_turn INTEGER DEFAULT 0`, () => { });
+      db.run(`ALTER TABLE users ADD COLUMN boss_attack_cooldown_notified INTEGER DEFAULT 1`, () => { });
       db.run(`
         CREATE TABLE IF NOT EXISTS duels (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
