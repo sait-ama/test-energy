@@ -1256,6 +1256,7 @@ app.post('/api/board/roll', async (req, res) => {
     let finalCell = endCell;
     let newBalance = user.balance;
     let winsCount = user.wins;
+    let coinsEarned = 0;
 
     if (stoppedAtBoss) {
       finalCell = endCell;
@@ -1293,7 +1294,7 @@ app.post('/api/board/roll', async (req, res) => {
         const cellBeforeJump = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [endCell]);
         const actualCell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [finalCell]);
         
-        let coinsEarned = 0;
+        coinsEarned = 0;
         if (!win) {
           if (cellBeforeJump) {
             coinsEarned += getCoinsFromCell(cellBeforeJump);
