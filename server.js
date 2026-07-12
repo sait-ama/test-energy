@@ -397,7 +397,7 @@ io.on('connection', (socket) => {
     userId = data.userId;
     socket.join(`user_${userId}`);
 
-    if (!data.version || data.version !== '1.4.7') {
+    if (!data.version || data.version !== '1.4.8') {
       setTimeout(() => {
         socket.emit('effect_notification', { message: 'Доступно обновление! Пожалуйста, перезагрузите страницу (F5), чтобы таблица лидеров и дуэли работали корректно.' });
       }, 3000);
@@ -493,9 +493,9 @@ app.get('/api/config/telegram', (req, res) => {
 
 app.get('/api/leaders', async (req, res) => {
   try {
-    const sortBy = req.query.sortBy === 'wins' ? 'wins' : 'balance';
+    const sortBy = req.query.sortBy === 'wins' ? 'pvp_wins' : 'balance';
     const query = `
-      SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, balance, wins
+      SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, balance, pvp_wins as wins
       FROM users
       ORDER BY ${sortBy} DESC
       LIMIT 50
@@ -1018,7 +1018,7 @@ async function getCellRewardsList(cell) {
           list.push(r);
         }
       });
-    } catch (e) {}
+    } catch (e) { }
   } else if ((cell.reward_type === 'card' || cell.reward_type === 'premium') && cell.claimed_by_user_id === null) {
     if (cell.reward_type === 'card') {
       let cover = cell.reward_detail || '';
@@ -1225,7 +1225,7 @@ app.post('/api/board/roll', async (req, res) => {
               if (coinsItem && coinsItem.value) {
                 newBalance += parseInt(coinsItem.value) || 0;
               }
-            } catch (e) {}
+            } catch (e) { }
           } else if (actualCell.reward_type === 'currency') {
             newBalance += parseInt(actualCell.reward_detail) || 0;
             rewardTriggered = {
@@ -3934,7 +3934,7 @@ app.post('/api/pvp/roll', async (req, res) => {
         "UPDATE duels SET player1_hp = ?, player2_hp = ?, status = 'finished', winner_user_id = ?, updated_at = ? WHERE id = ?",
         [p1Hp, p2Hp, winnerId, now.toISOString(), duelId]
       );
-      await runQuery("UPDATE users SET wins = wins + 1 WHERE id = ?", [winnerId]);
+      await runQuery("UPDATE users SET pvp_wins = pvp_wins + 1 WHERE id = ?", [winnerId]);
       await broadcastPlayersList();
 
       const state = await getDuelState(duelId);
@@ -4017,7 +4017,7 @@ app.post('/api/pvp/surrender', async (req, res) => {
       "UPDATE duels SET player1_hp = ?, player2_hp = ?, status = 'finished', winner_user_id = ?, updated_at = ? WHERE id = ?",
       [p1Hp, p2Hp, winnerId, now.toISOString(), duelId]
     );
-    await runQuery("UPDATE users SET wins = wins + 1 WHERE id = ?", [winnerId]);
+    await runQuery("UPDATE users SET pvp_wins = pvp_wins + 1 WHERE id = ?", [winnerId]);
     await broadcastPlayersList();
     const state = await getDuelState(duelId);
 

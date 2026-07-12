@@ -32,14 +32,14 @@ export function initDb() {
         )
       `);
 
-      db.run(`ALTER TABLE users ADD COLUMN guild_tax_required INTEGER DEFAULT 0`, () => {});
-      db.run(`ALTER TABLE users ADD COLUMN guild_tax_paid INTEGER DEFAULT 0`, () => {});
-      db.run(`ALTER TABLE users ADD COLUMN equipped_weapon TEXT DEFAULT NULL`, () => {});
-      db.run(`ALTER TABLE users ADD COLUMN equipped_costume TEXT DEFAULT NULL`, () => {});
-      db.run(`ALTER TABLE users ADD COLUMN starting_weapon TEXT DEFAULT NULL`, () => {});
-      db.run(`ALTER TABLE users ADD COLUMN starting_costume TEXT DEFAULT NULL`, () => {});
-      db.run(`ALTER TABLE users ADD COLUMN inventory_slots INTEGER DEFAULT 10`, () => {});
-      db.run(`ALTER TABLE users ADD COLUMN dice_cooldown_notified INTEGER DEFAULT 1`, () => {});
+      db.run(`ALTER TABLE users ADD COLUMN guild_tax_required INTEGER DEFAULT 0`, () => { });
+      db.run(`ALTER TABLE users ADD COLUMN guild_tax_paid INTEGER DEFAULT 0`, () => { });
+      db.run(`ALTER TABLE users ADD COLUMN equipped_weapon TEXT DEFAULT NULL`, () => { });
+      db.run(`ALTER TABLE users ADD COLUMN equipped_costume TEXT DEFAULT NULL`, () => { });
+      db.run(`ALTER TABLE users ADD COLUMN starting_weapon TEXT DEFAULT NULL`, () => { });
+      db.run(`ALTER TABLE users ADD COLUMN starting_costume TEXT DEFAULT NULL`, () => { });
+      db.run(`ALTER TABLE users ADD COLUMN inventory_slots INTEGER DEFAULT 10`, () => { });
+      db.run(`ALTER TABLE users ADD COLUMN dice_cooldown_notified INTEGER DEFAULT 1`, () => { });
 
       db.run(`
         CREATE TABLE IF NOT EXISTS equipment_inventory (
@@ -108,17 +108,17 @@ export function initDb() {
       `);
 
       db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('dice_cooldown', '1800')`);
-      db.run(`ALTER TABLE cells ADD COLUMN claimed_by_user_id INTEGER DEFAULT NULL`, () => {});
-      db.run(`ALTER TABLE cells ADD COLUMN claimed_by_username TEXT DEFAULT NULL`, () => {});
-      db.run(`ALTER TABLE cells ADD COLUMN rewards_json TEXT DEFAULT NULL`, () => {});
-      db.run(`ALTER TABLE inventory ADD COLUMN origin_cell_number INTEGER DEFAULT NULL`, () => {});
+      db.run(`ALTER TABLE cells ADD COLUMN claimed_by_user_id INTEGER DEFAULT NULL`, () => { });
+      db.run(`ALTER TABLE cells ADD COLUMN claimed_by_username TEXT DEFAULT NULL`, () => { });
+      db.run(`ALTER TABLE cells ADD COLUMN rewards_json TEXT DEFAULT NULL`, () => { });
+      db.run(`ALTER TABLE inventory ADD COLUMN origin_cell_number INTEGER DEFAULT NULL`, () => { });
       db.run(`INSERT OR IGNORE INTO settings (key, value) VALUES ('price_remove_reward', '100')`);
-      db.run(`ALTER TABLE users ADD COLUMN last_boss_attack_time TEXT`, () => {});
-      db.run(`ALTER TABLE users ADD COLUMN pending_boss_cell INTEGER DEFAULT NULL`, () => {});
-      db.run(`ALTER TABLE users ADD COLUMN pending_boss_remaining INTEGER DEFAULT 0`, () => {});
-      db.run(`ALTER TABLE users ADD COLUMN pending_boss_time TEXT`, () => {});
-      db.run(`ALTER TABLE inventory ADD COLUMN is_pvp_trophy INTEGER DEFAULT 0`, () => {});
-      db.run(`ALTER TABLE users ADD COLUMN has_claimed_reward_this_turn INTEGER DEFAULT 0`, () => {});
+      db.run(`ALTER TABLE users ADD COLUMN last_boss_attack_time TEXT`, () => { });
+      db.run(`ALTER TABLE users ADD COLUMN pending_boss_cell INTEGER DEFAULT NULL`, () => { });
+      db.run(`ALTER TABLE users ADD COLUMN pending_boss_remaining INTEGER DEFAULT 0`, () => { });
+      db.run(`ALTER TABLE users ADD COLUMN pending_boss_time TEXT`, () => { });
+      db.run(`ALTER TABLE inventory ADD COLUMN is_pvp_trophy INTEGER DEFAULT 0`, () => { });
+      db.run(`ALTER TABLE users ADD COLUMN has_claimed_reward_this_turn INTEGER DEFAULT 0`, () => { });
       db.run(`
         CREATE TABLE IF NOT EXISTS duels (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -139,8 +139,8 @@ export function initDb() {
           updated_at TEXT
         )
       `);
-      db.run(`ALTER TABLE duels ADD COLUMN player1_cards_json TEXT DEFAULT NULL`, () => {});
-      db.run(`ALTER TABLE duels ADD COLUMN player2_cards_json TEXT DEFAULT NULL`, () => {});
+      db.run(`ALTER TABLE duels ADD COLUMN player1_cards_json TEXT DEFAULT NULL`, () => { });
+      db.run(`ALTER TABLE duels ADD COLUMN player2_cards_json TEXT DEFAULT NULL`, () => { });
       db.run(`
         CREATE TABLE IF NOT EXISTS bosses (
           cell_number INTEGER PRIMARY KEY,
@@ -159,29 +159,29 @@ export function initDb() {
           attack_cooldown_seconds INTEGER DEFAULT 300
         )
       `, () => {
-        db.run(`ALTER TABLE bosses ADD COLUMN last_attack_time TEXT`, () => {});
-        db.run(`ALTER TABLE bosses ADD COLUMN defeated_by_user_id INTEGER DEFAULT NULL`, () => {});
-        db.run(`ALTER TABLE bosses ADD COLUMN reward_type TEXT DEFAULT 'coins'`, () => {});
-        db.run(`ALTER TABLE bosses ADD COLUMN reward_detail TEXT DEFAULT ''`, () => {});
-        db.run(`ALTER TABLE bosses ADD COLUMN position_offset_x REAL DEFAULT 0`, () => {});
-        db.run(`ALTER TABLE bosses ADD COLUMN position_offset_y REAL DEFAULT 0`, () => {});
-        db.run(`ALTER TABLE bosses ADD COLUMN position_offset_z REAL DEFAULT 0`, () => {});
-        db.run(`ALTER TABLE bosses ADD COLUMN custom_rotation REAL DEFAULT NULL`, () => {});
-        db.run(`ALTER TABLE bosses ADD COLUMN custom_scale REAL DEFAULT 1.0`, () => {});
+        db.run(`ALTER TABLE bosses ADD COLUMN last_attack_time TEXT`, () => { });
+        db.run(`ALTER TABLE bosses ADD COLUMN defeated_by_user_id INTEGER DEFAULT NULL`, () => { });
+        db.run(`ALTER TABLE bosses ADD COLUMN reward_type TEXT DEFAULT 'coins'`, () => { });
+        db.run(`ALTER TABLE bosses ADD COLUMN reward_detail TEXT DEFAULT ''`, () => { });
+        db.run(`ALTER TABLE bosses ADD COLUMN position_offset_x REAL DEFAULT 0`, () => { });
+        db.run(`ALTER TABLE bosses ADD COLUMN position_offset_y REAL DEFAULT 0`, () => { });
+        db.run(`ALTER TABLE bosses ADD COLUMN position_offset_z REAL DEFAULT 0`, () => { });
+        db.run(`ALTER TABLE bosses ADD COLUMN custom_rotation REAL DEFAULT NULL`, () => { });
+        db.run(`ALTER TABLE bosses ADD COLUMN custom_scale REAL DEFAULT 1.0`, () => { });
         db.run(`ALTER TABLE bosses ADD COLUMN crit_chance INTEGER DEFAULT 0`, () => {
-          db.run(`UPDATE bosses SET crit_chance = 20 WHERE cell_number >= 150`, () => {});
+          db.run(`UPDATE bosses SET crit_chance = 20 WHERE cell_number >= 150`, () => { });
         });
         db.run(`ALTER TABLE bosses ADD COLUMN model_file TEXT DEFAULT ''`, () => {
-          db.run(`UPDATE bosses SET model_file = 'Duck.glb' WHERE cell_number = 30 AND (model_file IS NULL OR model_file = '')`, () => {});
-          db.run(`UPDATE bosses SET model_file = 'aion_boss_rigged_character_3d_model.glb' WHERE cell_number = 60 AND (model_file IS NULL OR model_file = '')`, () => {});
-          db.run(`UPDATE bosses SET model_file = 'caine_-_boss_form_tadc___hh.glb' WHERE cell_number = 90 AND (model_file IS NULL OR model_file = '')`, () => {});
-          db.run(`UPDATE bosses SET model_file = 'frog_boss_from_dragon_land.glb' WHERE cell_number = 120 AND (model_file IS NULL OR model_file = '')`, () => {});
-          db.run(`UPDATE bosses SET model_file = 'haishan_boss.glb' WHERE cell_number = 150 AND (model_file IS NULL OR model_file = '')`, () => {});
-          db.run(`UPDATE bosses SET model_file = 'lowpoly_boss_with_huge_sword_spear.glb' WHERE cell_number = 180 AND (model_file IS NULL OR model_file = '')`, () => {});
-          db.run(`UPDATE bosses SET model_file = 'metal_slug_-_boss_organic.glb' WHERE cell_number = 210 AND (model_file IS NULL OR model_file = '')`, () => {});
-          db.run(`UPDATE bosses SET model_file = 'ps2_monster_house_boss.glb' WHERE cell_number = 240 AND (model_file IS NULL OR model_file = '')`, () => {});
-          db.run(`UPDATE bosses SET model_file = 'slasher_castom_boss.glb' WHERE cell_number = 270 AND (model_file IS NULL OR model_file = '')`, () => {});
-          db.run(`UPDATE bosses SET model_file = 'gold_sandworm.glb' WHERE cell_number = 299 AND (model_file IS NULL OR model_file = '')`, () => {});
+          db.run(`UPDATE bosses SET model_file = 'Duck.glb' WHERE cell_number = 30 AND (model_file IS NULL OR model_file = '')`, () => { });
+          db.run(`UPDATE bosses SET model_file = 'aion_boss_rigged_character_3d_model.glb' WHERE cell_number = 60 AND (model_file IS NULL OR model_file = '')`, () => { });
+          db.run(`UPDATE bosses SET model_file = 'caine_-_boss_form_tadc___hh.glb' WHERE cell_number = 90 AND (model_file IS NULL OR model_file = '')`, () => { });
+          db.run(`UPDATE bosses SET model_file = 'frog_boss_from_dragon_land.glb' WHERE cell_number = 120 AND (model_file IS NULL OR model_file = '')`, () => { });
+          db.run(`UPDATE bosses SET model_file = 'haishan_boss.glb' WHERE cell_number = 150 AND (model_file IS NULL OR model_file = '')`, () => { });
+          db.run(`UPDATE bosses SET model_file = 'lowpoly_boss_with_huge_sword_spear.glb' WHERE cell_number = 180 AND (model_file IS NULL OR model_file = '')`, () => { });
+          db.run(`UPDATE bosses SET model_file = 'metal_slug_-_boss_organic.glb' WHERE cell_number = 210 AND (model_file IS NULL OR model_file = '')`, () => { });
+          db.run(`UPDATE bosses SET model_file = 'ps2_monster_house_boss.glb' WHERE cell_number = 240 AND (model_file IS NULL OR model_file = '')`, () => { });
+          db.run(`UPDATE bosses SET model_file = 'slasher_castom_boss.glb' WHERE cell_number = 270 AND (model_file IS NULL OR model_file = '')`, () => { });
+          db.run(`UPDATE bosses SET model_file = 'gold_sandworm.glb' WHERE cell_number = 299 AND (model_file IS NULL OR model_file = '')`, () => { });
         });
         db.get("SELECT COUNT(*) as count FROM bosses", (err, row) => {
           if (!err && row && row.count === 0) {
@@ -217,7 +217,7 @@ export function initDb() {
         )
       `, (err) => {
         if (err) return reject(err);
-        db.run(`UPDATE cells SET type = 'boss' WHERE cell_number IN (30, 60, 90, 120, 150, 180, 210, 240, 270, 299)`, () => {});
+        db.run(`UPDATE cells SET type = 'boss' WHERE cell_number IN (30, 60, 90, 120, 150, 180, 210, 240, 270, 299)`, () => { });
         db.get("SELECT COUNT(*) as count FROM cells", (err, row) => {
           if (err) return reject(err);
           if (row.count === 0) {
@@ -240,7 +240,7 @@ export function initDb() {
                   value = 2 + (i % 4);
                 } else if (i % 29 === 0) {
                   type = 'obstacle';
-                  value = 7200; 
+                  value = 7200;
                 }
 
                 if (i % 15 === 0) {
