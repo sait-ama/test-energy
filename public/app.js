@@ -2,21 +2,35 @@
 
 function getAvatarUrl(avatarPath) {
   if (!avatarPath) return '';
-  if (avatarPath.startsWith('http')) return avatarPath;
-  if (avatarPath.startsWith('/')) {
-    if (avatarPath.startsWith('/media/')) return `https://remanga.org${avatarPath}`;
-    return `https://remanga.org/media${avatarPath}`;
+  let url = avatarPath;
+  if (!url.startsWith('http')) {
+    if (url.startsWith('/')) {
+      if (url.startsWith('/media/')) url = `https://remanga.org${url}`;
+      else url = `https://remanga.org/media${url}`;
+    } else if (url.startsWith('media/')) {
+      url = `https://remanga.org/${url}`;
+    } else {
+      url = `https://remanga.org/media/${url}`;
+    }
   }
-  if (avatarPath.startsWith('media/')) return `https://remanga.org/${avatarPath}`;
-  return `https://remanga.org/media/${avatarPath}`;
+  if (url.includes('remanga.org')) {
+    return `/api/proxy-image?url=${encodeURIComponent(url)}`;
+  }
+  return url;
 }
 
 function getCardCoverUrl(coverPath) {
   if (!coverPath) return '';
-  if (coverPath.startsWith('http')) return coverPath;
-  if (coverPath.startsWith('/')) return `https://api.remanga.org${coverPath}`;
-  if (coverPath.startsWith('media/')) return `https://api.remanga.org/${coverPath}`;
-  return `https://api.remanga.org/media/${coverPath}`;
+  let url = coverPath;
+  if (!url.startsWith('http')) {
+    if (url.startsWith('/')) url = `https://api.remanga.org${url}`;
+    else if (url.startsWith('media/')) url = `https://api.remanga.org/${url}`;
+    else url = `https://api.remanga.org/media/${url}`;
+  }
+  if (url.includes('remanga.org')) {
+    return `/api/proxy-image?url=${encodeURIComponent(url)}`;
+  }
+  return url;
 }
 
 function getCardMediaHTML(src, className, style, attrs) {
@@ -2727,7 +2741,7 @@ function initSocket() {
   document.addEventListener('touchstart', sendHeartbeatNow);
 
   state.socket.on('connect', () => {
-    state.socket.emit('authenticate', { userId: state.user.id, version: '1.5.0' });
+    state.socket.emit('authenticate', { userId: state.user.id, version: '1.5.1' });
     startHeartbeat();
   });
 
@@ -2743,7 +2757,7 @@ function initSocket() {
       if (!state.socket.connected) {
         state.socket.connect();
       } else {
-        state.socket.emit('authenticate', { userId: state.user.id, version: '1.5.0' });
+        state.socket.emit('authenticate', { userId: state.user.id, version: '1.5.1' });
         sendHeartbeatNow();
       }
     }
@@ -5585,7 +5599,7 @@ function updateInventoryUI() {
             div.className = 'inventory-item card-item-container';
             div.innerHTML = `
               <div class="card-item-cover-wrapper" style="text-align: center; margin-bottom: 8px;">
-                ${getCardMediaHTML(cover, 'card-item-cover', '', `alt="${item.name}" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';"`)}
+                ${getCardMediaHTML(cover, 'card-item-cover', '', `alt="${item.name}" onerror="this.onerror=null; this.src=getCardCoverUrl('https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp');"`)}
               </div>
               <div class="card-item-name" style="text-align: center; font-size: 11px; font-weight: 700; color: #00f0ff;">${item.name}</div>
               ${cellText}
@@ -5629,7 +5643,7 @@ function updateInventoryUI() {
           div.style.border = '1px solid rgba(255, 0, 124, 0.2)';
           div.innerHTML = `
             <div class="card-item-cover-wrapper" style="text-align: center; margin-bottom: 8px;">
-              ${getCardMediaHTML(cover, 'card-item-cover', '', `alt="${item.name}" onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';"`)}
+              ${getCardMediaHTML(cover, 'card-item-cover', '', `alt="${item.name}" onerror="this.onerror=null; this.src=getCardCoverUrl('https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp');"`)}
             </div>
             <div class="card-item-name" style="text-align: center; font-size: 11px; font-weight: 700; color: #ff007c;">${item.name}</div>
             <div style="font-size: 10px; color: #8c9ba5; text-align: center; margin-top: 4px;">🏆 Трофей PvP</div>
@@ -6380,7 +6394,7 @@ window.editUserModal = async (userId, oldBalance, oldCell, isAdmin, name, taxReq
               `<div style="font-size: 9px; color: #8c9ba5; text-align: center;">Ячейка: ${item.origin_cell_number || '-'}</div>`;
             itemDiv.innerHTML = `
               <div style="text-align: center;">
-                ${getCardMediaHTML(cover, '', 'width: 50px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2);', `onerror="this.onerror=null; this.src='https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';"`)}
+                ${getCardMediaHTML(cover, '', 'width: 50px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2);', `onerror="this.onerror=null; this.src=getCardCoverUrl('https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp');"`)}
               </div>
               <div style="font-weight: bold; color: #00f0ff; text-align: center; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${item.name}</div>
               ${typeText}
@@ -6952,10 +6966,11 @@ window.handleRewardImageError = function (img, originalUrl) {
     img.parentNode.insertBefore(spinner, img);
     img.style.opacity = '0';
     setTimeout(() => {
-      img.src = originalUrl + (originalUrl.includes('?') ? '&' : '?') + 'retry=' + Date.now();
+      const fullUrl = getCardCoverUrl(originalUrl);
+      img.src = fullUrl + (fullUrl.includes('?') ? '&' : '?') + 'retry=' + Date.now();
     }, 2000);
   } else {
-    img.src = 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';
+    img.src = getCardCoverUrl('https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp');
     img.style.opacity = '1';
   }
 };
@@ -7197,7 +7212,7 @@ function showMultiRewardChoiceModal(rewardTriggered) {
           img.onload = () => { spinner.remove(); img.style.opacity = '1'; };
         }
         img.style.cssText = 'width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.3s;';
-        img.onerror = () => { spinner.remove(); img.src = 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp'; img.style.opacity = '1'; };
+        img.onerror = () => { spinner.remove(); img.src = getCardCoverUrl('https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp'); img.style.opacity = '1'; };
         imgContainer.appendChild(img);
         cardEl.appendChild(imgContainer);
       } else {
@@ -7754,7 +7769,7 @@ function renderDuelState(duel) {
     if (oppObj) {
       loadAvatar(document.getElementById('pvp-p2-avatar'), document.getElementById('pvp-p2-avatar-fallback'), oppObj);
     } else {
-      document.getElementById('pvp-p2-avatar').src = 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';
+      document.getElementById('pvp-p2-avatar').src = getCardCoverUrl('https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp');
       const fb = document.getElementById('pvp-p2-avatar-fallback');
       if (fb) fb.classList.add('hidden');
     }

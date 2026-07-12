@@ -777,6 +777,68 @@ app.get('/api/tg-avatar/:tgId', async (req, res) => {
 });
 
 
+app.get('/api/proxy-image', async (req, res) => {
+  try {
+    const imageUrl = req.query.url;
+    if (!imageUrl) {
+      return res.status(400).send('Missing url parameter');
+    }
+
+    if (!imageUrl.includes('remanga.org')) {
+      return res.status(400).send('Invalid image source');
+    }
+
+    const coversDir = path.join(process.cwd(), 'public', 'card-covers');
+    if (!fs.existsSync(coversDir)) {
+      fs.mkdirSync(coversDir, { recursive: true });
+    }
+
+    const hash = crypto.createHash('md5').update(imageUrl).digest('hex');
+    let ext = 'webp';
+    if (imageUrl.toLowerCase().includes('.webm')) ext = 'webm';
+    else if (imageUrl.toLowerCase().includes('.gif')) ext = 'gif';
+    else if (imageUrl.toLowerCase().includes('.png')) ext = 'png';
+    else if (imageUrl.toLowerCase().includes('.jpg') || imageUrl.toLowerCase().includes('.jpeg')) ext = 'jpg';
+
+    const localPath = path.join(coversDir, `${hash}.${ext}`);
+
+    if (fs.existsSync(localPath)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      let contentType = 'image/webp';
+      if (ext === 'webm') contentType = 'video/webm';
+      else if (ext === 'gif') contentType = 'image/gif';
+      else if (ext === 'png') contentType = 'image/png';
+      else if (ext === 'jpg') contentType = 'image/jpeg';
+      res.setHeader('Content-Type', contentType);
+      return res.sendFile(localPath);
+    }
+
+    const response = await fetch(imageUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Referer': 'https://remanga.org/'
+      }
+    });
+
+    if (!response.ok) {
+      return res.status(response.status).send('Failed to fetch image');
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const nodeBuffer = Buffer.from(arrayBuffer);
+    fs.writeFileSync(localPath, nodeBuffer);
+
+    const contentType = response.headers.get('content-type') || (ext === 'webm' ? 'video/webm' : 'image/webp');
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    res.send(nodeBuffer);
+  } catch (error) {
+    console.error('[Proxy Image Error]', error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+
 app.get('/api/profile/:id', async (req, res) => {
   try {
     let user = await getQuery('SELECT * FROM users WHERE id = ?', [req.params.id]);
