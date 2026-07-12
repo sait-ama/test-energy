@@ -4331,6 +4331,70 @@ function smoothCameraFocus(targetPos) {
   requestAnimationFrame(updateCam);
 }
 
+let currentLeadersSort = 'balance';
+
+async function refreshLeadersList() {
+  const container = document.getElementById('leaders-list-container');
+  if (!container) return;
+  container.innerHTML = '<div style="text-align: center; color: #8c9ba5; font-size: 13px; padding: 20px;">Загрузка лидеров...</div>';
+
+  try {
+    const res = await fetch(`/api/leaders?sortBy=${currentLeadersSort}`);
+    const data = await res.json();
+    container.innerHTML = '';
+
+    if (!data || data.length === 0) {
+      container.innerHTML = '<div style="text-align: center; color: #8c9ba5; font-size: 13px; padding: 20px;">Нет данных</div>';
+      return;
+    }
+
+    data.forEach((item, index) => {
+      const rank = index + 1;
+      let rankClass = '';
+      let rankNumClass = '';
+      if (rank === 1) { rankClass = 'leader-rank-1'; rankNumClass = 'gold'; }
+      else if (rank === 2) { rankClass = 'leader-rank-2'; rankNumClass = 'silver'; }
+      else if (rank === 3) { rankClass = 'leader-rank-3'; rankNumClass = 'bronze'; }
+
+      const name = item.remanga_username || item.tg_first_name || item.tg_username || 'Игрок';
+      const tgSrc = `/api/tg-avatar/${item.tg_id}`;
+      const remangaSrc = item.remanga_avatar ? getAvatarUrl(item.remanga_avatar) : '';
+      const fallbackText = name.substring(0, 2).toUpperCase();
+
+      const avatarHtml = `
+        <div class="online-avatar" style="width: 32px; height: 32px; flex-shrink: 0; position: relative;">
+          <img src="${tgSrc}" referrerpolicy="no-referrer"
+               onload="this.style.display='block'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';" 
+               onerror="if(this.getAttribute('data-tried-remanga')!=='true' && '${remangaSrc}'){this.setAttribute('data-tried-remanga','true');this.src='${remangaSrc}';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex';}" 
+               style="display:none; width:100%; height:100%; object-fit:cover; border-radius:50%;">
+          <div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; border-radius:50%; background:rgba(255,255,255,0.05); color:#00f0ff; font-size:10px; font-weight:bold;">${fallbackText}</div>
+        </div>
+      `;
+
+      const row = document.createElement('div');
+      row.className = `leader-row ${rankClass}`;
+
+      let scoreHtml = '';
+      if (currentLeadersSort === 'wins') {
+        scoreHtml = `<div style="margin-left: auto; text-align: right;"><span style="font-weight: bold; color: #00f0ff;">${item.wins}</span> <span style="font-size: 10px; color: #8c9ba5;">побед</span></div>`;
+      } else {
+        scoreHtml = `<div style="margin-left: auto; text-align: right;"><span style="font-weight: bold; color: #ffb800;">${item.balance}</span> <span style="font-size: 10px; color: #8c9ba5;">монет</span></div>`;
+      }
+
+      row.innerHTML = `
+        <div class="leader-rank-num ${rankNumClass}">${rank}</div>
+        ${avatarHtml}
+        <div style="font-weight: 600; font-size: 13px; color: #fff;">${name}</div>
+        ${scoreHtml}
+      `;
+
+      container.appendChild(row);
+    });
+  } catch (err) {
+    container.innerHTML = '<div style="text-align: center; color: #ff4a4a; font-size: 13px; padding: 20px;">Ошибка при загрузке</div>';
+  }
+}
+
 function setupUI() {
   document.getElementById('link-remanga-btn-onboarding').addEventListener('click', async () => {
     const url = document.getElementById('remanga-url-input-onboarding').value.trim();
@@ -4556,69 +4620,7 @@ function setupUI() {
     });
   }
 
-  let currentLeadersSort = 'balance';
 
-  async function refreshLeadersList() {
-    const container = document.getElementById('leaders-list-container');
-    if (!container) return;
-    container.innerHTML = '<div style="text-align: center; color: #8c9ba5; font-size: 13px; padding: 20px;">Загрузка лидеров...</div>';
-
-    try {
-      const res = await fetch(`/api/leaders?sortBy=${currentLeadersSort}`);
-      const data = await res.json();
-      container.innerHTML = '';
-
-      if (!data || data.length === 0) {
-        container.innerHTML = '<div style="text-align: center; color: #8c9ba5; font-size: 13px; padding: 20px;">Нет данных</div>';
-        return;
-      }
-
-      data.forEach((item, index) => {
-        const rank = index + 1;
-        let rankClass = '';
-        let rankNumClass = '';
-        if (rank === 1) { rankClass = 'leader-rank-1'; rankNumClass = 'gold'; }
-        else if (rank === 2) { rankClass = 'leader-rank-2'; rankNumClass = 'silver'; }
-        else if (rank === 3) { rankClass = 'leader-rank-3'; rankNumClass = 'bronze'; }
-
-        const name = item.remanga_username || item.tg_first_name || item.tg_username || 'Игрок';
-        const tgSrc = `/api/tg-avatar/${item.tg_id}`;
-        const remangaSrc = item.remanga_avatar ? getAvatarUrl(item.remanga_avatar) : '';
-        const fallbackText = name.substring(0, 2).toUpperCase();
-
-        const avatarHtml = `
-          <div class="online-avatar" style="width: 32px; height: 32px; flex-shrink: 0; position: relative;">
-            <img src="${tgSrc}" referrerpolicy="no-referrer"
-                 onload="this.style.display='block'; if(this.nextElementSibling) this.nextElementSibling.style.display='none';" 
-                 onerror="if(this.getAttribute('data-tried-remanga')!=='true' && '${remangaSrc}'){this.setAttribute('data-tried-remanga','true');this.src='${remangaSrc}';}else{this.style.display='none';if(this.nextElementSibling)this.nextElementSibling.style.display='flex';}" 
-                 style="display:none; width:100%; height:100%; object-fit:cover; border-radius:50%;">
-            <div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; border-radius:50%; background:rgba(255,255,255,0.05); color:#00f0ff; font-size:10px; font-weight:bold;">${fallbackText}</div>
-          </div>
-        `;
-
-        const row = document.createElement('div');
-        row.className = `leader-row ${rankClass}`;
-
-        let scoreHtml = '';
-        if (currentLeadersSort === 'wins') {
-          scoreHtml = `<div style="margin-left: auto; text-align: right;"><span style="font-weight: bold; color: #00f0ff;">${item.wins}</span> <span style="font-size: 10px; color: #8c9ba5;">побед</span></div>`;
-        } else {
-          scoreHtml = `<div style="margin-left: auto; text-align: right;"><span style="font-weight: bold; color: #ffb800;">${item.balance}</span> <span style="font-size: 10px; color: #8c9ba5;">монет</span></div>`;
-        }
-
-        row.innerHTML = `
-          <div class="leader-rank-num ${rankNumClass}">${rank}</div>
-          ${avatarHtml}
-          <div style="font-weight: 600; font-size: 13px; color: #fff;">${name}</div>
-          ${scoreHtml}
-        `;
-
-        container.appendChild(row);
-      });
-    } catch (err) {
-      container.innerHTML = '<div style="text-align: center; color: #ff4a4a; font-size: 13px; padding: 20px;">Ошибка при загрузке</div>';
-    }
-  }
 
   const openLeadersBtn = document.getElementById('open-leaders-btn');
   const mobileOpenLeadersBtn = document.getElementById('mobile-open-leaders-btn');
