@@ -172,11 +172,12 @@ function updateBossMeshes() {
   state.bossLabels = [];
 
   const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270, 299];
+  const dynamicPositions = updateTilePositions().positions;
   bossCells.forEach((cellNum, idx) => {
     const bossData = (state.bosses || []).find(b => b.cell_number === cellNum);
     const defeated = bossData ? bossData.defeated : 0;
-    const pos = getTilePosition(cellNum);
-    const prevPos = getTilePosition(Math.max(0, cellNum - 1));
+    const pos = getTilePositionOfCell(cellNum, dynamicPositions);
+    const prevPos = getTilePositionOfCell(Math.max(0, cellNum - 1), dynamicPositions);
     const dx = prevPos.x - pos.x;
     const dz = prevPos.z - pos.z;
     const autoAngle = Math.atan2(dx, dz);
@@ -2087,6 +2088,37 @@ function layoutBoardElements() {
       }
     });
   }
+
+  if (state.bossObjects) {
+    const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270, 299];
+    bossCells.forEach((cellNum, idx) => {
+      const bossMesh = state.bossObjects.get(cellNum);
+      if (bossMesh) {
+        const bossData = (state.bosses || []).find(b => b.cell_number === cellNum);
+        const pos = positions[cellNum];
+        const offX = (bossData && bossData.position_offset_x) || 0;
+        const offY = (bossData && bossData.position_offset_y) || 0;
+        const offZ = (bossData && bossData.position_offset_z) || 0;
+        bossMesh.position.set(pos.x + 1.1 + offX, pos.y + 0.15 + offY, pos.z + 1.1 + offZ);
+      }
+    });
+  }
+
+  if (state.bossLabels && state.bossLabels.length > 0) {
+    const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270, 299];
+    bossCells.forEach((cellNum, idx) => {
+      const labelSprite = state.bossLabels[idx];
+      if (labelSprite) {
+        const bossData = (state.bosses || []).find(b => b.cell_number === cellNum);
+        const pos = positions[cellNum];
+        const offX = (bossData && bossData.position_offset_x) || 0;
+        const offY = (bossData && bossData.position_offset_y) || 0;
+        const offZ = (bossData && bossData.position_offset_z) || 0;
+        labelSprite.position.set(pos.x + 1.1 + offX, pos.y + 2.8 + offY, pos.z + 1.1 + offZ);
+      }
+    });
+  }
+
   buildBoardPaths();
 }
 
@@ -2681,7 +2713,7 @@ function initSocket() {
   document.addEventListener('touchstart', sendHeartbeatNow);
 
   state.socket.on('connect', () => {
-    state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.4' });
+    state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.5' });
     startHeartbeat();
   });
 
@@ -2697,7 +2729,7 @@ function initSocket() {
       if (!state.socket.connected) {
         state.socket.connect();
       } else {
-        state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.4' });
+        state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.5' });
         sendHeartbeatNow();
       }
     }
