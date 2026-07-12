@@ -2718,7 +2718,7 @@ function initSocket() {
   document.addEventListener('touchstart', sendHeartbeatNow);
 
   state.socket.on('connect', () => {
-    state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.6' });
+    state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.7' });
     startHeartbeat();
   });
 
@@ -2734,7 +2734,7 @@ function initSocket() {
       if (!state.socket.connected) {
         state.socket.connect();
       } else {
-        state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.6' });
+        state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.7' });
         sendHeartbeatNow();
       }
     }
@@ -3042,7 +3042,7 @@ async function refreshProfile() {
     if (claimBtn) {
       let showButton = false;
       let btnText = 'Забрать награду';
-      if (currentCell) {
+      if (currentCell && state.user && state.user.has_claimed_reward_this_turn !== 1) {
         if (currentCell.rewards_json) {
           try {
             const rewards = JSON.parse(currentCell.rewards_json);
@@ -7109,16 +7109,19 @@ document.getElementById('claim-reward-current-cell-btn').addEventListener('click
 });
 
 let selectedMultiRewardId = null;
+let selectedMultiRewardCell = null;
 
 function showMultiRewardChoiceModal(rewardTriggered) {
   state.pendingMultiReward = rewardTriggered;
   selectedMultiRewardId = null;
+  selectedMultiRewardCell = null;
 
   const choiceItems = rewardTriggered.rewards.filter(r => r.type === 'card' || r.type === 'premium');
   const unclaimedItems = choiceItems.filter(item => item.claimed_by_user_id === null || item.claimed_by_user_id === undefined);
 
   if (unclaimedItems.length === 1) {
     selectedMultiRewardId = unclaimedItems[0].id;
+    selectedMultiRewardCell = unclaimedItems[0].originCell !== undefined ? unclaimedItems[0].originCell : rewardTriggered.originCell;
   }
 
   const claimBtn = document.getElementById('claim-multi-reward-yes-btn');
@@ -7225,6 +7228,7 @@ function showMultiRewardChoiceModal(rewardTriggered) {
           cardEl.style.borderColor = '#00f0ff';
           cardEl.style.boxShadow = '0 0 10px rgba(0,240,255,0.4)';
           selectedMultiRewardId = item.id;
+          selectedMultiRewardCell = item.originCell !== undefined ? item.originCell : rewardTriggered.originCell;
         });
       }
       grid.appendChild(cardEl);
@@ -7287,7 +7291,7 @@ if (claimMultiYesBtn) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: state.user.id,
-          cellNumber: state.pendingMultiReward.originCell,
+          cellNumber: selectedMultiRewardCell !== null ? selectedMultiRewardCell : state.pendingMultiReward.originCell,
           rewardId: selectedMultiRewardId,
           claim: true
         })
@@ -7299,6 +7303,7 @@ if (claimMultiYesBtn) {
       document.getElementById('multi-reward-modal').classList.add('hidden');
       state.pendingMultiReward = null;
       selectedMultiRewardId = null;
+      selectedMultiRewardCell = null;
       refreshProfile();
     } catch (err) {
       showNotification(err.message, 'error');

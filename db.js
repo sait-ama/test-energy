@@ -118,6 +118,7 @@ export function initDb() {
       db.run(`ALTER TABLE users ADD COLUMN pending_boss_remaining INTEGER DEFAULT 0`, () => {});
       db.run(`ALTER TABLE users ADD COLUMN pending_boss_time TEXT`, () => {});
       db.run(`ALTER TABLE inventory ADD COLUMN is_pvp_trophy INTEGER DEFAULT 0`, () => {});
+      db.run(`ALTER TABLE users ADD COLUMN has_claimed_reward_this_turn INTEGER DEFAULT 0`, () => {});
       db.run(`
         CREATE TABLE IF NOT EXISTS duels (
           id INTEGER PRIMARY KEY AUTOINCREMENT,

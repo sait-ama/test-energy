@@ -397,7 +397,7 @@ io.on('connection', (socket) => {
     userId = data.userId;
     socket.join(`user_${userId}`);
 
-    if (!data.version || data.version !== '1.4.6') {
+    if (!data.version || data.version !== '1.4.7') {
       setTimeout(() => {
         socket.emit('effect_notification', { message: 'Доступно обновление! Пожалуйста, перезагрузите страницу (F5), чтобы таблица лидеров и дуэли работали корректно.' });
       }, 3000);
@@ -1002,6 +1002,58 @@ function hasUnclaimedBossRewards(boss) {
   }
 }
 
+async function getCellRewardsList(cell) {
+  let list = [];
+  if (!cell) return list;
+
+  if (cell.rewards_json) {
+    try {
+      const parsed = JSON.parse(cell.rewards_json);
+      parsed.forEach(r => {
+        if (r.type === 'card' || r.type === 'premium') {
+          r.originCell = cell.cell_number;
+          if (!r.id) {
+            r.id = `${r.type}_${cell.cell_number}_${Math.random()}`;
+          }
+          list.push(r);
+        }
+      });
+    } catch (e) {}
+  } else if ((cell.reward_type === 'card' || cell.reward_type === 'premium') && cell.claimed_by_user_id === null) {
+    if (cell.reward_type === 'card') {
+      let cover = cell.reward_detail || '';
+      let charName = '';
+      let cardName = cell.reward_name;
+      if (cover.includes('|')) {
+        const parts = cover.split('|');
+        cover = parts[0];
+        cardName = parts[1] || cardName;
+        charName = parts[2] || '';
+      }
+      list.push({
+        id: `single_${cell.cell_number}`,
+        type: 'card',
+        name: cardName,
+        detail: cell.reward_detail,
+        cover: cover,
+        char: charName,
+        claimed_by_user_id: null,
+        originCell: cell.cell_number
+      });
+    } else {
+      list.push({
+        id: `single_${cell.cell_number}`,
+        type: 'premium',
+        name: cell.reward_name,
+        value: cell.reward_detail,
+        claimed_by_user_id: null,
+        originCell: cell.cell_number
+      });
+    }
+  }
+  return list;
+}
+
 app.post('/api/board/roll', async (req, res) => {
   const { userId } = req.body;
   if (!userId) {
@@ -1128,6 +1180,8 @@ app.post('/api/board/roll', async (req, res) => {
     let rewardTriggered = null;
     let specialEffect = null;
     let finalCell = endCell;
+    let newBalance = user.balance;
+    let winsCount = user.wins;
 
     if (stoppedAtBoss) {
       finalCell = endCell;
@@ -1165,51 +1219,50 @@ app.post('/api/board/roll', async (req, res) => {
         const actualCell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [finalCell]);
         if (actualCell && !win) {
           if (actualCell.rewards_json) {
-            let rewards = [];
             try {
-              rewards = JSON.parse(actualCell.rewards_json);
-            } catch (e) { }
-            const coinsItem = rewards.find(r => r.type === 'coins');
-            if (coinsItem && coinsItem.value) {
-              newBalance += parseInt(coinsItem.value) || 0;
-            }
-            const hasUnclaimed = rewards.some(r => (r.type === 'card' || r.type === 'premium') && !r.claimed_by_user_id);
-            if (hasUnclaimed) {
-              rewardTriggered = {
-                type: 'multi',
-                originCell: finalCell,
-                rewards: rewards
-              };
-            }
-          } else if (actualCell.reward_type && actualCell.reward_type !== 'none') {
-            if (actualCell.reward_type === 'currency') {
-              rewardTriggered = {
-                type: actualCell.reward_type,
-                name: actualCell.reward_name,
-                detail: actualCell.reward_detail
-              };
-            } else if ((actualCell.reward_type === 'card' || actualCell.reward_type === 'premium') && actualCell.claimed_by_user_id === null) {
-              rewardTriggered = {
-                type: actualCell.reward_type,
-                name: actualCell.reward_name,
-                detail: actualCell.reward_detail,
-                originCell: finalCell
-              };
-            }
+              const parsed = JSON.parse(actualCell.rewards_json);
+              const coinsItem = parsed.find(r => r.type === 'coins');
+              if (coinsItem && coinsItem.value) {
+                newBalance += parseInt(coinsItem.value) || 0;
+              }
+            } catch (e) {}
+          } else if (actualCell.reward_type === 'currency') {
+            newBalance += parseInt(actualCell.reward_detail) || 0;
+            rewardTriggered = {
+              type: actualCell.reward_type,
+              name: actualCell.reward_name,
+              detail: actualCell.reward_detail
+            };
+          }
+        }
+
+        if (!win) {
+          let combinedRewards = [];
+          if (actualCell) {
+            const targetRewards = await getCellRewardsList(actualCell);
+            combinedRewards.push(...targetRewards);
+          }
+
+          if (specialEffect && (specialEffect.type === 'forward' || specialEffect.type === 'backward')) {
+            const originRewards = await getCellRewardsList(cell);
+            combinedRewards.push(...originRewards);
+          }
+
+          if (combinedRewards.length > 0) {
+            rewardTriggered = {
+              type: 'multi',
+              originCell: finalCell,
+              rewards: combinedRewards
+            };
           }
         }
       }
     }
 
-    let newBalance = user.balance;
-    let winsCount = user.wins;
-
     if (win) {
       winsCount += 1;
       newBalance += 500;
       finalCell = 299;
-    } else if (rewardTriggered && rewardTriggered.type === 'currency') {
-      newBalance += parseInt(rewardTriggered.detail) || 0;
     }
 
     let cooldownSeconds = 1800;
@@ -1231,7 +1284,7 @@ app.post('/api/board/roll', async (req, res) => {
     }
 
     await runQuery(
-      'UPDATE users SET current_cell = ?, balance = ?, wins = ?, dice_cooldown_until = ?, guild_tax_required = ?, guild_tax_paid = ?, dice_cooldown_notified = 0 WHERE id = ?',
+      'UPDATE users SET current_cell = ?, balance = ?, wins = ?, dice_cooldown_until = ?, guild_tax_required = ?, guild_tax_paid = ?, dice_cooldown_notified = 0, has_claimed_reward_this_turn = 0 WHERE id = ?',
       [finalCell, newBalance, winsCount, nextCooldown, nextRequired, nextPaid, user.id]
     );
 
@@ -2778,6 +2831,24 @@ app.post('/api/admin/fetch-card', checkAdmin, async (req, res) => {
 
 
 
+async function canUserAccessCell(user, cellNumber) {
+  const userCell = Number(user.current_cell);
+  const targetCell = Number(cellNumber);
+  if (userCell === targetCell) return true;
+
+  const cell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [targetCell]);
+  if (cell) {
+    if (cell.type === 'forward') {
+      const dest = Math.min(299, targetCell + (cell.value || 0));
+      if (dest === userCell) return true;
+    } else if (cell.type === 'backward') {
+      const dest = Math.max(0, targetCell - (cell.value || 0));
+      if (dest === userCell) return true;
+    }
+  }
+  return false;
+}
+
 app.post('/api/board/claim-reward', async (req, res) => {
   const { userId, cellNumber, claim } = req.body;
   if (!userId || cellNumber === undefined) {
@@ -2792,7 +2863,12 @@ app.post('/api/board/claim-reward', async (req, res) => {
 
     console.log(`[CLAIM REWARD] User ID: ${userId}, DB cell: ${user.current_cell}, Request cell: ${cellNumber}, Claim: ${claim}`);
 
-    if (Number(user.current_cell) !== Number(cellNumber)) {
+    if (user.has_claimed_reward_this_turn === 1) {
+      return res.status(400).json({ error: 'Вы уже забрали награду за этот ход!' });
+    }
+
+    const canAccess = await canUserAccessCell(user, cellNumber);
+    if (!canAccess) {
       return res.status(400).json({ error: `Вы находитесь на другой ячейке! (Вы на ${user.current_cell}, а награда на ${cellNumber})` });
     }
 
@@ -2830,6 +2906,11 @@ app.post('/api/board/claim-reward', async (req, res) => {
       await runQuery(
         'UPDATE cells SET claimed_by_user_id = ?, claimed_by_username = ? WHERE cell_number = ?',
         [userId, displayName, cellNumber]
+      );
+
+      await runQuery(
+        'UPDATE users SET has_claimed_reward_this_turn = 1 WHERE id = ?',
+        [userId]
       );
 
       await runQuery(
@@ -2873,7 +2954,12 @@ app.post('/api/board/claim-multi-reward', async (req, res) => {
 
     console.log(`[CLAIM MULTI REWARD] User ID: ${userId}, DB cell: ${user.current_cell}, Request cell: ${cellNumber}, Reward ID: ${rewardId}, Claim: ${claim}`);
 
-    if (Number(user.current_cell) !== Number(cellNumber)) {
+    if (user.has_claimed_reward_this_turn === 1) {
+      return res.status(400).json({ error: 'Вы уже забрали награду за этот ход!' });
+    }
+
+    const canAccess = await canUserAccessCell(user, cellNumber);
+    if (!canAccess) {
       return res.status(400).json({ error: `Вы находитесь на другой ячейке! (Вы на ${user.current_cell}, а награда на ${cellNumber})` });
     }
 
@@ -2933,6 +3019,11 @@ app.post('/api/board/claim-multi-reward', async (req, res) => {
       await runQuery(
         'UPDATE cells SET rewards_json = ? WHERE cell_number = ?',
         [JSON.stringify(rewards), cellNumber]
+      );
+
+      await runQuery(
+        'UPDATE users SET has_claimed_reward_this_turn = 1 WHERE id = ?',
+        [userId]
       );
 
       await runQuery(
