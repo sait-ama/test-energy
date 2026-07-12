@@ -1159,7 +1159,7 @@ function updateBossModalUI(boss) {
     }
 
     document.getElementById('boss-btn-fight').classList.remove('hidden');
-    document.getElementById('boss-btn-bypass').classList.remove('hidden');
+    document.getElementById('boss-btn-bypass').classList.add('hidden');
   }
 
   const playerOnOrPendingBoss = state.user && (

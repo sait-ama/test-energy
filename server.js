@@ -1815,6 +1815,14 @@ app.post('/api/boss/skip', async (req, res) => {
       return res.status(400).json({ error: 'Нет ожидающего босса для пропуска' });
     }
 
+    const targetBossCell = hasPending ? user.pending_boss_cell : user.current_cell;
+    const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [targetBossCell]);
+    if (boss) {
+      if (!boss.defeated && !boss.current_fighter_id) {
+        return res.status(400).json({ error: 'Вы не можете пропустить этого босса, так как он свободен и не побежден. Вы должны сразиться с ним!' });
+      }
+    }
+
     if (!hasPending && isOnBossCell) {
       await runQuery('UPDATE users SET pending_boss_cell = NULL, pending_boss_remaining = 0, pending_boss_time = NULL WHERE id = ?', [user.id]);
       return res.json({ path: [], endCell: user.current_cell, win: false, balance: user.balance });
