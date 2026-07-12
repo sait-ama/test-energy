@@ -11,8 +11,17 @@ function getAvatarUrl(avatarPath) {
   return `https://remanga.org/media/${avatarPath}`;
 }
 
+function getCardCoverUrl(coverPath) {
+  if (!coverPath) return '';
+  if (coverPath.startsWith('http')) return coverPath;
+  if (coverPath.startsWith('/')) return `https://api.remanga.org${coverPath}`;
+  if (coverPath.startsWith('media/')) return `https://api.remanga.org/${coverPath}`;
+  return `https://api.remanga.org/media/${coverPath}`;
+}
+
 function getCardMediaHTML(src, className, style, attrs) {
   if (!src) return '';
+  src = getCardCoverUrl(src);
   const isWebm = src.toLowerCase().endsWith('.webm') || src.toLowerCase().includes('.webm');
   const classAttr = className ? `class="${className}"` : '';
   const styleAttr = style ? `style="${style}"` : '';
@@ -2718,7 +2727,7 @@ function initSocket() {
   document.addEventListener('touchstart', sendHeartbeatNow);
 
   state.socket.on('connect', () => {
-    state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.9' });
+    state.socket.emit('authenticate', { userId: state.user.id, version: '1.5.0' });
     startHeartbeat();
   });
 
@@ -2734,7 +2743,7 @@ function initSocket() {
       if (!state.socket.connected) {
         state.socket.connect();
       } else {
-        state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.9' });
+        state.socket.emit('authenticate', { userId: state.user.id, version: '1.5.0' });
         sendHeartbeatNow();
       }
     }
@@ -7174,7 +7183,8 @@ function showMultiRewardChoiceModal(rewardTriggered) {
 
         const isWebm = item.cover && (item.cover.toLowerCase().endsWith('.webm') || item.cover.toLowerCase().includes('.webm'));
         const img = document.createElement(isWebm ? 'video' : 'img');
-        img.src = item.cover;
+        const coverUrl = getCardCoverUrl(item.cover);
+        img.src = coverUrl;
         if (isWebm) {
           img.autoplay = true;
           img.muted = true;

@@ -397,12 +397,6 @@ io.on('connection', (socket) => {
     userId = data.userId;
     socket.join(`user_${userId}`);
 
-    if (!data.version || data.version !== '1.4.9') {
-      setTimeout(() => {
-        socket.emit('effect_notification', { message: 'Доступно обновление! Пожалуйста, перезагрузите страницу (F5), чтобы таблица лидеров и дуэли работали корректно.' });
-      }, 3000);
-    }
-
     const user = await getQuery('SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, current_cell, character_data FROM users WHERE id = ?', [userId]);
     if (user) {
       onlineUsers.set(String(userId), {
@@ -2965,6 +2959,54 @@ app.post('/api/board/claim-multi-reward', async (req, res) => {
 
     const cell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [cellNumber]);
     if (!cell) return res.status(400).json({ error: 'Ячейка не найдена' });
+
+    if (rewardId && rewardId.startsWith('single_') && !cell.rewards_json) {
+      if (cell.reward_type !== 'card' && cell.reward_type !== 'premium') {
+        return res.status(400).json({ error: 'На этой ячейке нет ценной награды' });
+      }
+      if (cell.claimed_by_user_id !== null) {
+        return res.status(400).json({ error: 'Эта награда уже забрана другим игроком!' });
+      }
+
+      if (claim) {
+        const invCountRow = await getQuery(
+          "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+          [userId]
+        );
+        const count = invCountRow ? invCountRow.count : 0;
+        const maxSlots = user.inventory_slots || 10;
+        if (count >= maxSlots) {
+          return res.status(400).json({ error: `Ваш инвентарь наград заполнен! Максимум можно иметь ${maxSlots} наград.` });
+        }
+
+        const itemType = cell.reward_type === 'card' ? 'remanga_card' : 'premium_subscription';
+        await runQuery(
+          'INSERT INTO inventory (user_id, item_type, name, description, duration, origin_cell_number) VALUES (?, ?, ?, ?, ?, ?)',
+          [userId, itemType, cell.reward_name, cell.reward_detail, 0, cellNumber]
+        );
+
+        const displayName = user.tg_first_name || user.tg_username || `Игрок ${user.id}`;
+        await runQuery(
+          'UPDATE cells SET claimed_by_user_id = ?, claimed_by_username = ? WHERE cell_number = ?',
+          [userId, displayName, cellNumber]
+        );
+
+        await runQuery(
+          'UPDATE users SET has_claimed_reward_this_turn = 1 WHERE id = ?',
+          [userId]
+        );
+
+        await runQuery(
+          'INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)',
+          [userId, 'claim_reward', `Забрана награда с ячейки ${cellNumber}: ${cell.reward_name}`, new Date().toISOString()]
+        );
+
+        await broadcastPlayersList();
+        await broadcastCells();
+      }
+
+      return res.json({ success: true });
+    }
 
     if (!cell.rewards_json) {
       return res.status(400).json({ error: 'На этой ячейке нет множественной награды' });
