@@ -397,7 +397,7 @@ io.on('connection', (socket) => {
     userId = data.userId;
     socket.join(`user_${userId}`);
 
-    if (!data.version || data.version !== '1.4.8') {
+    if (!data.version || data.version !== '1.4.9') {
       setTimeout(() => {
         socket.emit('effect_notification', { message: 'Доступно обновление! Пожалуйста, перезагрузите страницу (F5), чтобы таблица лидеров и дуэли работали корректно.' });
       }, 3000);
