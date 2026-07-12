@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ew-assets-cache-v10';
+const CACHE_NAME = 'ew-assets-cache-v11';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

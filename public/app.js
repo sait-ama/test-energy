@@ -953,7 +953,7 @@ function updateBossModalUI(boss) {
   if (boss.defeated) {
     document.getElementById('boss-status-defeated').classList.remove('hidden');
     document.getElementById('boss-victor-name').textContent = boss.defeated_by_username || 'Неизвестно';
-    
+
     const isPending = state.user && state.user.pending_boss_cell === boss.cell_number;
     if (isPending) {
       document.getElementById('boss-btn-bypass-only').classList.remove('hidden');
@@ -983,7 +983,7 @@ function updateBossModalUI(boss) {
               claimed_by_username: null
             }];
           }
-        } catch (e) {}
+        } catch (e) { }
       }
 
       const hasUnclaimed = cards.some(c => c.claimed_by_user_id === null || c.claimed_by_user_id === undefined);
@@ -1088,7 +1088,7 @@ function updateBossModalUI(boss) {
               cards = [{ cover: parts[0], name: parts[1], char: parts[2] || '' }];
             }
           }
-        } catch (e) {}
+        } catch (e) { }
 
         if (cards.length > 0) {
           cardImgBlock.classList.remove('hidden');
@@ -1175,7 +1175,7 @@ function formatBossReward(boss) {
           return `🃏 ${parts[1]}`;
         }
       }
-    } catch (e) {}
+    } catch (e) { }
     return `🃏 ${boss.reward_detail}`;
   }
   return `${boss.reward_coins || 500} монет`;
@@ -1392,7 +1392,7 @@ function setupAdminBossConfig() {
     adminSelectedBossCards.forEach(card => {
       const div = document.createElement('div');
       div.style.cssText = 'display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 4px; padding: 4px 8px; font-size: 11px;';
-      
+
       let claimText = '';
       if (card.claimed_by_username) {
         claimText = ` <span style="color:#ff4a4a; font-size:9px;">(Забрал: ${card.claimed_by_username})</span>`;
@@ -2273,7 +2273,7 @@ let tgAuthPollingInterval = null;
 
 async function initAuth() {
   const savedUser = localStorage.getItem('ew_event_user');
-  if (savedUser && savedUser !== 'undefined' && savedUser !== 'null') {
+  if (savedUser) {
     try {
       const userObj = JSON.parse(savedUser);
       const res = await fetch(`/api/profile/${userObj.id}`);
@@ -2287,20 +2287,13 @@ async function initAuth() {
         }
       }
       const data = await res.json();
-      if (data && data.user) {
-        state.user = data.user;
-        localStorage.setItem('ew_event_user', JSON.stringify(data.user));
-        checkOnboardingStage(state.user);
-      } else {
-        localStorage.removeItem('ew_event_user');
-        state.user = null;
-        checkOnboardingStage(null);
-      }
+      state.user = data.user;
+      localStorage.setItem('ew_event_user', JSON.stringify(data.user));
+      checkOnboardingStage(state.user);
     } catch (e) {
       console.error('Ошибка проверки сессии при старте:', e);
-      localStorage.removeItem('ew_event_user');
-      state.user = null;
-      checkOnboardingStage(null);
+      state.user = JSON.parse(savedUser);
+      checkOnboardingStage(state.user);
     }
   } else {
     checkOnboardingStage(null);
@@ -2688,7 +2681,7 @@ function initSocket() {
   document.addEventListener('touchstart', sendHeartbeatNow);
 
   state.socket.on('connect', () => {
-    state.socket.emit('authenticate', { userId: state.user.id });
+    state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.4' });
     startHeartbeat();
   });
 
@@ -2704,7 +2697,7 @@ function initSocket() {
       if (!state.socket.connected) {
         state.socket.connect();
       } else {
-        state.socket.emit('authenticate', { userId: state.user.id });
+        state.socket.emit('authenticate', { userId: state.user.id, version: '1.4.4' });
         sendHeartbeatNow();
       }
     }
@@ -2806,6 +2799,17 @@ function initSocket() {
     }
   });
 
+  state.socket.on('leaders_update', () => {
+    const leadersModal = document.getElementById('leaders-modal');
+    if (leadersModal && !leadersModal.classList.contains('hidden')) {
+      refreshLeadersList();
+    }
+  });
+
+  state.socket.on('force_reload', () => {
+    location.reload(true);
+  });
+
   state.socket.on('global_history', (history) => {
     if (!state.globalHistory) {
       state.globalHistory = history;
@@ -2841,11 +2845,11 @@ function initSocket() {
       diceArea.textContent = '🎲';
       let count = 0;
       const interval = setInterval(() => {
-        diceArea.textContent = ['⚀','⚁','⚂','⚃','⚄','⚅'][Math.floor(Math.random() * 6)];
+        diceArea.textContent = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'][Math.floor(Math.random() * 6)];
         count++;
         if (count > 6) {
           clearInterval(interval);
-          const diceMap = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+          const diceMap = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
           diceArea.textContent = diceMap[roll - 1] || '🎲';
         }
       }, 100);
@@ -2881,7 +2885,7 @@ function initSocket() {
     const rollerId = data.rollerId;
     const diceArea = document.getElementById('pvp-dice-area');
     if (diceArea) {
-      const diceMap = ['⚀','⚁','⚂','⚃','⚄','⚅'];
+      const diceMap = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
       diceArea.textContent = diceMap[roll - 1] || '🎲';
     }
     const p1 = duel.player1;
@@ -3011,7 +3015,7 @@ async function refreshProfile() {
               showButton = true;
               btnText = 'Выбрать награду';
             }
-          } catch (e) {}
+          } catch (e) { }
         } else if ((currentCell.reward_type === 'card' || currentCell.reward_type === 'premium') && currentCell.claimed_by_user_id === null) {
           showButton = true;
           btnText = `Забрать: ${currentCell.reward_name}`;
@@ -3041,7 +3045,7 @@ async function refreshProfile() {
             if (data.pendingBoss.bossRewardDetail.startsWith('[')) {
               cards = JSON.parse(data.pendingBoss.bossRewardDetail);
             }
-          } catch (e) {}
+          } catch (e) { }
         }
         const hasUnclaimed = cards.some(c => c.claimed_by_user_id === null || c.claimed_by_user_id === undefined);
         if (hasUnclaimed) {
@@ -4353,7 +4357,7 @@ function setupUI() {
         state.user.balance = data.newBalance;
         state.user.inventory_slots = data.newSlots;
         localStorage.setItem('ew_event_user', JSON.stringify(state.user));
-        
+
         const balanceEl = document.getElementById('balance-value');
         if (balanceEl) balanceEl.textContent = state.user.balance;
         const drawerBalEl = document.getElementById('drawer-balance');
@@ -4388,7 +4392,7 @@ function setupUI() {
         state.user.balance = data.newBalance;
         state.user.inventory_slots = data.newSlots;
         localStorage.setItem('ew_event_user', JSON.stringify(state.user));
-        
+
         const balanceEl = document.getElementById('balance-value');
         if (balanceEl) balanceEl.textContent = state.user.balance;
         const drawerBalEl = document.getElementById('drawer-balance');
@@ -4521,17 +4525,17 @@ function setupUI() {
     const container = document.getElementById('leaders-list-container');
     if (!container) return;
     container.innerHTML = '<div style="text-align: center; color: #8c9ba5; font-size: 13px; padding: 20px;">Загрузка лидеров...</div>';
-    
+
     try {
       const res = await fetch(`/api/leaders?sortBy=${currentLeadersSort}`);
       const data = await res.json();
       container.innerHTML = '';
-      
+
       if (!data || data.length === 0) {
         container.innerHTML = '<div style="text-align: center; color: #8c9ba5; font-size: 13px; padding: 20px;">Нет данных</div>';
         return;
       }
-      
+
       data.forEach((item, index) => {
         const rank = index + 1;
         let rankClass = '';
@@ -4539,7 +4543,7 @@ function setupUI() {
         if (rank === 1) { rankClass = 'leader-rank-1'; rankNumClass = 'gold'; }
         else if (rank === 2) { rankClass = 'leader-rank-2'; rankNumClass = 'silver'; }
         else if (rank === 3) { rankClass = 'leader-rank-3'; rankNumClass = 'bronze'; }
-        
+
         const name = item.remanga_username || item.tg_first_name || item.tg_username || 'Игрок';
         const tgSrc = `/api/tg-avatar/${item.tg_id}`;
         const remangaSrc = item.remanga_avatar ? getAvatarUrl(item.remanga_avatar) : '';
@@ -4554,24 +4558,24 @@ function setupUI() {
             <div style="display:flex; align-items:center; justify-content:center; width:100%; height:100%; border-radius:50%; background:rgba(255,255,255,0.05); color:#00f0ff; font-size:10px; font-weight:bold;">${fallbackText}</div>
           </div>
         `;
-        
+
         const row = document.createElement('div');
         row.className = `leader-row ${rankClass}`;
-        
+
         let scoreHtml = '';
         if (currentLeadersSort === 'wins') {
           scoreHtml = `<div style="margin-left: auto; text-align: right;"><span style="font-weight: bold; color: #00f0ff;">${item.wins}</span> <span style="font-size: 10px; color: #8c9ba5;">побед</span></div>`;
         } else {
           scoreHtml = `<div style="margin-left: auto; text-align: right;"><span style="font-weight: bold; color: #ffb800;">${item.balance}</span> <span style="font-size: 10px; color: #8c9ba5;">монет</span></div>`;
         }
-        
+
         row.innerHTML = `
           <div class="leader-rank-num ${rankNumClass}">${rank}</div>
           ${avatarHtml}
           <div style="font-weight: 600; font-size: 13px; color: #fff;">${name}</div>
           ${scoreHtml}
         `;
-        
+
         container.appendChild(row);
       });
     } catch (err) {
@@ -4583,21 +4587,21 @@ function setupUI() {
   const mobileOpenLeadersBtn = document.getElementById('mobile-open-leaders-btn');
   const leadersModal = document.getElementById('leaders-modal');
   const closeLeadersModalBtn = document.getElementById('close-leaders-modal-btn');
-  
+
   if (openLeadersBtn) {
     openLeadersBtn.addEventListener('click', () => {
       leadersModal.classList.remove('hidden');
       refreshLeadersList();
     });
   }
-  
+
   if (mobileOpenLeadersBtn) {
     mobileOpenLeadersBtn.addEventListener('click', () => {
       leadersModal.classList.remove('hidden');
       refreshLeadersList();
     });
   }
-  
+
   if (closeLeadersModalBtn) {
     closeLeadersModalBtn.addEventListener('click', () => {
       leadersModal.classList.add('hidden');
@@ -5925,7 +5929,7 @@ function setupAdminTabs() {
             try {
               const oldRewards = JSON.parse(state.cells[cellNumber].rewards_json);
               oldPrem = oldRewards.find(r => r.type === 'premium');
-            } catch (e) {}
+            } catch (e) { }
           }
           rewardsArr.push({
             id: oldPrem ? oldPrem.id : 'premium_' + Date.now(),
@@ -5943,7 +5947,7 @@ function setupAdminTabs() {
             try {
               const oldRewards = JSON.parse(state.cells[cellNumber].rewards_json);
               oldCard = oldRewards.find(r => r.type === 'card' && (r.id ? r.id === card.id : r.name === card.name));
-            } catch (e) {}
+            } catch (e) { }
           }
           rewardsArr.push({
             id: card.id,
@@ -6419,7 +6423,7 @@ function renderAdminMultiCardsList() {
   adminSelectedMultiCards.forEach((card, idx) => {
     const itemDiv = document.createElement('div');
     itemDiv.style.cssText = 'display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 2px; gap: 8px;';
-    
+
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.value = card.name || 'Карта';
@@ -6435,7 +6439,7 @@ function renderAdminMultiCardsList() {
       adminSelectedMultiCards.splice(idx, 1);
       renderAdminMultiCardsList();
     });
-    
+
     itemDiv.appendChild(nameInput);
     itemDiv.appendChild(delBtn);
     container.appendChild(itemDiv);
@@ -6643,7 +6647,7 @@ function showCellInfoTag(cellIndex) {
               const parts = boss.reward_detail.split('|');
               cards = [{ cover: parts[0] }];
             }
-          } catch (e) {}
+          } catch (e) { }
 
           if (cards.length > 0) {
             html += `<div style="display: flex; gap: 4px; overflow-x: auto; padding: 4px 0; margin-top: 6px; justify-content: center;">`;
@@ -6673,7 +6677,7 @@ function showCellInfoTag(cellIndex) {
                 claimed_by_username: null
               }];
             }
-          } catch (e) {}
+          } catch (e) { }
 
           const displayName = (state.user && (state.user.tg_first_name || state.user.tg_username)) || `Игрок ${state.user ? state.user.id : ''}`;
           const isKiller = boss.defeated_by_username === displayName;
@@ -6783,7 +6787,7 @@ function showCellInfoTag(cellIndex) {
           if (r.claimed_by_username) {
             text += `<br><span style="color:#ff4a4a; font-size:9px;">(Забрал: ${r.claimed_by_username})</span>`;
           }
-          
+
           html += `<div style="display: flex; flex-direction: column; align-items: center; text-align: center; flex: 1 1 90px; max-width: 110px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 6px; box-sizing: border-box;">
             <div style="font-size: 10px; color: #ffffff; line-height: 1.2; word-break: break-word; margin-bottom: 4px;">${text}</div>`;
           if (r.type === 'card' && r.cover) {
@@ -6793,7 +6797,7 @@ function showCellInfoTag(cellIndex) {
         });
         html += `</div></div>`;
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   contentEl.innerHTML = html;
@@ -6981,7 +6985,7 @@ window.confirmRemoveReward = async (itemId, name) => {
 
 document.getElementById('claim-reward-yes-btn').addEventListener('click', async () => {
   if (!state.pendingReward) return;
-  
+
   const maxSlots = (state.user && state.user.inventory_slots) || 10;
   const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
   if (claimedCount >= maxSlots) {
@@ -7043,7 +7047,7 @@ document.getElementById('claim-reward-current-cell-btn').addEventListener('click
       let rewards = [];
       try {
         rewards = JSON.parse(currentCell.rewards_json);
-      } catch (e) {}
+      } catch (e) { }
       const hasUnclaimed = rewards.some(r => (r.type === 'card' || r.type === 'premium') && !r.claimed_by_user_id);
       if (hasUnclaimed) {
         showMultiRewardChoiceModal({
@@ -7070,10 +7074,10 @@ let selectedMultiRewardId = null;
 function showMultiRewardChoiceModal(rewardTriggered) {
   state.pendingMultiReward = rewardTriggered;
   selectedMultiRewardId = null;
-  
+
   const choiceItems = rewardTriggered.rewards.filter(r => r.type === 'card' || r.type === 'premium');
   const unclaimedItems = choiceItems.filter(item => item.claimed_by_user_id === null || item.claimed_by_user_id === undefined);
-  
+
   if (unclaimedItems.length === 1) {
     selectedMultiRewardId = unclaimedItems[0].id;
   }
@@ -7086,7 +7090,7 @@ function showMultiRewardChoiceModal(rewardTriggered) {
   const maxSlots = (state.user && state.user.inventory_slots) || 10;
   const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
   const freeSlots = Math.max(0, maxSlots - claimedCount);
-  
+
   const slotsInfo = document.getElementById('multi-reward-slots-info');
   if (slotsInfo) {
     slotsInfo.textContent = `Свободных мест для наград: ${freeSlots} из ${maxSlots}.`;
@@ -7096,20 +7100,20 @@ function showMultiRewardChoiceModal(rewardTriggered) {
   const grid = document.getElementById('multi-rewards-grid');
   if (grid) {
     grid.innerHTML = '';
-    
+
     choiceItems.forEach(item => {
       const cardEl = document.createElement('div');
       cardEl.className = 'reward-card-choice-item';
       cardEl.style.cssText = 'position: relative; background: rgba(255,255,255,0.03); border: 2px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 8px; text-align: center; cursor: pointer; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: space-between; min-height: 180px;';
-      
+
       const isClaimed = item.claimed_by_user_id !== null && item.claimed_by_user_id !== undefined;
-      
+
       if (isClaimed) {
         cardEl.style.opacity = '0.5';
         cardEl.style.cursor = 'not-allowed';
         cardEl.style.borderColor = 'rgba(255,0,0,0.2)';
       }
-      
+
       if (!isClaimed && unclaimedItems.length === 1 && item.id === selectedMultiRewardId) {
         cardEl.style.borderColor = '#00f0ff';
         cardEl.style.boxShadow = '0 0 10px rgba(0,240,255,0.4)';
@@ -7118,12 +7122,12 @@ function showMultiRewardChoiceModal(rewardTriggered) {
       if (item.type === 'card') {
         const imgContainer = document.createElement('div');
         imgContainer.style.cssText = 'position: relative; width: 80px; height: 110px; margin-bottom: 6px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 4px; overflow: hidden;';
-        
+
         const spinner = document.createElement('div');
         spinner.className = 'image-loader-spinner';
         spinner.style.cssText = 'position: absolute; width: 20px; height: 20px; border: 2px solid rgba(0,240,255,0.1); border-radius: 50%; border-top-color: #00f0ff; animation: spin 1s linear infinite;';
         imgContainer.appendChild(spinner);
-        
+
         const isWebm = item.cover && (item.cover.toLowerCase().endsWith('.webm') || item.cover.toLowerCase().includes('.webm'));
         const img = document.createElement(isWebm ? 'video' : 'img');
         img.src = item.cover;
@@ -7148,19 +7152,19 @@ function showMultiRewardChoiceModal(rewardTriggered) {
         premIcon.innerHTML = '⭐';
         cardEl.appendChild(premIcon);
       }
-      
+
       const nameLabel = document.createElement('div');
       nameLabel.textContent = item.name;
       nameLabel.style.cssText = 'font-size: 11px; font-weight: bold; margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 26px; line-height: 13px;';
       cardEl.appendChild(nameLabel);
-      
+
       if (isClaimed) {
         const claimedBy = document.createElement('div');
         claimedBy.textContent = `Забрал: ${item.claimed_by_username}`;
         claimedBy.style.cssText = 'font-size: 9px; color: #e74c3c; font-weight: bold; margin-top: 4px;';
         cardEl.appendChild(claimedBy);
       }
-      
+
       if (!isClaimed) {
         cardEl.addEventListener('click', () => {
           if (freeSlots <= 0) {
@@ -7251,7 +7255,7 @@ if (claimMultiYesBtn) {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Ошибка при получении награды');
-      
+
       showNotification('Награда успешно добавлена в ваш инвентарь!', 'success');
       document.getElementById('multi-reward-modal').classList.add('hidden');
       state.pendingMultiReward = null;
@@ -7523,7 +7527,7 @@ window.claimBossCard = async (cellNumber, cardId) => {
             cards = JSON.parse(boss.reward_detail);
           }
           hasMoreUnclaimed = cards.some(c => c.claimed_by_user_id === null || c.claimed_by_user_id === undefined);
-        } catch (e) {}
+        } catch (e) { }
       }
     }
 
@@ -7538,7 +7542,7 @@ window.claimBossCard = async (cellNumber, cardId) => {
           hideBossModal();
           return;
         }
-      } catch (e) {}
+      } catch (e) { }
     }
 
     refreshProfile();
@@ -7675,15 +7679,15 @@ function renderDuelState(duel) {
       document.getElementById('pvp-p1-card-preview').innerHTML = `
         <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; padding: 8px 4px;">
           ${meObj.cards.map(card => {
-            let cover = card.description || '';
-            if (cover.includes('|')) cover = cover.split('|')[0];
-            return `
+        let cover = card.description || '';
+        if (cover.includes('|')) cover = cover.split('|')[0];
+        return `
               <div style="text-align: center; width: 65px;">
                 ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 4px;"`)}
                 <div style="font-size: 8px; font-weight: bold; color: #00f0ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${card.name}">${card.name}</div>
               </div>
             `;
-          }).join('')}
+      }).join('')}
         </div>
       `;
     } else {
@@ -7705,15 +7709,15 @@ function renderDuelState(duel) {
       document.getElementById('pvp-p2-card-preview').innerHTML = `
         <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; padding: 8px 4px;">
           ${oppObj.cards.map(card => {
-            let cover = card.description || '';
-            if (cover.includes('|')) cover = cover.split('|')[0];
-            return `
+        let cover = card.description || '';
+        if (cover.includes('|')) cover = cover.split('|')[0];
+        return `
               <div style="text-align: center; width: 65px;">
                 ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 4px;"`)}
                 <div style="font-size: 8px; font-weight: bold; color: #ff007c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${card.name}">${card.name}</div>
               </div>
             `;
-          }).join('')}
+      }).join('')}
         </div>
       `;
     } else {
@@ -7732,7 +7736,7 @@ function renderDuelState(duel) {
           let cover = item.description || '';
           if (cover.includes('|')) cover = cover.split('|')[0];
           const isSelected = currentlySelectedIds.includes(item.id);
-          
+
           const cardDiv = document.createElement('div');
           cardDiv.style.cssText = `
             position: relative;
@@ -7752,7 +7756,7 @@ function renderDuelState(duel) {
             </div>
             <div style="font-size: 9px; font-weight: bold; color: ${isSelected ? '#00f0ff' : '#fff'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 4px;">${item.name}</div>
           `;
-          
+
           cardDiv.addEventListener('click', async () => {
             let newSelectedIds = [...currentlySelectedIds];
             if (isSelected) {
@@ -7797,15 +7801,15 @@ function renderDuelState(duel) {
       document.getElementById('pvp-active-p1-card').innerHTML = `
         <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; padding: 4px;">
           ${meObj.cards.map(card => {
-            let cover = card.description || '';
-            if (cover.includes('|')) cover = cover.split('|')[0];
-            return `
+        let cover = card.description || '';
+        if (cover.includes('|')) cover = cover.split('|')[0];
+        return `
               <div style="text-align: center; width: 65px;">
                 ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 4px;"`)}
                 <div style="font-size: 8px; font-weight: bold; color: #00f0ff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${card.name}">${card.name}</div>
               </div>
             `;
-          }).join('')}
+      }).join('')}
         </div>
       `;
     } else {
@@ -7820,15 +7824,15 @@ function renderDuelState(duel) {
       document.getElementById('pvp-active-p2-card').innerHTML = `
         <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; width: 100%; padding: 4px;">
           ${oppObj.cards.map(card => {
-            let cover = card.description || '';
-            if (cover.includes('|')) cover = cover.split('|')[0];
-            return `
+        let cover = card.description || '';
+        if (cover.includes('|')) cover = cover.split('|')[0];
+        return `
               <div style="text-align: center; width: 65px;">
                 ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 4px;"`)}
                 <div style="font-size: 8px; font-weight: bold; color: #ff007c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${card.name}">${card.name}</div>
               </div>
             `;
-          }).join('')}
+      }).join('')}
         </div>
       `;
     } else {
@@ -7874,15 +7878,15 @@ function renderDuelState(duel) {
         prizeEl.innerHTML = `
           <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; width: 100%; padding: 10px;">
             ${oppObj.cards.map(card => {
-              let cover = card.description || '';
-              if (cover.includes('|')) cover = cover.split('|')[0];
-              return `
+          let cover = card.description || '';
+          if (cover.includes('|')) cover = cover.split('|')[0];
+          return `
                 <div style="text-align: center; width: 105px;">
                   ${getCardMediaHTML(cover, 'card-item-cover', '', `style="width: 100%; border-radius: 6px; box-shadow: 0 0 10px rgba(46, 204, 113, 0.4);"`)}
                   <div style="font-size: 10px; font-weight: bold; color: #2ecc71; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${card.name}</div>
                 </div>
               `;
-            }).join('')}
+        }).join('')}
           </div>
         `;
       } else {
@@ -7939,7 +7943,7 @@ function initPvpListeners() {
           body: JSON.stringify({ userId: state.user.id })
         });
         renderDuelState(null);
-      } catch (e) {}
+      } catch (e) { }
     });
   }
 
@@ -7966,7 +7970,7 @@ function initPvpListeners() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ userId: state.user.id, duelId: pvpState.currentDuel.id })
           });
-        } catch (e) {}
+        } catch (e) { }
       }
       renderDuelState(null);
     });
@@ -8001,7 +8005,7 @@ function initPvpListeners() {
       const diceArea = document.getElementById('pvp-dice-area');
       let count = 0;
       const animInterval = setInterval(() => {
-        if (diceArea) diceArea.textContent = ['⚀','⚁','⚂','⚃','⚄','⚅'][Math.floor(Math.random() * 6)];
+        if (diceArea) diceArea.textContent = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'][Math.floor(Math.random() * 6)];
         count++;
         if (count > 8) {
           clearInterval(animInterval);
@@ -8093,7 +8097,7 @@ function initPvpListeners() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ userId: state.user.id, initiatorUserId: parseInt(initId) })
         });
-      } catch (e) {}
+      } catch (e) { }
     });
   }
 }

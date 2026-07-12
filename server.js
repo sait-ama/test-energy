@@ -368,6 +368,9 @@ async function broadcastPlayersList() {
     });
 
     io.emit('players_list', playersList);
+    if (io) {
+      io.emit('leaders_update');
+    }
   } catch (err) {
   }
 }
@@ -380,6 +383,12 @@ async function broadcastCells() {
   }
 }
 
+function broadcastLeadersUpdate() {
+  if (io) {
+    io.emit('leaders_update');
+  }
+}
+
 io.on('connection', (socket) => {
   let userId = null;
 
@@ -387,6 +396,12 @@ io.on('connection', (socket) => {
     if (!data || !data.userId) return;
     userId = data.userId;
     socket.join(`user_${userId}`);
+
+    if (!data.version || data.version !== '1.4.4') {
+      setTimeout(() => {
+        socket.emit('effect_notification', { message: 'Доступно обновление! Пожалуйста, перезагрузите страницу (F5), чтобы таблица лидеров и дуэли работали корректно.' });
+      }, 3000);
+    }
 
     const user = await getQuery('SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, current_cell, character_data FROM users WHERE id = ?', [userId]);
     if (user) {
@@ -1672,7 +1687,7 @@ app.post('/api/boss/attack', async (req, res) => {
             const list = JSON.parse(boss.reward_detail);
             cardsCount = list.length;
           }
-        } catch (e) {}
+        } catch (e) { }
         historyDetail = `Побежден босс ${boss.name}! Получено ${reward} монет и доступно карт для получения: ${cardsCount}.`;
       }
 
@@ -3412,7 +3427,7 @@ async function getDuelState(duelId) {
       if (Array.isArray(ids) && ids.length > 0) {
         player1_cards = await allQuery(`SELECT * FROM inventory WHERE id IN (${ids.map(() => '?').join(',')})`, ids);
       }
-    } catch (e) {}
+    } catch (e) { }
   } else if (duel.player1_card_id) {
     const card = await getQuery('SELECT * FROM inventory WHERE id = ?', [duel.player1_card_id]);
     if (card) player1_cards = [card];
@@ -3425,7 +3440,7 @@ async function getDuelState(duelId) {
       if (Array.isArray(ids) && ids.length > 0) {
         player2_cards = await allQuery(`SELECT * FROM inventory WHERE id IN (${ids.map(() => '?').join(',')})`, ids);
       }
-    } catch (e) {}
+    } catch (e) { }
   } else if (duel.player2_card_id) {
     const card = await getQuery('SELECT * FROM inventory WHERE id = ?', [duel.player2_card_id]);
     if (card) player2_cards = [card];
@@ -3494,7 +3509,7 @@ async function resolveDuelTimeout(duelId, winnerId, loserId) {
           }
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   } else if (loserCardId) {
     const item = await getQuery('SELECT * FROM inventory WHERE id = ? AND user_id = ?', [loserCardId, loserId]);
     if (item) {
@@ -3509,6 +3524,7 @@ async function resolveDuelTimeout(duelId, winnerId, loserId) {
   }
 
   await runQuery('UPDATE duels SET status = "finished", winner_user_id = ?, updated_at = ? WHERE id = ?', [winnerId, now.toISOString(), duelId]);
+  await runQuery('UPDATE users SET wins = wins + 1 WHERE id = ?', [winnerId]);
   await broadcastPlayersList();
 
   if (io) {
@@ -3806,7 +3822,7 @@ app.post('/api/pvp/roll', async (req, res) => {
               }
             }
           }
-        } catch (e) {}
+        } catch (e) { }
       } else if (loserCardId) {
         const item = await getQuery("SELECT * FROM inventory WHERE id = ? AND user_id = ?", [loserCardId, loserId]);
         if (item) {
@@ -3823,6 +3839,7 @@ app.post('/api/pvp/roll', async (req, res) => {
         "UPDATE duels SET player1_hp = ?, player2_hp = ?, status = 'finished', winner_user_id = ?, updated_at = ? WHERE id = ?",
         [p1Hp, p2Hp, winnerId, now.toISOString(), duelId]
       );
+      await runQuery("UPDATE users SET wins = wins + 1 WHERE id = ?", [winnerId]);
       await broadcastPlayersList();
 
       const state = await getDuelState(duelId);
@@ -3884,7 +3901,7 @@ app.post('/api/pvp/surrender', async (req, res) => {
             }
           }
         }
-      } catch (e) {}
+      } catch (e) { }
     } else if (loserCardId) {
       const item = await getQuery("SELECT * FROM inventory WHERE id = ? AND user_id = ?", [loserCardId, loserId]);
       if (item) {
@@ -3905,7 +3922,7 @@ app.post('/api/pvp/surrender', async (req, res) => {
       "UPDATE duels SET player1_hp = ?, player2_hp = ?, status = 'finished', winner_user_id = ?, updated_at = ? WHERE id = ?",
       [p1Hp, p2Hp, winnerId, now.toISOString(), duelId]
     );
-
+    await runQuery("UPDATE users SET wins = wins + 1 WHERE id = ?", [winnerId]);
     await broadcastPlayersList();
     const state = await getDuelState(duelId);
 
@@ -4059,7 +4076,7 @@ app.post('/api/pvp/discard-card', async (req, res) => {
               const updatedBosses = await getBossesList();
               if (io) io.emit('bosses_update', updatedBosses);
             }
-          } catch (e) {}
+          } catch (e) { }
         }
       } else {
         const cell = await getQuery("SELECT * FROM cells WHERE cell_number = ?", [cellNumber]);
@@ -4078,7 +4095,7 @@ app.post('/api/pvp/discard-card', async (req, res) => {
                 await runQuery("UPDATE cells SET rewards_json = ? WHERE cell_number = ?", [JSON.stringify(rewards), cellNumber]);
                 cellUpdated = true;
               }
-            } catch (e) {}
+            } catch (e) { }
           }
           if (cellUpdated) {
             await broadcastCells();
