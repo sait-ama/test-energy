@@ -397,6 +397,12 @@ io.on('connection', (socket) => {
     userId = data.userId;
     socket.join(`user_${userId}`);
 
+    if (!data.version || data.version !== '1.4.9') {
+      setTimeout(() => {
+        socket.emit('effect_notification', { message: 'Доступно обновление! Пожалуйста, перезагрузите страницу (F5), чтобы таблица лидеров и дуэли работали корректно.' });
+      }, 3000);
+    }
+
     const user = await getQuery('SELECT id, tg_id, tg_username, tg_first_name, remanga_username, remanga_avatar, current_cell, character_data FROM users WHERE id = ?', [userId]);
     if (user) {
       onlineUsers.set(String(userId), {
