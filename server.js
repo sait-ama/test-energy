@@ -1110,6 +1110,24 @@ async function getCellRewardsList(cell) {
   return list;
 }
 
+function getCoinsFromCell(cellObj) {
+  if (!cellObj) return 0;
+  let val = 0;
+  if (cellObj.rewards_json) {
+    try {
+      const parsed = JSON.parse(cellObj.rewards_json);
+      const coinsItem = parsed.find(r => r.type === 'coins');
+      if (coinsItem && coinsItem.value) {
+        val += parseInt(coinsItem.value) || 0;
+      }
+    } catch (e) { }
+  }
+  if (cellObj.reward_type === 'currency') {
+    val += parseInt(cellObj.reward_detail) || 0;
+  }
+  return val;
+}
+
 app.post('/api/board/roll', async (req, res) => {
   const { userId } = req.body;
   if (!userId) {
@@ -1272,22 +1290,25 @@ app.post('/api/board/roll', async (req, res) => {
           specialEffect = { type: 'guild_tax', value: cell.value };
         }
 
+        const cellBeforeJump = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [endCell]);
         const actualCell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [finalCell]);
-        if (actualCell && !win) {
-          if (actualCell.rewards_json) {
-            try {
-              const parsed = JSON.parse(actualCell.rewards_json);
-              const coinsItem = parsed.find(r => r.type === 'coins');
-              if (coinsItem && coinsItem.value) {
-                newBalance += parseInt(coinsItem.value) || 0;
-              }
-            } catch (e) { }
-          } else if (actualCell.reward_type === 'currency') {
-            newBalance += parseInt(actualCell.reward_detail) || 0;
+        
+        let coinsEarned = 0;
+        if (!win) {
+          if (cellBeforeJump) {
+            coinsEarned += getCoinsFromCell(cellBeforeJump);
+          }
+          if (actualCell && finalCell !== endCell) {
+            coinsEarned += getCoinsFromCell(actualCell);
+          }
+          
+          newBalance += coinsEarned;
+          
+          if (coinsEarned > 0) {
             rewardTriggered = {
-              type: actualCell.reward_type,
-              name: actualCell.reward_name,
-              detail: actualCell.reward_detail
+              type: 'currency',
+              name: 'Монеты',
+              detail: String(coinsEarned)
             };
           }
         }
@@ -1393,7 +1414,8 @@ app.post('/api/board/roll', async (req, res) => {
       specialEffect,
       rewardTriggered,
       win,
-      cooldownUntil: nextCooldown
+      cooldownUntil: nextCooldown,
+      coinsEarned
     };
 
     io.emit('player_move', broadcastData);
@@ -1414,7 +1436,8 @@ app.post('/api/board/roll', async (req, res) => {
       specialEffect,
       rewardTriggered,
       win,
-      bossEncounter
+      bossEncounter,
+      coinsEarned
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1502,6 +1525,8 @@ async function autoSkipPendingBoss(user) {
   let win = false;
   let specialEffect = null;
   let rewardTriggered = null;
+  let newBalance = user.balance;
+  let coinsEarned = 0;
 
   const bossCells = [30, 60, 90, 120, 150, 180, 210, 240, 270, 299];
   const allBosses = await allQuery('SELECT * FROM bosses');
@@ -1586,42 +1611,54 @@ async function autoSkipPendingBoss(user) {
         specialEffect = { type: 'guild_tax', value: cell.value };
       }
 
+      const cellBeforeJump = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [user.current_cell + remaining]);
       const actualCell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [finalCell]);
-      if (actualCell && !win) {
-        if (actualCell.rewards_json) {
-          let rewards = [];
-          try {
-            rewards = JSON.parse(actualCell.rewards_json);
-          } catch (e) { }
-          const coinsItem = rewards.find(r => r.type === 'coins');
-          if (coinsItem && coinsItem.value) {
-            newBalance += parseInt(coinsItem.value) || 0;
-          }
-          const hasUnclaimed = rewards.some(r => (r.type === 'card' || r.type === 'premium') && !r.claimed_by_user_id);
-          if (hasUnclaimed) {
-            rewardTriggered = {
-              type: 'multi',
-              originCell: finalCell,
-              rewards: rewards
-            };
-          }
-        } else if (actualCell.reward_type && actualCell.reward_type !== 'none') {
-          if (actualCell.reward_type === 'currency') {
-            rewardTriggered = { type: actualCell.reward_type, name: actualCell.reward_name, detail: actualCell.reward_detail };
-          } else if ((actualCell.reward_type === 'card' || actualCell.reward_type === 'premium') && actualCell.claimed_by_user_id === null) {
-            rewardTriggered = { type: actualCell.reward_type, name: actualCell.reward_name, detail: actualCell.reward_detail, originCell: finalCell };
-          }
+      
+      if (!win) {
+        if (cellBeforeJump) {
+          coinsEarned += getCoinsFromCell(cellBeforeJump);
+        }
+        if (actualCell && finalCell !== (user.current_cell + remaining)) {
+          coinsEarned += getCoinsFromCell(actualCell);
+        }
+        
+        newBalance += coinsEarned;
+        
+        if (coinsEarned > 0) {
+          rewardTriggered = {
+            type: 'currency',
+            name: 'Монеты',
+            detail: String(coinsEarned)
+          };
+        }
+      }
+
+      if (!win) {
+        let combinedRewards = [];
+        if (actualCell) {
+          const targetRewards = await getCellRewardsList(actualCell);
+          combinedRewards.push(...targetRewards);
+        }
+
+        if (specialEffect && (specialEffect.type === 'forward' || specialEffect.type === 'backward')) {
+          const originRewards = await getCellRewardsList(cell);
+          combinedRewards.push(...originRewards);
+        }
+
+        if (combinedRewards.length > 0) {
+          rewardTriggered = {
+            type: 'multi',
+            originCell: finalCell,
+            rewards: combinedRewards
+          };
         }
       }
     }
   }
 
-  let newBalance = user.balance;
   if (win) {
     newBalance += 500;
     await runQuery('UPDATE users SET wins = wins + 1 WHERE id = ?', [user.id]);
-  } else if (rewardTriggered && rewardTriggered.type === 'currency') {
-    newBalance += parseInt(rewardTriggered.detail) || 0;
   }
 
   let nextRequired = user.guild_tax_required || 0;
@@ -1654,11 +1691,12 @@ async function autoSkipPendingBoss(user) {
     endCell: finalCell,
     specialEffect,
     rewardTriggered,
-    win
+    win,
+    coinsEarned
   });
   await broadcastPlayersList();
 
-  return { path, endCell: finalCell, specialEffect, rewardTriggered, win, balance: newBalance };
+  return { path, endCell: finalCell, specialEffect, rewardTriggered, win, balance: newBalance, coinsEarned };
 }
 
 app.post('/api/boss/skip', async (req, res) => {

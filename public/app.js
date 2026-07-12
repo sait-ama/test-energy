@@ -2689,13 +2689,18 @@ function performSelfMovement(moveData, onComplete) {
         if (onComplete) onComplete();
       }
     });
+    if (moveData.coinsEarned && moveData.coinsEarned > 0) {
+      showRewardPopup({ type: 'currency', detail: moveData.coinsEarned });
+    }
     if (moveData.rewardTriggered && moveData.rewardTriggered.type && moveData.rewardTriggered.type !== 'none') {
       if (moveData.rewardTriggered.type === 'multi') {
         showMultiRewardChoiceModal(moveData.rewardTriggered);
       } else if (moveData.rewardTriggered.type === 'card' || moveData.rewardTriggered.type === 'premium') {
         showRewardChoiceModal(moveData.rewardTriggered);
       } else {
-        showRewardPopup(moveData.rewardTriggered);
+        if (moveData.rewardTriggered.type !== 'currency') {
+          showRewardPopup(moveData.rewardTriggered);
+        }
       }
     }
     if (state.boardScene) {
@@ -3065,6 +3070,8 @@ async function refreshProfile() {
     if (claimBtn) {
       let showButton = false;
       let btnText = 'Забрать награду';
+      let targetCellToClaim = currentCellIndex;
+
       if (currentCell && state.user && state.user.has_claimed_reward_this_turn !== 1) {
         if (currentCell.rewards_json) {
           try {
@@ -3074,13 +3081,52 @@ async function refreshProfile() {
             if (!userClaimed && hasUnclaimed) {
               showButton = true;
               btnText = 'Выбрать награду';
+              targetCellToClaim = currentCellIndex;
             }
           } catch (e) { }
         } else if ((currentCell.reward_type === 'card' || currentCell.reward_type === 'premium') && currentCell.claimed_by_user_id === null) {
           showButton = true;
           btnText = `Забрать: ${currentCell.reward_name}`;
+          targetCellToClaim = currentCellIndex;
         }
       }
+
+      if (!showButton && state.cells && state.user && state.user.has_claimed_reward_this_turn !== 1) {
+        for (let i = 0; i < state.cells.length; i++) {
+          const cell = state.cells[i];
+          if (!cell) continue;
+          let dest = i;
+          if (cell.type === 'forward') {
+            dest = Math.min(299, i + (parseInt(cell.value) || 0));
+          } else if (cell.type === 'backward') {
+            dest = Math.max(0, i - (parseInt(cell.value) || 0));
+          }
+
+          if (dest === currentCellIndex && i !== currentCellIndex) {
+            if (cell.rewards_json) {
+              try {
+                const rewards = JSON.parse(cell.rewards_json);
+                const userClaimed = rewards.some(r => r.claimed_by_user_id === state.user.id);
+                const hasUnclaimed = rewards.some(r => (r.type === 'card' || r.type === 'premium') && !r.claimed_by_user_id);
+                if (!userClaimed && hasUnclaimed) {
+                  showButton = true;
+                  btnText = `Выбрать награду (яч. ${i})`;
+                  targetCellToClaim = i;
+                  break;
+                }
+              } catch (e) { }
+            } else if ((cell.reward_type === 'card' || cell.reward_type === 'premium') && cell.claimed_by_user_id === null) {
+              showButton = true;
+              btnText = `Забрать с яч. ${i}`;
+              targetCellToClaim = i;
+              break;
+            }
+          }
+        }
+      }
+
+      state.targetCellToClaim = targetCellToClaim;
+
       if (showButton) {
         claimBtn.classList.remove('hidden');
         claimBtn.textContent = btnText;
@@ -7105,19 +7151,19 @@ document.getElementById('claim-reward-no-btn').addEventListener('click', async (
 });
 
 document.getElementById('claim-reward-current-cell-btn').addEventListener('click', () => {
-  const currentCellIndex = state.user.current_cell;
-  const currentCell = state.cells ? state.cells[currentCellIndex] : null;
-  if (currentCell) {
-    if (currentCell.rewards_json) {
+  const targetCellIndex = (state.targetCellToClaim !== undefined && state.targetCellToClaim !== null) ? state.targetCellToClaim : state.user.current_cell;
+  const targetCell = state.cells ? state.cells[targetCellIndex] : null;
+  if (targetCell) {
+    if (targetCell.rewards_json) {
       let rewards = [];
       try {
-        rewards = JSON.parse(currentCell.rewards_json);
+        rewards = JSON.parse(targetCell.rewards_json);
       } catch (e) { }
       const hasUnclaimed = rewards.some(r => (r.type === 'card' || r.type === 'premium') && !r.claimed_by_user_id);
       if (hasUnclaimed) {
         showMultiRewardChoiceModal({
           type: 'multi',
-          originCell: currentCellIndex,
+          originCell: targetCellIndex,
           rewards: rewards
         });
       } else {
@@ -7125,10 +7171,10 @@ document.getElementById('claim-reward-current-cell-btn').addEventListener('click
       }
     } else {
       showRewardChoiceModal({
-        type: currentCell.reward_type,
-        name: currentCell.reward_name,
-        detail: currentCell.reward_detail,
-        originCell: currentCellIndex
+        type: targetCell.reward_type,
+        name: targetCell.reward_name,
+        detail: targetCell.reward_detail,
+        originCell: targetCellIndex
       });
     }
   }
