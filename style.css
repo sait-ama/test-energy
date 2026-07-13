@@ -655,6 +655,12 @@ body {
   min-height: 500px;
 }
 
+#board-canvas-container canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
 .board-controls {
   position: absolute;
   bottom: 10px;
@@ -1385,6 +1391,7 @@ body {
   padding: 15px;
   min-width: 200px;
   max-width: 280px;
+  max-height: 80vh;
   backdrop-filter: blur(8px);
   pointer-events: auto;
   display: flex;
