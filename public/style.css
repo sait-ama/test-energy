@@ -1432,6 +1432,14 @@ body {
   max-width: 280px;
   backdrop-filter: blur(8px);
   pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+#cell-info-tag-content {
+  overflow-y: auto;
+  max-height: 100%;
+  -webkit-overflow-scrolling: touch;
 }
 
 .close-cell-info-tag {
@@ -2031,6 +2039,7 @@ body.scroll-locked {
     min-width: 260px;
     max-width: 340px;
     width: 90%;
+    max-height: 80vh;
   }
 }
 

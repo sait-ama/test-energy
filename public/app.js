@@ -2758,7 +2758,11 @@ function initSocket() {
   });
 
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && state.socket) {
+    const isVisible = document.visibilityState === 'visible';
+    if (state.socket && state.socket.connected) {
+      state.socket.emit('window_visibility', { visible: isVisible });
+    }
+    if (isVisible && state.socket) {
       if (!state.socket.connected) {
         state.socket.connect();
       } else {

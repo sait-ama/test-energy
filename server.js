@@ -156,6 +156,11 @@ setInterval(async () => {
   }
   await checkDuelTimeouts();
 }, 10000);
+function isUserOnline(userId) {
+  const cached = onlineUsers.get(String(userId));
+  return cached && cached.socketId !== null && cached.is_focused !== false;
+}
+
 async function sendTelegramMessage(tgId, text) {
   if (!TELEGRAM_BOT_TOKEN || !tgId) return;
   try {
@@ -543,6 +548,7 @@ io.on('connection', (socket) => {
         current_cell: user.current_cell,
         character_data: user.character_data ? JSON.parse(user.character_data) : null,
         socketId: socket.id,
+        is_focused: true,
         last_active: Date.now()
       });
       await broadcastPlayersList();
@@ -552,6 +558,15 @@ io.on('connection', (socket) => {
   socket.on('heartbeat', () => {
     if (userId) {
       touchUserActive(userId);
+    }
+  });
+
+  socket.on('window_visibility', (data) => {
+    if (userId && data) {
+      const cached = onlineUsers.get(String(userId));
+      if (cached) {
+        cached.is_focused = !!data.visible;
+      }
     }
   });
 
@@ -2678,7 +2693,7 @@ app.post('/api/shop/use', async (req, res) => {
 
       io.to(`user_${targetUser.id}`).emit('effect_notification', { message: targetMsg });
 
-      if (targetUser.tg_id) {
+      if (targetUser.tg_id && !isUserOnline(targetUser.id)) {
         const tgText = `🛡 Ваш Энергетический Щит заблокировал и отразил атаку (${item.name}) от игрока ${sourceUser.tg_first_name || sourceUser.tg_username}! Щит был израсходован.`;
         await sendTelegramMessage(targetUser.tg_id, tgText);
       }
@@ -2708,7 +2723,7 @@ app.post('/api/shop/use', async (req, res) => {
       const targetMsg = `Вы были заморожены игроком ${sourceUser.tg_first_name || sourceUser.tg_username} на 2 часа!`;
       io.to(`user_${targetUser.id}`).emit('effect_notification', { message: targetMsg });
 
-      if (targetUser.tg_id) {
+      if (targetUser.tg_id && !isUserOnline(targetUser.id)) {
         const tgText = `❄️ На вас наложен дебафф: ваш кубик был заморожен игроком ${sourceUser.tg_first_name || sourceUser.tg_username} на 2 часа!`;
         await sendTelegramMessage(targetUser.tg_id, tgText);
       }
@@ -2739,7 +2754,7 @@ app.post('/api/shop/use', async (req, res) => {
       const targetMsg = `Вы были замедлены игроком ${sourceUser.tg_first_name || sourceUser.tg_username} на 4 часа!`;
       io.to(`user_${targetUser.id}`).emit('effect_notification', { message: targetMsg });
 
-      if (targetUser.tg_id) {
+      if (targetUser.tg_id && !isUserOnline(targetUser.id)) {
         const tgText = `🐢 На вас наложен дебафф: ваш кубик был замедлен игроком ${sourceUser.tg_first_name || sourceUser.tg_username} на 4 часа!`;
         await sendTelegramMessage(targetUser.tg_id, tgText);
       }
@@ -2768,7 +2783,7 @@ app.post('/api/shop/use', async (req, res) => {
       const targetMsg = `Игрок ${sourceUser.tg_first_name || sourceUser.tg_username} отбросил вас на 3 ячейки назад!`;
       io.to(`user_${targetUser.id}`).emit('effect_notification', { message: targetMsg });
 
-      if (targetUser.tg_id) {
+      if (targetUser.tg_id && !isUserOnline(targetUser.id)) {
         const tgText = `🌪 На вас применили способность: игрок ${sourceUser.tg_first_name || sourceUser.tg_username} отбросил вас на 3 ячейки назад!`;
         await sendTelegramMessage(targetUser.tg_id, tgText);
       }
