@@ -271,7 +271,7 @@ setInterval(async () => {
           await notifyPlayersWaitingForBoss(boss.cell_number, 'free', null, userId);
 
           await runQuery(
-            'UPDATE users SET current_cell = ?, balance = ?, boss_attack_cooldown_notified = 1 WHERE id = ?',
+            'UPDATE users SET current_cell = ?, balance = ?, boss_attack_cooldown_notified = 1, prevent_claim_cell = NULL WHERE id = ?',
             [newCell, newBalance, user.id]
           );
 
@@ -1514,9 +1514,14 @@ app.post('/api/board/roll', async (req, res) => {
       nextPaid = 0;
     }
 
+    let nextPreventCell = user.prevent_claim_cell;
+    if (finalCell !== user.current_cell) {
+      nextPreventCell = null;
+    }
+
     await runQuery(
-      'UPDATE users SET current_cell = ?, balance = ?, wins = ?, dice_cooldown_until = ?, guild_tax_required = ?, guild_tax_paid = ?, dice_cooldown_notified = 0, has_claimed_reward_this_turn = 0 WHERE id = ?',
-      [finalCell, newBalance, winsCount, nextCooldown, nextRequired, nextPaid, user.id]
+      'UPDATE users SET current_cell = ?, balance = ?, wins = ?, dice_cooldown_until = ?, guild_tax_required = ?, guild_tax_paid = ?, dice_cooldown_notified = 0, has_claimed_reward_this_turn = 0, prevent_claim_cell = ? WHERE id = ?',
+      [finalCell, newBalance, winsCount, nextCooldown, nextRequired, nextPaid, nextPreventCell, user.id]
     );
 
     let detailMsg = `Выпало: ${roll}${rollModifierText}. Перемещение на ячейку ${finalCell}.`;
@@ -2048,7 +2053,7 @@ app.post('/api/boss/attack', async (req, res) => {
       );
 
       await runQuery(
-        'UPDATE users SET current_cell = ?, balance = ? WHERE id = ?',
+        'UPDATE users SET current_cell = ?, balance = ?, prevent_claim_cell = NULL WHERE id = ?',
         [newCell, newBalance, user.id]
       );
 
@@ -2150,7 +2155,7 @@ app.post('/api/boss/forfeit', async (req, res) => {
     );
 
     await runQuery(
-      'UPDATE users SET current_cell = ?, balance = ? WHERE id = ?',
+      'UPDATE users SET current_cell = ?, balance = ?, prevent_claim_cell = NULL WHERE id = ?',
       [newCell, newBalance, user.id]
     );
 
@@ -3126,6 +3131,10 @@ app.post('/api/board/claim-reward', async (req, res) => {
       return res.status(400).json({ error: 'Вы уже забрали награду за этот ход!' });
     }
 
+    if (user.prevent_claim_cell !== null && user.prevent_claim_cell === parseInt(cellNumber)) {
+      return res.status(400).json({ error: 'Вы не можете забрать эту карту повторно, не совершив новый ход!' });
+    }
+
     const canAccess = await canUserAccessCell(user, cellNumber);
     if (!canAccess) {
       return res.status(400).json({ error: `Вы находитесь на другой ячейке! (Вы на ${user.current_cell}, а награда на ${cellNumber})` });
@@ -3215,6 +3224,10 @@ app.post('/api/board/claim-multi-reward', async (req, res) => {
 
     if (user.has_claimed_reward_this_turn === 1) {
       return res.status(400).json({ error: 'Вы уже забрали награду за этот ход!' });
+    }
+
+    if (user.prevent_claim_cell !== null && user.prevent_claim_cell === parseInt(cellNumber)) {
+      return res.status(400).json({ error: 'Вы не можете забрать эту карту повторно, не совершив новый ход!' });
     }
 
     const canAccess = await canUserAccessCell(user, cellNumber);
@@ -3901,7 +3914,10 @@ async function resolveDuelTimeout(duelId, winnerId, loserId) {
         for (const cid of ids) {
           const item = await getQuery('SELECT * FROM inventory WHERE id = ? AND user_id = ?', [cid, loserId]);
           if (item) {
-            await runQuery('UPDATE inventory SET user_id = ?, is_pvp_trophy = 1, origin_cell_number = NULL WHERE id = ?', [winnerId, cid]);
+            await runQuery('UPDATE inventory SET user_id = ?, is_pvp_trophy = 1 WHERE id = ?', [winnerId, cid]);
+            if (item.origin_cell_number !== null && item.origin_cell_number !== undefined) {
+              await runQuery('UPDATE users SET prevent_claim_cell = ? WHERE id = ?', [item.origin_cell_number, loserId]);
+            }
             await runQuery('INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)', [
               winnerId, 'pvp_victory', `Победа в дуэли (техническая из-за дисконнекта соперника). Выиграна карта: ${item.name}`, now.toISOString()
             ]);
@@ -3915,7 +3931,10 @@ async function resolveDuelTimeout(duelId, winnerId, loserId) {
   } else if (loserCardId) {
     const item = await getQuery('SELECT * FROM inventory WHERE id = ? AND user_id = ?', [loserCardId, loserId]);
     if (item) {
-      await runQuery('UPDATE inventory SET user_id = ?, is_pvp_trophy = 1, origin_cell_number = NULL WHERE id = ?', [winnerId, loserCardId]);
+      await runQuery('UPDATE inventory SET user_id = ?, is_pvp_trophy = 1 WHERE id = ?', [winnerId, loserCardId]);
+      if (item.origin_cell_number !== null && item.origin_cell_number !== undefined) {
+        await runQuery('UPDATE users SET prevent_claim_cell = ? WHERE id = ?', [item.origin_cell_number, loserId]);
+      }
       await runQuery('INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, ?, ?, ?)', [
         winnerId, 'pvp_victory', `Победа в дуэли (техническая из-за дисконнекта соперника). Выиграна карта: ${item.name}`, now.toISOString()
       ]);
@@ -4087,28 +4106,15 @@ app.post('/api/pvp/select-card', async (req, res) => {
     const duel = await getQuery("SELECT * FROM duels WHERE id = ? AND status = 'setup'", [duelId]);
     if (!duel) return res.status(400).json({ error: 'Дуэль не найдена или уже началась' });
 
-    const user = await getQuery("SELECT current_cell FROM users WHERE id = ?", [userId]);
-    const currentCell = user ? user.current_cell : null;
-
     let finalIds = [];
     if (Array.isArray(itemIds)) {
       for (const cid of itemIds) {
-        const item = await getQuery("SELECT id, origin_cell_number FROM inventory WHERE id = ? AND user_id = ?", [cid, userId]);
-        if (item) {
-          if (item.origin_cell_number !== null && item.origin_cell_number === currentCell) {
-            return res.status(400).json({ error: 'Нельзя делать ставку картой с ячейки, на которой вы сейчас стоите!' });
-          }
-          finalIds.push(cid);
-        }
+        const item = await getQuery("SELECT id FROM inventory WHERE id = ? AND user_id = ?", [cid, userId]);
+        if (item) finalIds.push(cid);
       }
     } else if (itemId) {
-      const item = await getQuery("SELECT id, origin_cell_number FROM inventory WHERE id = ? AND user_id = ?", [itemId, userId]);
-      if (item) {
-        if (item.origin_cell_number !== null && item.origin_cell_number === currentCell) {
-          return res.status(400).json({ error: 'Нельзя делать ставку картой с ячейки, на которой вы сейчас стоите!' });
-        }
-        finalIds.push(itemId);
-      }
+      const item = await getQuery("SELECT id FROM inventory WHERE id = ? AND user_id = ?", [itemId, userId]);
+      if (item) finalIds.push(itemId);
     }
 
     const cardsJson = finalIds.length > 0 ? JSON.stringify(finalIds) : null;
@@ -4227,7 +4233,10 @@ app.post('/api/pvp/roll', async (req, res) => {
             for (const cid of ids) {
               const item = await getQuery("SELECT * FROM inventory WHERE id = ? AND user_id = ?", [cid, loserId]);
               if (item) {
-                await runQuery("UPDATE inventory SET user_id = ?, is_pvp_trophy = 1, origin_cell_number = NULL WHERE id = ?", [winnerId, cid]);
+                await runQuery("UPDATE inventory SET user_id = ?, is_pvp_trophy = 1 WHERE id = ?", [winnerId, cid]);
+                if (item.origin_cell_number !== null && item.origin_cell_number !== undefined) {
+                  await runQuery("UPDATE users SET prevent_claim_cell = ? WHERE id = ?", [item.origin_cell_number, loserId]);
+                }
                 await runQuery("INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, 'pvp_victory', ?, ?)", [
                   winnerId, `Победа в дуэли. Выиграна карта: ${item.name}`, now.toISOString()
                 ]);
@@ -4241,7 +4250,10 @@ app.post('/api/pvp/roll', async (req, res) => {
       } else if (loserCardId) {
         const item = await getQuery("SELECT * FROM inventory WHERE id = ? AND user_id = ?", [loserCardId, loserId]);
         if (item) {
-          await runQuery("UPDATE inventory SET user_id = ?, is_pvp_trophy = 1, origin_cell_number = NULL WHERE id = ?", [winnerId, loserCardId]);
+          await runQuery("UPDATE inventory SET user_id = ?, is_pvp_trophy = 1 WHERE id = ?", [winnerId, loserCardId]);
+          if (item.origin_cell_number !== null && item.origin_cell_number !== undefined) {
+            await runQuery("UPDATE users SET prevent_claim_cell = ? WHERE id = ?", [item.origin_cell_number, loserId]);
+          }
           await runQuery("INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, 'pvp_victory', ?, ?)", [
             winnerId, `Победа в дуэли. Выиграна карта: ${item.name}`, now.toISOString()
           ]);
@@ -4306,7 +4318,10 @@ app.post('/api/pvp/surrender', async (req, res) => {
           for (const cid of ids) {
             const item = await getQuery("SELECT * FROM inventory WHERE id = ? AND user_id = ?", [cid, loserId]);
             if (item) {
-              await runQuery("UPDATE inventory SET user_id = ?, is_pvp_trophy = 1, origin_cell_number = NULL WHERE id = ?", [winnerId, cid]);
+              await runQuery("UPDATE inventory SET user_id = ?, is_pvp_trophy = 1 WHERE id = ?", [winnerId, cid]);
+              if (item.origin_cell_number !== null && item.origin_cell_number !== undefined) {
+                await runQuery("UPDATE users SET prevent_claim_cell = ? WHERE id = ?", [item.origin_cell_number, loserId]);
+              }
               await runQuery("INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, 'pvp_victory', ?, ?)", [
                 winnerId, `Победа в дуэли (соперник сдался). Выиграна карта: ${item.name}`, now.toISOString()
               ]);
@@ -4320,7 +4335,10 @@ app.post('/api/pvp/surrender', async (req, res) => {
     } else if (loserCardId) {
       const item = await getQuery("SELECT * FROM inventory WHERE id = ? AND user_id = ?", [loserCardId, loserId]);
       if (item) {
-        await runQuery("UPDATE inventory SET user_id = ?, is_pvp_trophy = 1, origin_cell_number = NULL WHERE id = ?", [winnerId, loserCardId]);
+        await runQuery("UPDATE inventory SET user_id = ?, is_pvp_trophy = 1 WHERE id = ?", [winnerId, loserCardId]);
+        if (item.origin_cell_number !== null && item.origin_cell_number !== undefined) {
+          await runQuery("UPDATE users SET prevent_claim_cell = ? WHERE id = ?", [item.origin_cell_number, loserId]);
+        }
         await runQuery("INSERT INTO history (user_id, action, detail, timestamp) VALUES (?, 'pvp_victory', ?, ?)", [
           winnerId, `Победа в дуэли (соперник сдался). Выиграна карта: ${item.name}`, now.toISOString()
         ]);

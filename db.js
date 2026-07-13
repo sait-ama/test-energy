@@ -41,6 +41,7 @@ export function initDb() {
       db.run(`ALTER TABLE users ADD COLUMN starting_costume TEXT DEFAULT NULL`, () => { });
       db.run(`ALTER TABLE users ADD COLUMN inventory_slots INTEGER DEFAULT 10`, () => { });
       db.run(`ALTER TABLE users ADD COLUMN dice_cooldown_notified INTEGER DEFAULT 1`, () => { });
+      db.run(`ALTER TABLE users ADD COLUMN prevent_claim_cell INTEGER DEFAULT NULL`, () => { });
 
       db.run(`
         CREATE TABLE IF NOT EXISTS equipment_inventory (
