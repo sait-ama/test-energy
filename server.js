@@ -4618,6 +4618,11 @@ initDb().then(() => {
     startGuildScanner(io, broadcastGlobalHistory);
     startTelegramPolling();
     startPublishingLoop();
+    setTimeout(() => {
+      if (io) {
+        io.emit('force_reload');
+      }
+    }, 3000);
   });
 }).catch(err => {
   process.exit(1);
