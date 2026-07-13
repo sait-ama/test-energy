@@ -1436,7 +1436,7 @@ body {
   padding: 15px;
   min-width: 200px;
   max-width: 280px;
-  max-height: 80vh;
+  max-height: calc(100% - 20px);
   backdrop-filter: blur(8px);
   pointer-events: auto;
   display: flex;
@@ -2047,7 +2047,7 @@ body.scroll-locked {
     min-width: 260px;
     max-width: 340px;
     width: 90%;
-    max-height: 80vh;
+    max-height: calc(100% - 20px);
   }
 }
 
