@@ -968,6 +968,7 @@ function updateBossModalUI(boss) {
   document.getElementById('boss-btn-close').classList.add('hidden');
   document.getElementById('boss-btn-bypass-only').classList.add('hidden');
   document.getElementById('boss-btn-fight').classList.add('hidden');
+  document.getElementById('boss-btn-wait').classList.add('hidden');
   document.getElementById('boss-btn-bypass').classList.add('hidden');
   document.getElementById('boss-btn-attack').classList.add('hidden');
   document.getElementById('boss-btn-forfeit').classList.add('hidden');
@@ -978,7 +979,7 @@ function updateBossModalUI(boss) {
     document.getElementById('boss-status-defeated').classList.remove('hidden');
     document.getElementById('boss-victor-name').textContent = boss.defeated_by_username || 'Неизвестно';
 
-    const isPending = state.user && state.user.pending_boss_cell === boss.cell_number;
+    const isPending = state.user && Number(state.user.pending_boss_cell) === Number(boss.cell_number);
     if (isPending) {
       document.getElementById('boss-btn-bypass-only').classList.remove('hidden');
       document.getElementById('boss-btn-close').classList.add('hidden');
@@ -1024,7 +1025,7 @@ function updateBossModalUI(boss) {
           } else {
             const isKiller = (state.user && boss.defeated_by_user_id === state.user.id) || boss.defeated_by_username === displayName;
             const killerIsOnBossCell = boss.killer_current_cell === boss.cell_number;
-            const userIsOnBossCell = state.user && state.user.current_cell === boss.cell_number;
+            const userIsOnBossCell = state.user && Number(state.user.current_cell) === Number(boss.cell_number);
             const canClaim = userIsOnBossCell && (isKiller || !killerIsOnBossCell);
 
             if (canClaim) {
@@ -1054,7 +1055,8 @@ function updateBossModalUI(boss) {
   } else if (boss.current_fighter_id && boss.current_fighter_id !== state.user.id) {
     document.getElementById('boss-status-occupied').classList.remove('hidden');
     document.getElementById('boss-fighter-name').textContent = boss.current_fighter_username || 'Неизвестно';
-    document.getElementById('boss-btn-bypass-only').classList.remove('hidden');
+    document.getElementById('boss-btn-wait').classList.remove('hidden');
+    document.getElementById('boss-btn-bypass').classList.remove('hidden');
   } else if (boss.current_fighter_id === state.user.id) {
     document.getElementById('boss-status-battle').classList.remove('hidden');
     document.getElementById('boss-btn-attack').classList.remove('hidden');
@@ -1163,13 +1165,14 @@ function updateBossModalUI(boss) {
   }
 
   const playerOnOrPendingBoss = state.user && (
-    state.user.current_cell === boss.cell_number ||
-    state.user.pending_boss_cell === boss.cell_number
+    Number(state.user.current_cell) === Number(boss.cell_number) ||
+    Number(state.user.pending_boss_cell) === Number(boss.cell_number)
   );
   if (!playerOnOrPendingBoss) {
     document.getElementById('boss-btn-bypass-only').classList.add('hidden');
     document.getElementById('boss-btn-fight').classList.add('hidden');
     document.getElementById('boss-btn-bypass').classList.add('hidden');
+    document.getElementById('boss-btn-wait').classList.add('hidden');
     document.getElementById('boss-btn-attack').classList.add('hidden');
     document.getElementById('boss-btn-forfeit').classList.add('hidden');
     document.getElementById('boss-btn-close').classList.remove('hidden');
@@ -1257,6 +1260,10 @@ function initBossModalEvents() {
   if (!modal) return;
 
   document.getElementById('boss-btn-close').addEventListener('click', () => {
+    hideBossModal();
+  });
+
+  document.getElementById('boss-btn-wait').addEventListener('click', () => {
     hideBossModal();
   });
 
@@ -3201,7 +3208,7 @@ function showPendingBossModal(pendingBoss) {
   if (!modal) return;
   modal.classList.remove('hidden');
 
-  const boss = (state.bosses || []).find(b => b.cell_number === pendingBoss.cellNumber);
+  const boss = (state.bosses || []).find(b => Number(b.cell_number) === Number(pendingBoss.cellNumber));
   if (boss) {
     updateBossModalUI(boss);
     return;
@@ -3214,6 +3221,7 @@ function showPendingBossModal(pendingBoss) {
   document.getElementById('boss-btn-close').classList.add('hidden');
   document.getElementById('boss-btn-bypass-only').classList.add('hidden');
   document.getElementById('boss-btn-fight').classList.add('hidden');
+  document.getElementById('boss-btn-wait').classList.add('hidden');
   document.getElementById('boss-btn-bypass').classList.add('hidden');
   document.getElementById('boss-btn-attack').classList.add('hidden');
   document.getElementById('boss-btn-forfeit').classList.add('hidden');
@@ -3223,6 +3231,7 @@ function showPendingBossModal(pendingBoss) {
   if (pendingBoss.currentFighterId && pendingBoss.currentFighterId !== state.user.id) {
     document.getElementById('boss-status-occupied').classList.remove('hidden');
     document.getElementById('boss-fighter-name').textContent = pendingBoss.currentFighterName || 'Неизвестно';
+    document.getElementById('boss-btn-wait').classList.remove('hidden');
     document.getElementById('boss-btn-bypass').classList.remove('hidden');
   } else {
     document.getElementById('boss-status-ready').classList.remove('hidden');
@@ -7713,7 +7722,7 @@ window.claimBossCard = async (cellNumber, cardId) => {
       }
     }
 
-    if (!hasMoreUnclaimed && state.user && state.user.pending_boss_cell === cellNumber && state.user.pending_boss_remaining > 0) {
+    if (!hasMoreUnclaimed && state.user && Number(state.user.pending_boss_cell) === Number(cellNumber) && state.user.pending_boss_remaining > 0) {
       try {
         const skipRes = await fetch('/api/boss/skip', {
           method: 'POST',
