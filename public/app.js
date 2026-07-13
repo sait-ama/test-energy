@@ -3900,7 +3900,7 @@ function initBoard3D() {
     }
   }
 
-  renderer.setSize(width, height);
+  renderer.setSize(width, height, false);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.shadowMap.enabled = true;
   container.appendChild(renderer.domElement);
@@ -4228,15 +4228,21 @@ function initBoard3D() {
   };
   animate();
 
+  let lastWidth = width;
+  let lastHeight = height;
   state.boardResizeObserver = new ResizeObserver(() => {
     if (!container.clientWidth) return;
     const w = container.clientWidth;
     const h = container.clientHeight;
-    const aspect = w / h;
-    camera.aspect = aspect;
-    camera.fov = 50;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, h);
+    if (Math.abs(w - lastWidth) > 3 || Math.abs(h - lastHeight) > 3) {
+      lastWidth = w;
+      lastHeight = h;
+      const aspect = w / h;
+      camera.aspect = aspect;
+      camera.fov = 50;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h, false);
+    }
   });
   state.boardResizeObserver.observe(container);
 }
