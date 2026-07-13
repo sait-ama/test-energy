@@ -169,6 +169,40 @@ async function sendTelegramMessage(tgId, text) {
   }
 }
 
+async function notifyPlayersWaitingForBoss(bossCellNumber, eventType, defeatedByUsername = null, fighterUserId = null) {
+  try {
+    const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [bossCellNumber]);
+    if (!boss) return;
+
+    const players = await allQuery(`
+      SELECT * FROM users 
+      WHERE tg_id IS NOT NULL 
+        AND (
+          (current_cell >= ? AND current_cell <= ?)
+          OR pending_boss_cell = ?
+        )
+    `, [bossCellNumber - 6, bossCellNumber - 1, bossCellNumber]);
+
+    for (const p of players) {
+      if (fighterUserId && p.id === fighterUserId) continue;
+
+      let msg = '';
+      if (eventType === 'defeated') {
+        msg = `💀 Босс ${boss.name} (ячейка ${bossCellNumber}) был побежден игроком ${defeatedByUsername || 'кем-то'}! Он больше не преграждает путь.`;
+      } else if (eventType === 'free') {
+        msg = `⚔️ Босс ${boss.name} (ячейка ${bossCellNumber}) теперь свободен! Вы стоите рядом с ним и можете начать бой.`;
+      }
+
+      if (msg) {
+        await sendTelegramMessage(p.tg_id, msg);
+      }
+    }
+  } catch (err) {
+    console.error('Error in notifyPlayersWaitingForBoss:', err);
+  }
+}
+
+
 setInterval(async () => {
   try {
     const nowIso = new Date().toISOString();
@@ -234,6 +268,7 @@ setInterval(async () => {
             'UPDATE bosses SET current_fighter_id = NULL, current_fighter_username = NULL, current_fighter_hp = 0, last_attack_time = ? WHERE cell_number = ?',
             [now.toISOString(), boss.cell_number]
           );
+          await notifyPlayersWaitingForBoss(boss.cell_number, 'free', null, userId);
 
           await runQuery(
             'UPDATE users SET current_cell = ?, balance = ?, boss_attack_cooldown_notified = 1 WHERE id = ?',
@@ -274,6 +309,7 @@ setInterval(async () => {
             'UPDATE bosses SET current_fighter_id = NULL, current_fighter_username = NULL, current_fighter_hp = 0, last_attack_time = ? WHERE cell_number = ?',
             [now.toISOString(), boss.cell_number]
           );
+          await notifyPlayersWaitingForBoss(boss.cell_number, 'free', null, userId);
         }
       }
     }
@@ -1970,6 +2006,7 @@ app.post('/api/boss/attack', async (req, res) => {
       );
 
       await broadcastBossesList();
+      await notifyPlayersWaitingForBoss(cellNumber, 'defeated', user.tg_first_name || user.tg_username || 'Неизвестно', user.id);
 
       io.to(`user_${user.id}`).emit('balance_update', { balance: newBalance });
 
@@ -2025,6 +2062,7 @@ app.post('/api/boss/attack', async (req, res) => {
       );
 
       await broadcastBossesList();
+      await notifyPlayersWaitingForBoss(cellNumber, 'free', null, user.id);
 
       if (onlineUsers.has(String(user.id))) {
         const cached = onlineUsers.get(String(user.id));
@@ -2122,6 +2160,7 @@ app.post('/api/boss/forfeit', async (req, res) => {
     );
 
     await broadcastBossesList();
+    await notifyPlayersWaitingForBoss(cellNumber, 'free', null, user.id);
 
     if (onlineUsers.has(String(user.id))) {
       const cached = onlineUsers.get(String(user.id));
