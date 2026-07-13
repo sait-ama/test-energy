@@ -2678,7 +2678,7 @@ app.post('/api/shop/use', async (req, res) => {
 
       io.to(`user_${targetUser.id}`).emit('effect_notification', { message: targetMsg });
 
-      if (targetUser.tg_id && !onlineUsers.has(String(targetUser.id))) {
+      if (targetUser.tg_id && !isUserOnline(targetUser.id)) {
         const tgText = `🛡 Ваш Энергетический Щит заблокировал и отразил атаку (${item.name}) от игрока ${sourceUser.tg_first_name || sourceUser.tg_username}! Щит был израсходован.`;
         await sendTelegramMessage(targetUser.tg_id, tgText);
       }
@@ -2708,7 +2708,7 @@ app.post('/api/shop/use', async (req, res) => {
       const targetMsg = `Вы были заморожены игроком ${sourceUser.tg_first_name || sourceUser.tg_username} на 2 часа!`;
       io.to(`user_${targetUser.id}`).emit('effect_notification', { message: targetMsg });
 
-      if (targetUser.tg_id && !onlineUsers.has(String(targetUser.id))) {
+      if (targetUser.tg_id && !isUserOnline(targetUser.id)) {
         const tgText = `❄️ На вас наложен дебафф: ваш кубик был заморожен игроком ${sourceUser.tg_first_name || sourceUser.tg_username} на 2 часа!`;
         await sendTelegramMessage(targetUser.tg_id, tgText);
       }
@@ -2739,7 +2739,7 @@ app.post('/api/shop/use', async (req, res) => {
       const targetMsg = `Вы были замедлены игроком ${sourceUser.tg_first_name || sourceUser.tg_username} на 4 часа!`;
       io.to(`user_${targetUser.id}`).emit('effect_notification', { message: targetMsg });
 
-      if (targetUser.tg_id && !onlineUsers.has(String(targetUser.id))) {
+      if (targetUser.tg_id && !isUserOnline(targetUser.id)) {
         const tgText = `🐢 На вас наложен дебафф: ваш кубик был замедлен игроком ${sourceUser.tg_first_name || sourceUser.tg_username} на 4 часа!`;
         await sendTelegramMessage(targetUser.tg_id, tgText);
       }
@@ -2768,7 +2768,7 @@ app.post('/api/shop/use', async (req, res) => {
       const targetMsg = `Игрок ${sourceUser.tg_first_name || sourceUser.tg_username} отбросил вас на 3 ячейки назад!`;
       io.to(`user_${targetUser.id}`).emit('effect_notification', { message: targetMsg });
 
-      if (targetUser.tg_id && !onlineUsers.has(String(targetUser.id))) {
+      if (targetUser.tg_id && !isUserOnline(targetUser.id)) {
         const tgText = `🌪 На вас применили способность: игрок ${sourceUser.tg_first_name || sourceUser.tg_username} отбросил вас на 3 ячейки назад!`;
         await sendTelegramMessage(targetUser.tg_id, tgText);
       }
