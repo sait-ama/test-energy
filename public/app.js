@@ -3839,8 +3839,18 @@ function initBoard3D() {
   cleanupBoard3D();
   const container = document.getElementById('board-canvas-container');
   if (!container) return;
-  const width = container.clientWidth;
-  const height = container.clientHeight;
+  let width = container.clientWidth;
+  let height = container.clientHeight;
+  if (!width || width < 10) {
+    width = window.innerWidth;
+  }
+  if (!height || height < 10) {
+    const wrapper = container.closest('.board-3d-wrapper');
+    height = wrapper ? wrapper.clientHeight : 500;
+    if (!height || height < 10) {
+      height = window.innerHeight * 0.7;
+    }
+  }
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#030509');
@@ -3874,7 +3884,22 @@ function initBoard3D() {
 
   camera.position.set(cameraX, cameraY, cameraZ);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+  } catch (e) {
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: false });
+    } catch (e2) {
+      console.error("WebGL not supported:", e2);
+      container.innerHTML = `<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #ff4a4a; text-align: center; padding: 20px; font-size: 14px; background: #030509;">
+        <span style="font-size: 24px; margin-bottom: 10px;">⚠️</span>
+        WebGL не поддерживается вашим устройством или браузером.
+      </div>`;
+      return;
+    }
+  }
+
   renderer.setSize(width, height);
   renderer.setPixelRatio(window.devicePixelRatio);
   renderer.shadowMap.enabled = true;
