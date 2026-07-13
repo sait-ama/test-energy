@@ -3238,12 +3238,20 @@ app.post('/api/board/claim-multi-reward', async (req, res) => {
     const cell = await getQuery('SELECT * FROM cells WHERE cell_number = ?', [cellNumber]);
     if (!cell) return res.status(400).json({ error: 'Ячейка не найдена' });
 
-    if (rewardId && rewardId.startsWith('single_') && !cell.rewards_json) {
+    if (rewardId && rewardId.startsWith('single_')) {
       if (cell.reward_type !== 'card' && cell.reward_type !== 'premium') {
         return res.status(400).json({ error: 'На этой ячейке нет ценной награды' });
       }
       if (cell.claimed_by_user_id !== null) {
         return res.status(400).json({ error: 'Эта награда уже забрана другим игроком!' });
+      }
+      if (cell.rewards_json) {
+        let rewards = [];
+        try { rewards = JSON.parse(cell.rewards_json); } catch (e) {}
+        const hasClaimedMulti = rewards.some(r => r.claimed_by_user_id === userId);
+        if (hasClaimedMulti) {
+          return res.status(400).json({ error: 'Вы уже забрали награду с этой ячейки!' });
+        }
       }
 
       if (claim) {
@@ -3303,7 +3311,7 @@ app.post('/api/board/claim-multi-reward', async (req, res) => {
     }
 
     const reward = rewards[rewardIndex];
-    const userAlreadyClaimed = rewards.some(r => r.claimed_by_user_id === userId);
+    const userAlreadyClaimed = rewards.some(r => r.claimed_by_user_id === userId) || cell.claimed_by_user_id === userId;
     if (userAlreadyClaimed) {
       return res.status(400).json({ error: 'Вы уже забрали награду с этой ячейки!' });
     }

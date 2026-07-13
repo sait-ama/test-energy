@@ -3076,6 +3076,16 @@ async function refreshProfile() {
         if (currentCell.rewards_json) {
           try {
             const rewards = JSON.parse(currentCell.rewards_json);
+            if (currentCell.reward_type === 'card' || currentCell.reward_type === 'premium') {
+              rewards.unshift({
+                id: 'single_reward',
+                type: currentCell.reward_type,
+                name: currentCell.reward_name,
+                detail: currentCell.reward_detail,
+                claimed_by_user_id: currentCell.claimed_by_user_id,
+                claimed_by_username: currentCell.claimed_by_username
+              });
+            }
             const userClaimed = rewards.some(r => r.claimed_by_user_id === state.user.id);
             const hasUnclaimed = rewards.some(r => (r.type === 'card' || r.type === 'premium') && !r.claimed_by_user_id);
             if (!userClaimed && hasUnclaimed) {
@@ -3106,6 +3116,16 @@ async function refreshProfile() {
             if (cell.rewards_json) {
               try {
                 const rewards = JSON.parse(cell.rewards_json);
+                if (cell.reward_type === 'card' || cell.reward_type === 'premium') {
+                  rewards.unshift({
+                    id: 'single_reward',
+                    type: cell.reward_type,
+                    name: cell.reward_name,
+                    detail: cell.reward_detail,
+                    claimed_by_user_id: cell.claimed_by_user_id,
+                    claimed_by_username: cell.claimed_by_username
+                  });
+                }
                 const userClaimed = rewards.some(r => r.claimed_by_user_id === state.user.id);
                 const hasUnclaimed = rewards.some(r => (r.type === 'card' || r.type === 'premium') && !r.claimed_by_user_id);
                 if (!userClaimed && hasUnclaimed) {
@@ -7159,6 +7179,16 @@ document.getElementById('claim-reward-current-cell-btn').addEventListener('click
       try {
         rewards = JSON.parse(targetCell.rewards_json);
       } catch (e) { }
+      if (targetCell.reward_type === 'card' || targetCell.reward_type === 'premium') {
+        rewards.unshift({
+          id: 'single_reward',
+          type: targetCell.reward_type,
+          name: targetCell.reward_name,
+          detail: targetCell.reward_detail,
+          claimed_by_user_id: targetCell.claimed_by_user_id,
+          claimed_by_username: targetCell.claimed_by_username
+        });
+      }
       const hasUnclaimed = rewards.some(r => (r.type === 'card' || r.type === 'premium') && !r.claimed_by_user_id);
       if (hasUnclaimed) {
         showMultiRewardChoiceModal({
