@@ -992,6 +992,25 @@ app.get('/api/profile/:id', async (req, res) => {
       } else {
         await runQuery('UPDATE users SET pending_boss_cell = NULL, pending_boss_remaining = 0 WHERE id = ?', [user.id]);
       }
+    } else {
+      const activeFight = await getQuery('SELECT * FROM bosses WHERE current_fighter_id = ? AND defeated = 0', [user.id]);
+      if (activeFight) {
+        pendingBoss = {
+          cellNumber: activeFight.cell_number,
+          bossName: activeFight.name,
+          bossHp: activeFight.hp,
+          bossMaxHp: activeFight.max_hp,
+          bossDmg: activeFight.dmg,
+          bossWeakness: activeFight.weakness,
+          bossReward: activeFight.reward_coins,
+          bossRewardType: activeFight.reward_type || 'coins',
+          bossRewardDetail: activeFight.reward_detail || '',
+          defeated: activeFight.defeated,
+          currentFighterId: activeFight.current_fighter_id,
+          currentFighterName: activeFight.current_fighter_username,
+          remainingSteps: 0
+        };
+      }
     }
 
     res.json({
@@ -3088,7 +3107,7 @@ app.post('/api/board/claim-reward', async (req, res) => {
 
     if (claim) {
       const invCountRow = await getQuery(
-        "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+        "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription') AND (is_pvp_trophy IS NULL OR is_pvp_trophy = 0)",
         [userId]
       );
       const count = invCountRow ? invCountRow.count : 0;
@@ -3177,7 +3196,7 @@ app.post('/api/board/claim-multi-reward', async (req, res) => {
 
       if (claim) {
         const invCountRow = await getQuery(
-          "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+          "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription') AND (is_pvp_trophy IS NULL OR is_pvp_trophy = 0)",
           [userId]
         );
         const count = invCountRow ? invCountRow.count : 0;
@@ -3243,7 +3262,7 @@ app.post('/api/board/claim-multi-reward', async (req, res) => {
 
     if (claim) {
       const invCountRow = await getQuery(
-        "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+        "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription') AND (is_pvp_trophy IS NULL OR is_pvp_trophy = 0)",
         [userId]
       );
       const count = invCountRow ? invCountRow.count : 0;
@@ -3715,7 +3734,7 @@ app.post('/api/boss/claim-reward-card', async (req, res) => {
     }
 
     const invCountRow = await getQuery(
-      "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription')",
+      "SELECT COUNT(*) as count FROM inventory WHERE user_id = ? AND item_type IN ('remanga_card', 'premium_subscription') AND (is_pvp_trophy IS NULL OR is_pvp_trophy = 0)",
       [userId]
     );
     const count = invCountRow ? invCountRow.count : 0;
