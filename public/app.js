@@ -7026,7 +7026,7 @@ function showRewardChoiceModal(reward) {
   document.getElementById('reward-choice-name').textContent = reward.name;
 
   const maxSlots = (state.user && state.user.inventory_slots) || 10;
-  const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
+  const claimedCount = state.inventory ? state.inventory.filter(item => (item.item_type === 'remanga_card' || item.item_type === 'premium_subscription') && !item.is_pvp_trophy).length : 0;
   const freeSlots = Math.max(0, maxSlots - claimedCount);
   const canClaim = freeSlots > 0;
 
@@ -7098,7 +7098,7 @@ document.getElementById('claim-reward-yes-btn').addEventListener('click', async 
   if (!state.pendingReward) return;
 
   const maxSlots = (state.user && state.user.inventory_slots) || 10;
-  const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
+  const claimedCount = state.inventory ? state.inventory.filter(item => (item.item_type === 'remanga_card' || item.item_type === 'premium_subscription') && !item.is_pvp_trophy).length : 0;
   if (claimedCount >= maxSlots) {
     if (maxSlots < 20) {
       document.getElementById('buy-slots-modal').classList.remove('hidden');
@@ -7202,7 +7202,7 @@ function showMultiRewardChoiceModal(rewardTriggered) {
   }
 
   const maxSlots = (state.user && state.user.inventory_slots) || 10;
-  const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
+  const claimedCount = state.inventory ? state.inventory.filter(item => (item.item_type === 'remanga_card' || item.item_type === 'premium_subscription') && !item.is_pvp_trophy).length : 0;
   const freeSlots = Math.max(0, maxSlots - claimedCount);
 
   const slotsInfo = document.getElementById('multi-reward-slots-info');
@@ -7348,7 +7348,7 @@ if (claimMultiYesBtn) {
     }
 
     const maxSlots = (state.user && state.user.inventory_slots) || 10;
-    const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
+    const claimedCount = state.inventory ? state.inventory.filter(item => (item.item_type === 'remanga_card' || item.item_type === 'premium_subscription') && !item.is_pvp_trophy).length : 0;
     if (claimedCount >= maxSlots) {
       if (maxSlots < 20) {
         document.getElementById('buy-slots-modal').classList.remove('hidden');
@@ -7612,7 +7612,7 @@ window.claimBossCard = async (cellNumber, cardId) => {
   if (!state.user) return;
 
   const maxSlots = (state.user && state.user.inventory_slots) || 10;
-  const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
+  const claimedCount = state.inventory ? state.inventory.filter(item => (item.item_type === 'remanga_card' || item.item_type === 'premium_subscription') && !item.is_pvp_trophy).length : 0;
   if (claimedCount >= maxSlots) {
     if (maxSlots < 20) {
       document.getElementById('buy-slots-modal').classList.remove('hidden');

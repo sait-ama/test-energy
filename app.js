@@ -3221,7 +3221,7 @@ function showRewardChoiceModal(reward) {
   state.pendingReward = reward;
   document.getElementById('reward-choice-name').textContent = reward.name;
   
-  const claimedCount = state.inventory ? state.inventory.filter(item => item.item_type === 'remanga_card' || item.item_type === 'premium_subscription').length : 0;
+  const claimedCount = state.inventory ? state.inventory.filter(item => (item.item_type === 'remanga_card' || item.item_type === 'premium_subscription') && !item.is_pvp_trophy).length : 0;
   const freeSlots = Math.max(0, 10 - claimedCount);
   const canClaim = freeSlots > 0;
   
