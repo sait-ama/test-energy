@@ -1399,8 +1399,9 @@ body {
 }
 
 #cell-info-tag-content {
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  max-height: 100%;
   -webkit-overflow-scrolling: touch;
 }
 
