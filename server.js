@@ -1319,7 +1319,15 @@ app.post('/api/board/roll', async (req, res) => {
     }
 
     if (user.pending_boss_cell !== null && user.pending_boss_cell !== undefined) {
-      return res.status(400).json({ error: 'Вы стоите перед боссом! Сначала примите решение: сразиться или пройти мимо.' });
+      const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [user.pending_boss_cell]);
+      if (boss && !boss.defeated) {
+        if (boss.current_fighter_id) {
+          return res.status(400).json({ error: 'Босс занят другим игроком! Вы должны подождать, пока бой не завершится.' });
+        } else {
+          return res.status(400).json({ error: 'Вы стоите перед боссом! Вы должны сразиться с ним.' });
+        }
+      }
+      return res.status(400).json({ error: 'Вы стоите перед боссом! Сначала примите решение.' });
     }
 
     if (user.current_cell >= 299) {
@@ -1893,8 +1901,8 @@ app.post('/api/boss/skip', async (req, res) => {
     const targetBossCell = hasPending ? user.pending_boss_cell : user.current_cell;
     const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [targetBossCell]);
     if (boss) {
-      if (!boss.defeated && !boss.current_fighter_id) {
-        return res.status(400).json({ error: 'Вы не можете пропустить этого босса, так как он свободен и не побежден. Вы должны сразиться с ним!' });
+      if (!boss.defeated) {
+        return res.status(400).json({ error: 'Вы не можете пропустить живого босса! Вы должны победить его или дождаться его победы.' });
       }
     }
 

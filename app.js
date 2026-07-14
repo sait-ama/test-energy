@@ -2784,8 +2784,27 @@ function initSocket() {
       highlightCurrentCell();
       loadBossModels();
       updateBossMeshes();
+
+      if (state.user && state.user.pending_boss_cell !== null && state.user.pending_boss_cell !== undefined) {
+        const myPendingCell = Number(state.user.pending_boss_cell);
+        const serverBoss = list.find(b => Number(b.cell_number) === myPendingCell);
+        if (serverBoss) {
+          const isFreeAndAlive = !serverBoss.defeated && !serverBoss.current_fighter_id;
+          const isDefeated = !!serverBoss.defeated;
+          if (isFreeAndAlive || isDefeated) {
+            currentOpenedBossCell = myPendingCell;
+            const modal = document.getElementById('boss-battle-modal');
+            if (modal && modal.classList.contains('hidden')) {
+              modal.classList.remove('hidden');
+              showNotification(isDefeated ? 'Босс побежден! Вы можете продолжить путь.' : 'Босс освободился! Вы можете начать бой.', 'info');
+            }
+            updateBossModalUI(serverBoss);
+          }
+        }
+      }
+
       if (currentOpenedBossCell !== null) {
-        const currentBoss = list.find(b => b.cell_number === currentOpenedBossCell);
+        const currentBoss = list.find(b => Number(b.cell_number) === Number(currentOpenedBossCell));
         if (currentBoss) {
           updateBossModalUI(currentBoss);
         }
@@ -3228,11 +3247,13 @@ function showPendingBossModal(pendingBoss) {
 
   document.getElementById('boss-modal-title').textContent = `Босс: ${pendingBoss.bossName} (Ячейка ${pendingBoss.cellNumber})`;
 
-  if (pendingBoss.currentFighterId && pendingBoss.currentFighterId !== state.user.id) {
+  if (pendingBoss.defeated) {
+    document.getElementById('boss-status-defeated').classList.remove('hidden');
+    document.getElementById('boss-btn-bypass-only').classList.remove('hidden');
+  } else if (pendingBoss.currentFighterId && pendingBoss.currentFighterId !== state.user.id) {
     document.getElementById('boss-status-occupied').classList.remove('hidden');
     document.getElementById('boss-fighter-name').textContent = pendingBoss.currentFighterName || 'Неизвестно';
     document.getElementById('boss-btn-wait').classList.remove('hidden');
-    document.getElementById('boss-btn-bypass').classList.remove('hidden');
   } else {
     document.getElementById('boss-status-ready').classList.remove('hidden');
     document.getElementById('boss-info-name').textContent = pendingBoss.bossName;
@@ -3250,7 +3271,6 @@ function showPendingBossModal(pendingBoss) {
     renderBossPreview3D({ cell_number: pendingBoss.cellNumber, max_hp: pendingBoss.bossMaxHp, hp: pendingBoss.bossHp, dmg: pendingBoss.bossDmg });
 
     document.getElementById('boss-btn-fight').classList.remove('hidden');
-    document.getElementById('boss-btn-bypass').classList.remove('hidden');
   }
 }
 
@@ -5270,6 +5290,12 @@ function updateDiceButton() {
   clearInterval(state.diceTimer);
   const btn = document.getElementById('roll-dice-btn');
   const timerDiv = document.getElementById('dice-cooldown');
+
+  if (state.user && state.user.pending_boss_cell !== null && state.user.pending_boss_cell !== undefined) {
+    btn.disabled = true;
+    timerDiv.textContent = 'Ожидание босса';
+    return;
+  }
 
   if (!state.user.dice_cooldown_until) {
     btn.disabled = false;
