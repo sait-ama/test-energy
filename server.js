@@ -428,7 +428,10 @@ setInterval(async () => {
       const diffMs = now - pendingTime;
       const diffMins = diffMs / 60000;
       if (diffMins >= 30) {
-        await autoSkipPendingBoss(user);
+        const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [user.pending_boss_cell]);
+        if (!boss || boss.defeated) {
+          await autoSkipPendingBoss(user);
+        }
       }
     }
   } catch (err) {
@@ -1001,8 +1004,11 @@ app.get('/api/profile/:id', async (req, res) => {
       const diffMs = now - pendingTime;
       const diffMins = diffMs / 60000;
       if (diffMins >= 30) {
-        await autoSkipPendingBoss(user);
-        user = await getQuery('SELECT * FROM users WHERE id = ?', [user.id]);
+        const boss = await getQuery('SELECT * FROM bosses WHERE cell_number = ?', [user.pending_boss_cell]);
+        if (!boss || boss.defeated) {
+          await autoSkipPendingBoss(user);
+          user = await getQuery('SELECT * FROM users WHERE id = ?', [user.id]);
+        }
       }
     }
 
