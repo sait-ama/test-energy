@@ -1,644 +1,3271 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Eternal Watchers Event</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=1.1.0">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PixelBattle</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            display: flex;
+            flex-direction: row;
+            background-color: #1e1e2e;
+            color: #cdd6f4;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .canvas-container {
+            flex: 1;
+            background-color: #11111b;
+            position: relative;
+            cursor: crosshair;
+            overflow: hidden;
+            box-shadow: inset -5px 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .canvas-container:active {
+            cursor: grabbing;
+        }
+
+        .canvas-wrapper {
+            position: absolute;
+            left: 0;
+            top: 0;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 1);
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: pixelated;
+            transform-origin: 0 0;
+        }
+
+        #pixelCanvas,
+        #highlightCanvas,
+        #hoverCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        #pixelCanvas {
+            background-color: #ffffff;
+            position: absolute;
+            top: 0;
+            left: 0;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+            image-rendering: pixelated;
+            z-index: 1;
+        }
+
+        #highlightCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            image-rendering: pixelated;
+            z-index: 2;
+            display: none;
+        }
+
+        #hoverCanvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            image-rendering: pixelated;
+            z-index: 3;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: #181825;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 15px;
+            box-sizing: border-box;
+            z-index: 10;
+            border-left: 2px solid #313244;
+        }
+
+        h1 {
+            margin: 0 0 10px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .info-panel {
+            background: #313244;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            font-size: 14px;
+            text-align: center;
+            border: 1px solid #45475a;
+        }
+
+        .info-panel span {
+            color: #a6e3a1;
+            font-weight: bold;
+        }
+
+        .zoom-level {
+            margin-top: 5px;
+            font-size: 11px;
+            color: #fab387;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+
+        .palette {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin-bottom: 25px;
+            padding: 10px;
+            background: #1e1e2e;
+            border-radius: 12px;
+            border: 1px solid #313244;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .color-btn {
+            width: 34px;
+            height: 34px;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+
+        .color-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .color-btn.active {
+            border-color: #f38ba8;
+            transform: scale(1.15);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .zoom-btn {
+            background: #45475a;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            width: 45px;
+            height: 45px;
+            font-size: 24px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .zoom-btn:hover {
+            background: #585b70;
+        }
+
+        .zoom-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        .confirm-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            margin-top: 10px;
+            margin-bottom: 20px;
+            background: #1e1e2e;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #313244;
+        }
+
+        .confirm-btn {
+            background: #a6e3a1;
+            color: #11111b;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .cancel-btn {
+            background: #313244;
+            color: #cdd6f4;
+            border: 1px solid #45475a;
+            padding: 6px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        @keyframes pulse-green {
+            0% {
+                box-shadow: 0 0 0 0 rgba(166, 227, 161, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(166, 227, 161, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(166, 227, 161, 0);
+            }
+        }
+
+        .cooldown-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #a6e3a1;
+            text-align: center;
+            margin-bottom: 20px;
+            min-height: 24px;
+        }
+
+        .status {
+            margin-top: auto;
+            font-size: 13px;
+            color: #a6adc8;
+            text-align: center;
+            padding: 10px;
+            background: #1e1e2e;
+            border-radius: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #f38ba8;
+            color: #11111b;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 100;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .minimap-wrapper {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            width: 150px;
+            height: 150px;
+            background: #fff;
+            border: 2px solid #585b70;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.8);
+            z-index: 50;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .online-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(17, 17, 27, 0.8);
+            color: #a6e3a1;
+            padding: 4px 9px;
+            border-radius: 18px;
+            font-size: 11.5px;
+            font-weight: bold;
+            z-index: 50;
+            cursor: pointer;
+            border: 1px solid rgba(166, 227, 161, 0.3);
+            backdrop-filter: blur(4px);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        #pixelCanvas,
+        #hoverCanvas {
+            image-rendering: -moz-crisp-edges;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            -ms-interpolation-mode: nearest-neighbor;
+            display: block;
+        }
+
+        #minimapCanvas {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            display: block;
+        }
+
+        .minimap-viewport {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 1.5px solid #f38ba8;
+            box-sizing: border-box;
+            background: rgba(243, 139, 168, 0.2);
+            pointer-events: none;
+        }
+
+        .admin-header-row {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 10px;
+        }
+
+        .admin-only {
+            display: none !important;
+        }
+
+        .admin-toggle-wrapper {
+            background: #f38ba8;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ffffff;
+        }
+
+        .admin-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #11111b;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .admin-brush-group {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f38ba8;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-top: 10px;
+            border: 1px solid #ffffff;
+        }
+
+        .admin-brush-label {
+            font-size: 10px;
+            font-weight: bold;
+            color: #11111b;
+            white-space: nowrap;
+        }
+
+        #brushSizeRange {
+            flex: 1;
+            height: 4px;
+            cursor: pointer;
+            accent-color: #11111b;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .canvas-container {
+                flex: 1;
+            }
+
+            .minimap-wrapper {
+                width: 90px !important;
+                height: 90px !important;
+                top: 10px !important;
+                left: 10px !important;
+                bottom: auto !important;
+                z-index: 150 !important;
+                border: 1px solid #585b70 !important;
+            }
+
+
+            .sidebar {
+                padding: 0 !important;
+                gap: 0 !important;
+                max-height: 23vh;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                z-index: 200;
+                background: #1e1e2e;
+                border-top: 1px solid #313244;
+                border-left: none !important;
+                box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+                overflow: visible !important;
+                box-sizing: border-box !important;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .confirm-wrapper {
+                position: absolute;
+                bottom: 100%;
+                left: 0;
+                transform: none;
+                flex-direction: row;
+                width: 100%;
+                max-width: none;
+                background: rgba(30, 30, 46, 0.98);
+                z-index: 9999 !important;
+                box-shadow: 0 -5px 15px rgba(0, 0, 0, 0.3);
+                margin: 0;
+                padding: 6px !important;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                border-top: 1px solid #313244;
+            }
+
+            .sidebar-scroll-area {
+                flex: 1;
+                min-height: 0;
+                max-height: none;
+                overflow-y: auto;
+                overflow-x: hidden !important;
+                padding: 6px !important;
+                display: flex;
+                flex-direction: column;
+                gap: 3px !important;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .sidebar h1 {
+                display: none;
+            }
+
+            .admin-header-row {
+                display: flex;
+                flex-direction: row;
+                gap: 3px !important;
+                margin-bottom: 3px !important;
+                width: 100%;
+                align-items: center !important;
+            }
+
+            .admin-toggle-wrapper {
+                flex: 1;
+                padding: 1px 4px !important;
+                margin-bottom: 0 !important;
+                font-size: 10px !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 20px !important;
+                border: 1px solid rgba(255, 255, 255, 0.15) !important;
+                border-radius: 4px !important;
+            }
+
+            .info-panel {
+                flex: 1.2;
+                padding: 1px 4px !important;
+                margin-bottom: 0 !important;
+                font-size: 8px !important;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                min-height: 15px !important;
+                line-height: 1 !important;
+                border: 1px solid rgba(255, 255, 255, 0.15) !important;
+                border-radius: 4px !important;
+            }
+
+            .info-panel div {
+                margin-bottom: 1px !important;
+            }
+
+            .admin-brush-group {
+                padding: 1px 6px !important;
+                margin-bottom: 4px !important;
+                font-size: 9px !important;
+                border: 1px solid rgba(255, 255, 255, 0.15) !important;
+                border-radius: 4px !important;
+            }
+
+            #mTokenGroup,
+            .master-only {
+                margin-top: 15px !important;
+            }
+
+            .palette {
+                gap: 3px !important;
+                margin-bottom: 3px !important;
+                padding: 3px !important;
+            }
+
+            .color-btn {
+                width: 24px !important;
+                height: 24px !important;
+            }
+
+            .cooldown-text {
+                font-size: 13px !important;
+                margin-bottom: 2px !important;
+                min-height: auto !important;
+            }
+
+            .rollback-panel {
+                bottom: 2px !important;
+                padding: 6px !important;
+            }
+
+            .confirm-btn,
+            .cancel-btn {
+                flex: 1;
+                padding: 6px !important;
+                font-size: 13px !important;
+                margin: 0;
+            }
+
+            .stats-panel {
+                margin-top: 3px !important;
+                flex-shrink: 0;
+            }
+
+            .stats-header {
+                padding: 4px !important;
+                font-size: 11px !important;
+            }
+
+            .stats-list {
+                max-height: 120px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .stats-item {
+                font-size: 11px !important;
+                padding: 3px 6px !important;
+            }
+        }
+
+        #pixelCanvas,
+        #hoverCanvas {
+            z-index: 1;
+        }
+
+        .rollback-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1e1e2e;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #313244;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 300;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        .master-only {
+            display: none !important;
+        }
+
+        .show-master {
+            display: flex !important;
+        }
+
+        .auth-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .auth-modal {
+            background: #1e1e2e;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 400px;
+            border: 1px solid #313244;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+
+        .auth-modal h2 {
+            margin-top: 0;
+            color: #cdd6f4;
+        }
+
+        .auth-modal p {
+            color: #a6adc8;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .auth-input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #313244;
+            background: #11111b;
+            color: #fff;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 12px;
+            background: #a6e3a1;
+            color: #11111b;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .auth-btn:active {
+            transform: scale(0.98);
+        }
+
+        .auth-error {
+            color: #f38ba8;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        #pixelTooltip {
+            position: absolute;
+            background: rgba(17, 17, 27, 0.9);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 500;
+            display: none;
+            border: 1px solid #313244;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            white-space: nowrap;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+
+        .stats-panel {
+            width: 100%;
+            margin-top: 20px;
+            background: #1e1e2e;
+            border-radius: 8px;
+            border: 1px solid #313244;
+            overflow: hidden;
+        }
+
+        .stats-header {
+            background: #313244;
+            display: flex;
+            border-bottom: 1px solid #1e1e2e;
+        }
+
+        .stats-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            cursor: pointer;
+            color: #6c7086;
+            font-size: 11px;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .stats-tab.active {
+            color: #fab387;
+            background: rgba(250, 179, 135, 0.1);
+            border-bottom: 2px solid #fab387;
+        }
+
+        .stats-tab:hover:not(.active) {
+            color: #a6adc8;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .stats-list {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        .stats-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background 0.2s;
+        }
+
+        .stats-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .stats-item:last-child {
+            border-bottom: none;
+        }
+
+        .stats-name {
+            color: #cdd6f4;
+            white-space: normal;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+            min-width: 0;
+        }
+
+        .stats-count {
+            color: #a6e3a1;
+            font-weight: bold;
+        }
+
+        .pin-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1100;
+            backdrop-filter: blur(5px);
+        }
+
+        .pin-modal {
+            background: #1e1e2e;
+            padding: 30px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 350px;
+            border: 1px solid #313244;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            text-align: center;
+        }
+
+        .pin-modal h2 {
+            margin-top: 0;
+            color: #cdd6f4;
+        }
+
+        .pin-modal p {
+            color: #a6adc8;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .pin-input {
+            width: 120px;
+            padding: 14px;
+            border-radius: 8px;
+            border: 2px solid #45475a;
+            background: #11111b;
+            color: #fff;
+            font-size: 28px;
+            text-align: center;
+            letter-spacing: 8px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .pin-input:focus {
+            border-color: #a6e3a1;
+            outline: none;
+        }
+
+        .pin-error {
+            color: #f38ba8;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .pin-btn {
+            width: 100%;
+            padding: 12px;
+            background: #a6e3a1;
+            color: #11111b;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s;
+            margin-top: 8px;
+        }
+
+        .pin-btn:active {
+            transform: scale(0.98);
+        }
+
+        .pin-btn.secondary {
+            background: #313244;
+            color: #cdd6f4;
+            border: 1px solid #45475a;
+            margin-top: 8px;
+        }
+
+        .bindings-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1200;
+            backdrop-filter: blur(5px);
+        }
+
+        .bindings-panel {
+            background: #1e1e2e;
+            padding: 20px;
+            border-radius: 16px;
+            width: 95%;
+            max-width: 500px;
+            max-height: 80vh;
+            border: 1px solid #313244;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bindings-panel h2 {
+            margin: 0 0 15px 0;
+            color: #cdd6f4;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        .bindings-list {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .binding-item {
+            background: #313244;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .binding-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .binding-row label {
+            font-size: 11px;
+            color: #a6adc8;
+            min-width: 25px;
+        }
+
+        .binding-row input {
+            flex: 1;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #45475a;
+            background: #11111b;
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .binding-actions {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+        }
+
+        .binding-actions button {
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: none;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .binding-save {
+            background: #a6e3a1;
+            color: #11111b;
+        }
+
+        .binding-delete {
+            background: #f38ba8;
+            color: #11111b;
+        }
+
+        .binding-pin-info {
+            font-size: 10px;
+            color: #fab387;
+        }
+
+        .bindings-close {
+            margin-top: 12px;
+            width: 100%;
+            padding: 10px;
+            background: #313244;
+            color: #cdd6f4;
+            border: 1px solid #45475a;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .timelapse-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            backdrop-filter: blur(8px);
+        }
+
+        .timelapse-container {
+            background: #1e1e2e;
+            border-radius: 16px;
+            border: 1px solid #313244;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            max-width: 95vw;
+            max-height: 95vh;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        }
+
+        .timelapse-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            color: #cdd6f4;
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .timelapse-header button {
+            background: none;
+            border: none;
+            color: #f38ba8;
+            cursor: pointer;
+            font-size: 22px;
+        }
+
+        .timelapse-canvas-wrap {
+            border: 2px solid #313244;
+            border-radius: 8px;
+            overflow: hidden;
+            line-height: 0;
+        }
+
+        #timelapseCanvas {
+            width: min(70vw, 70vh);
+            height: min(70vw, 70vh);
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            display: block;
+        }
+
+        .timelapse-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .timelapse-play-btn {
+            background: #cba6f7;
+            color: #11111b;
+            border: none;
+            border-radius: 8px;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            cursor: pointer;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        #timelapseSlider {
+            flex: 1;
+            height: 6px;
+            cursor: pointer;
+            accent-color: #cba6f7;
+        }
+
+        .timelapse-speed {
+            background: #313244;
+            color: #cdd6f4;
+            border: 1px solid #45475a;
+            border-radius: 6px;
+            padding: 6px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .timelapse-info {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 13px;
+            color: #a6adc8;
+        }
+
+        .timelapse-info span {
+            color: #cba6f7;
+            font-weight: bold;
+        }
+
+        .timelapse-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 40px;
+            color: #a6adc8;
+            font-size: 16px;
+        }
+
+        .timelapse-loading .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #313244;
+            border-top: 3px solid #cba6f7;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .ticker-wrapper {
+            position: absolute;
+            height: 24px;
+            background: rgba(17, 17, 27, 0.85);
+            color: #a6e3a1;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .ticker-content {
+            display: inline-block;
+            white-space: nowrap;
+            animation: ticker linear infinite;
+        }
+
+        @keyframes ticker {
+            0% {
+                transform: translateX(100vw);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+    </style>
 </head>
+
 <body>
-  <div id="auth-screen" class="auth-container">
-    <div class="auth-card">
-      <div class="neon-logo">ETERNAL EVENT</div>
-      <h1>Регистрация и Вход</h1>
-      <p class="subtitle">Присоединяйтесь к международному ивенту гильдии Eternal Watchers</p>
-      
-      <div id="telegram-login-container" style="display: flex; justify-content: center; margin: 20px 0; min-height: 40px;"></div>
-
-      <div class="demo-toggle-wrapper" style="text-align: center; margin-top: 10px; margin-bottom: 15px;">
-        <button id="toggle-demo-btn" style="background: none; border: none; color: #8c9ba5; font-size: 11px; cursor: pointer; text-decoration: underline;">Войти в демо-режиме (для тестирования)</button>
-      </div>
-
-      <div id="demo-auth-fields" class="hidden" style="display: none; flex-direction: column; gap: 15px;">
-        <div class="form-group">
-          <label for="tg-id-input">Telegram ID</label>
-          <input type="text" id="tg-id-input" placeholder="Например: 1276299">
+    <div class="canvas-container" id="container">
+        <div class="canvas-wrapper" id="canvasWrapper">
+            <canvas id="pixelCanvas" width="500" height="500"></canvas>
+            <canvas id="highlightCanvas" width="500" height="500"></canvas>
+            <canvas id="hoverCanvas" width="500" height="500"></canvas>
         </div>
-        
-        <div class="form-group">
-          <label for="tg-username-input">Username (@username)</label>
-          <input type="text" id="tg-username-input" placeholder="Например: saitama01010">
+        <div class="minimap-wrapper" id="minimapWrapper">
+            <canvas id="minimapCanvas" width="150" height="150"
+                style="width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated;"></canvas>
+            <div class="minimap-viewport" id="minimapViewport"></div>
         </div>
-
-        <div class="form-group">
-          <label for="tg-first-name-input">Имя (Никнейм)</label>
-          <input type="text" id="tg-first-name-input" placeholder="Например: Сайтама">
+        <div id="onlineBadge" class="online-badge" onclick="openOnlinePanel()">👤 1</div>
+        <div id="pixelTooltip"></div>
+        <div class="ticker-wrapper" id="tickerWrapper">
+            <div class="ticker-content" id="tickerContent"></div>
         </div>
-
-        <button id="auth-btn" class="btn btn-primary btn-glow">Войти (Демо)</button>
-        <div class="info-note">Используется демонстрационный вход. Вы можете ввести любые данные для тестирования мультиплеера.</div>
-      </div>
     </div>
-  </div>
-
-  <div id="link-remanga-screen" class="auth-container hidden">
-    <div class="auth-card">
-      <div class="neon-logo">REMANGA PROFILE</div>
-      <h1>Привязка Remanga</h1>
-      <p class="subtitle">Шаг 2 из 3: Привяжите ваш профиль Remanga для отслеживания молний</p>
-      <div class="form-group">
-        <label for="remanga-url-input-onboarding">Ссылка на профиль Remanga</label>
-        <input type="text" id="remanga-url-input-onboarding" placeholder="https://remanga.org/user/364625/about">
-      </div>
-      <button id="link-remanga-btn-onboarding" class="btn btn-primary btn-glow btn-block">Привязать и продолжить</button>
-    </div>
-  </div>
-
-  <div id="character-creator-screen" class="auth-container hidden">
-    <div class="modal-content" style="max-width: 900px;">
-      <div class="modal-header">
-        <h2 id="creator-step-title">Создание персонажа (Шаг 1 из 3)</h2>
-      </div>
-      <div class="customizer-layout">
-        <div class="customizer-preview">
-          <div id="creator-canvas-container"></div>
-        </div>
-        <div class="customizer-controls">
-          <div class="creator-stats-panel" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(0, 240, 255, 0.2); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-            <h4 style="margin: 0 0 8px 0; font-size: 12px; color: #00f0ff; text-transform: uppercase; font-family: 'Orbitron', sans-serif;">Характеристики персонажа</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; margin-bottom: 8px;">
-              <div>Здоровье (HP): <span id="creator-stat-hp" style="font-weight: bold; color: #00ff66;">100</span></div>
-              <div>Урон (DMG): <span id="creator-stat-dmg" style="font-weight: bold; color: #ffcc00;">10</span></div>
-            </div>
-            <div style="font-size: 11px; color: #8c9ba5; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 6px;">
-              Стихия: <span id="creator-stat-element" style="font-weight: bold; color: #00f0ff;">Вода</span>
-              <div id="creator-stat-element-desc" style="margin-top: 3px; font-size: 10px; color: #a3b2bc;">
-                Эффективна против боссов: Лев, Стрелец.
-              </div>
-            </div>
-          </div>
-
-          <div id="creator-step-1" class="creator-step">
-            <h3>Шаг 1: Тело и костюм</h3>
-            <div class="form-group">
-              <label>Цвет кожи</label>
-              <input type="color" id="creator-skin" value="#ffdbac">
-            </div>
-            <div class="form-group">
-              <label>Тип костюма</label>
-              <select id="creator-costume">
-                <option value="normal">Обычный (без бонусов)</option>
-                <option value="armor">Рыцарский доспех (+50 HP)</option>
-                <option value="robe">Мантия мага (+20 HP, +5 DMG)</option>
-                <option value="cyber">Кибер-костюм (+30 HP, +8 DMG)</option>
-                <option value="steampunk">Стимпанк жилет (+25 HP, +6 DMG)</option>
-                <option value="ninja_suit">Костюм шиноби (+15 HP, +12 DMG)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Стихия</label>
-              <select id="creator-element">
-                <option value="water">Вода</option>
-                <option value="fire">Огонь</option>
-                <option value="earth">Земля</option>
-                <option value="wind">Ветер</option>
-              </select>
-              <div id="creator-element-help" style="font-size: 11px; color: #8c9ba5; margin-top: 5px; line-height: 1.4;">
-                Вода наносит повышенный урон боссам: Лев (120 ячейка), Стрелец (240 ячейка).
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Цвет костюма</label>
-              <input type="color" id="creator-clothes" value="#2a3f5f">
-            </div>
-            <button id="creator-next-1" class="btn btn-primary btn-block btn-glow">Далее</button>
-          </div>
-
-          <div id="creator-step-2" class="creator-step hidden">
-            <h3>Шаг 2: Голова и прическа</h3>
-            <div class="form-group">
-              <label>Стиль прически/аксессуара</label>
-              <select id="creator-hair-style">
-                <option value="none">Лысый</option>
-                <option value="mohawk">Ирокез</option>
-                <option value="crown">Корона</option>
-                <option value="horns">Рога демона</option>
-                <option value="helmet">Шлем воина</option>
-                <option value="cap">Кепка</option>
-                <option value="ninja">Маска ниндзя</option>
-                <option value="wizard">Шляпа волшебника</option>
-                <option value="cat_ears">Кошачьи ушки</option>
-                <option value="hair_long">Длинные волосы</option>
-                <option value="hair_spiky">Взъерошенные волосы</option>
-                <option value="halo">Ангельский нимб</option>
-                <option value="cyber_viser">Кибер-очки</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Цвет прически/аксессуара</label>
-              <input type="color" id="creator-hair-color" value="#e74c3c">
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-              <button id="creator-prev-2" class="btn btn-secondary" style="flex: 1;">Назад</button>
-              <button id="creator-next-2" class="btn btn-primary btn-glow" style="flex: 1;">Далее</button>
-            </div>
-          </div>
-
-          <div id="creator-step-3" class="creator-step hidden">
-            <h3>Шаг 3: Снаряжение</h3>
-            <div class="form-group">
-              <label>Оружие</label>
-              <select id="creator-weapon">
-                <option value="none">Без оружия (без бонусов)</option>
-                <option value="sword">Энергетический меч (+15 DMG)</option>
-                <option value="staff">Посох мага (+20 HP, +10 DMG)</option>
-                <option value="shield">Энергетический щит (+30 HP, +5 DMG)</option>
-                <option value="axe">Боевой топор (+20 DMG)</option>
-                <option value="bow">Лук (+12 DMG)</option>
-                <option value="scythe">Коса смерти (+18 DMG)</option>
-                <option value="hammer">Молот Тора (+22 DMG)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Крылья</label>
-              <select id="creator-wings">
-                <option value="none">Без крыльев</option>
-                <option value="angel">Крылья ангела</option>
-                <option value="demon">Крылья демона</option>
-                <option value="fairy">Крылья феи</option>
-                <option value="butterfly">Крылья бабочки</option>
-                <option value="cyber_wings">Кибер-крылья</option>
-                <option value="bat_wings">Крылья летучей мыши</option>
-              </select>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-              <button id="creator-prev-3" class="btn btn-secondary" style="flex: 1;">Назад</button>
-              <button id="creator-save-btn" class="btn btn-primary btn-glow" style="flex: 1;">Создать персонажа</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="app-screen" class="app-container hidden">
-    <header class="app-header">
-      <div class="header-brand">
-        <span class="brand-glow">ETERNAL WATCHERS</span>
-      </div>
-      <div class="user-summary">
-        <div class="user-info-group">
-          <div class="user-avatar-container">
-            <img id="user-avatar" class="hidden" src="" alt="">
-            <div id="avatar-fallback" class="avatar-placeholder"></div>
-          </div>
-          <div class="user-meta">
-            <span id="user-display-name" class="font-bold"></span>
-            <span id="user-tg-username" class="text-cyan"></span>
-          </div>
-        </div>
-        <div class="user-stats-group">
-          <div class="header-stat">
-            <span class="label">Монеты:</span>
-            <span id="user-balance" class="value text-gold">0</span>
-          </div>
-          <div class="header-stat" style="display: none;">
-            <span class="label">Победы:</span>
-            <span id="user-wins" class="value text-cyan">0</span>
-          </div>
-        </div>
-        <div class="user-actions-group">
-          <button id="open-profile-btn" class="btn btn-primary btn-sm btn-glow">Мой Профиль</button>
-          <button id="logout-btn" class="btn btn-secondary btn-sm">Выйти</button>
-        </div>
-      </div>
-    </header>
-
-    <div class="app-grid">
-      <div class="grid-left">
-        <div class="card">
-          <h2>Магазин</h2>
-          <div class="shop-tabs">
-            <button class="shop-tab-btn active" data-tab="buffs">Баффы</button>
-            <button class="shop-tab-btn" data-tab="debuffs">Дебаффы</button>
-            <button class="shop-tab-btn" data-tab="casino">Казик</button>
-          </div>
-          <div id="shop-items-list" class="shop-list"></div>
-          <div id="casino-section" class="hidden">
-            <div class="casino-container">
-              <div class="casino-wheel-wrapper">
-                <div class="casino-pointer"></div>
-                <canvas id="casino-wheel-canvas" width="280" height="280"></canvas>
-              </div>
-              <div class="casino-controls">
-                <div class="casino-bet-group">
-                  <label>Ставка (монеты)</label>
-                  <input type="number" id="casino-bet-amount" min="1" value="10" class="casino-input">
+    <div class="sidebar">
+        <div class="sidebar-scroll-area">
+            <h1>⚔️ PixelBattle</h1>
+            <div class="admin-header-row">
+                <div id="noCdToggle" class="admin-toggle-wrapper admin-only">
+                    <label class="admin-toggle">🚀 No CD<input type="checkbox" id="toggleNoCooldown" checked></label>
                 </div>
-                <div class="casino-color-group">
-                  <label>Выбери цвет</label>
-                  <div class="casino-colors">
-                    <button class="casino-color-btn casino-red selected" data-color="red">Красный<span class="casino-mult">×2</span></button>
-                    <button class="casino-color-btn casino-black" data-color="black">Чёрный<span class="casino-mult">×2</span></button>
-                    <button class="casino-color-btn casino-green" data-color="green">Зелёный<span class="casino-mult">×50</span></button>
-                  </div>
+
+                <div class="info-panel">
+                    <div>Размер: <span>500x500</span></div>
+                    <div>Курсор: <span id="cursorCoords">0, 0</span></div>
+                    <div>Зум: <span id="zoomVal">100</span>%</div>
                 </div>
-                <button id="casino-spin-btn" class="btn btn-primary btn-block btn-glow">Крутить!</button>
-                <div id="casino-result" class="casino-result hidden"></div>
-              </div>
+
+                <div id="paintToggle" class="admin-toggle-wrapper admin-only">
+                    <label class="admin-toggle">🖌 Paint<input type="checkbox" id="toggleContinuous"
+                            onchange="cancelSelection()"></label>
+                </div>
             </div>
-          </div>
+
+            <div id="adminBrushGroup" class="admin-brush-group admin-only">
+                <div class="admin-brush-label">Кисть: <span id="brushSizeVal">1x1</span></div>
+                <input type="range" id="brushSizeRange" min="1" max="10" value="1"
+                    oninput="updateBrushSizeLabel(this.value)" style="flex: 1; min-width: 0;">
+            </div>
+
+            <div id="mTokenGroup" class="admin-only" style="width: 100%; margin-top: 10px;">
+                <button onclick="generateTempToken()"
+                    style="width: 100%; background: #fab387; color: #11111b; border: none; padding: 8px; border-radius: 4px; font-weight: bold; cursor: pointer;">⏳
+                    Выдать админку (10м)</button>
+            </div>
+
+            <div class="master-only" style="width: 100%; margin-top: 10px;">
+                <button id="rollbackModeBtn" onclick="toggleRollbackMode()"
+                    style="width: 100%; background: #f38ba8; color: #11111b; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer;">⏪
+                    Откат участка</button>
+            </div>
+            <div class="master-only" style="width: 100%; margin-top: 5px;">
+                <button onclick="openBindingsPanel()"
+                    style="width: 100%; background: #89b4fa; color: #11111b; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">👥
+                    Управление привязками</button>
+            </div>
+            <div class="master-only" style="width: 100%; margin-top: 5px;">
+                <button onclick="openTimelapse()"
+                    style="width: 100%; background: #cba6f7; color: #11111b; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer;">📹
+                    Таймлапс полотна</button>
+            </div>
+
+            <div class="palette" id="palette">
+                <div class="color-btn active" style="background-color: #000000;" data-color="#000000"></div>
+                <div class="color-btn" style="background-color: #646464;" data-color="#646464"></div>
+                <div class="color-btn" style="background-color: #828282;" data-color="#828282"></div>
+                <div class="color-btn" style="background-color: #ffffff; border: 1px solid #cdd6f4;"
+                    data-color="#ffffff"></div>
+
+                <div class="color-btn" style="background-color: #8b4513;" data-color="#8b4513"></div>
+                <div class="color-btn" style="background-color: #d2b48c;" data-color="#d2b48c"></div>
+                <div class="color-btn" style="background-color: #f5deb3;" data-color="#f5deb3"></div>
+                <div class="color-btn" style="background-color: #ff0000;" data-color="#ff0000"></div>
+                <div class="color-btn" style="background-color: #dc6464;" data-color="#dc6464"></div>
+                <div class="color-btn" style="background-color: #ff6347;" data-color="#ff6347"></div>
+                <div class="color-btn" style="background-color: #ffb6c1;" data-color="#ffb6c1"></div>
+                <div class="color-btn" style="background-color: #ffc0cb;" data-color="#ffc0cb"></div>
+                <div class="color-btn" style="background-color: #cc9999;" data-color="#cc9999"></div>
+                <div class="color-btn" style="background-color: #ff4500;" data-color="#ff4500"></div>
+                <div class="color-btn" style="background-color: #ff8c00;" data-color="#ff8c00"></div>
+                <div class="color-btn" style="background-color: #ff8800;" data-color="#ff8800"></div>
+                <div class="color-btn" style="background-color: #ffa500;" data-color="#ffa500"></div>
+                <div class="color-btn" style="background-color: #ffd700;" data-color="#ffd700"></div>
+                <div class="color-btn" style="background-color: #ffff00;" data-color="#ffff00"></div>
+                <div class="color-btn" style="background-color: #006400;" data-color="#006400"></div>
+                <div class="color-btn" style="background-color: #00ff00;" data-color="#00ff00"></div>
+                <div class="color-btn" style="background-color: #00ffff;" data-color="#00ffff"></div>
+                <div class="color-btn" style="background-color: #0000cd;" data-color="#0000cd"></div>
+                <div class="color-btn" style="background-color: #0000ff;" data-color="#0000ff"></div>
+                <div class="color-btn" style="background-color: #00008b;" data-color="#00008b"></div>
+                <div class="color-btn" style="background-color: #000080;" data-color="#000080"></div>
+                <div class="color-btn" style="background-color: #4b0082;" data-color="#4b0082"></div>
+                <div class="color-btn" style="background-color: #8a2be2;" data-color="#8a2be2"></div>
+                <div class="color-btn" style="background-color: #9966cc;" data-color="#9966cc"></div>
+                <div class="color-btn" style="background-color: #ff00ff;" data-color="#ff00ff"></div>
+            </div>
+            <div class="cooldown-text" id="cooldownText">Готов к битве</div>
+
+            <div id="statsPanel" class="stats-panel">
+                <div class="stats-header">
+                    <div id="tabPlayers" class="stats-tab active" onclick="switchStatsTab('players')">🏆 Игроки</div>
+                    <div id="tabGuilds" class="stats-tab" onclick="switchStatsTab('guilds')">🛡️ Гильдии</div>
+                    <div id="tabConstellations" class="stats-tab" onclick="switchStatsTab('constellations')">✨ Созвездия
+                    </div>
+                </div>
+                <div id="statsList" class="stats-list">
+                    <div style="text-align:center; padding:10px; color:#6c7086; font-size:11px;">Загрузка статистики...
+                    </div>
+                </div>
+            </div>
+
+            <div class="status" id="status">Подключение к серверу...</div>
         </div>
-
-        <div class="card">
-          <h2>Инвентарь и эффекты</h2>
-          <h3 style="font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 10px; font-weight: 600;">Ваши предметы</h3>
-          <div id="inventory-list" class="inventory-grid"></div>
-          
-          <h3 style="margin-top: 20px; font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 10px; font-weight: 600;">Активные эффекты</h3>
-          <div id="effects-list" class="effects-list"></div>
+        <div id="confirmWrapper" class="confirm-wrapper" style="display:none;">
+            <button class="confirm-btn" onclick="sendPixel()">✅ Подтвердить</button>
+            <button class="cancel-btn" onclick="cancelSelection()">Отмена</button>
         </div>
-      </div>
-
-      <div class="grid-center">
-        <div class="card map-card">
-          <div class="map-header">
-            <h2>Карта ивента (300 ячеек)</h2>
-            <div class="dice-section">
-              <button id="roll-dice-btn" class="btn btn-primary btn-glow">Бросить кубик</button>
-              <button id="claim-reward-current-cell-btn" class="btn btn-glow hidden" style="background: linear-gradient(135deg, #00ff66, #00b3ff); border: none; color: #fff; margin-left: 10px;">Забрать награду</button>
-              <div id="dice-cooldown" class="cooldown-timer">Готов к броску</div>
-            </div>
-          </div>
-          <div class="board-3d-wrapper">
-            <div id="board-canvas-container"></div>
-            <div id="cell-info-tag" class="cell-info-tag hidden">
-              <button id="close-cell-info-tag" class="close-cell-info-tag">&times;</button>
-              <div id="cell-info-tag-content"></div>
-            </div>
-            <div id="username-tag" class="username-tag hidden"></div>
-          </div>
-          <div class="movement-log-box">
-            <div class="log-title">Движение на карте</div>
-            <div id="movement-messages" class="log-messages"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <h2>История действий</h2>
-          <div id="action-history" class="history-list"></div>
-        </div>
-      </div>
-
-      <div class="grid-right">
-        <div class="card">
-          <h2>Игроки онлайн</h2>
-          <div id="online-players-list" class="online-list"></div>
-        </div>
-
-        <div id="admin-panel" class="card admin-card hidden">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
-            <h2 style="margin: 0;">Панель администратора</h2>
-            <button id="admin-refresh-btn" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;">🔄 Обновить</button>
-          </div>
-          <div class="admin-tabs">
-            <button class="tab-btn active" data-tab="admin-tab-users">Игроки</button>
-            <button class="tab-btn" data-tab="admin-tab-cells">Настройка ячеек</button>
-            <button class="tab-btn" data-tab="admin-tab-settings">Настройки</button>
-          </div>
-          
-          <div id="admin-tab-users" class="tab-content active">
-            <div class="form-group" style="margin-bottom: 12px; margin-top: 10px;">
-              <input type="text" id="admin-search-users" placeholder="Поиск по имени / username / ID..." style="width: 100%; box-sizing: border-box;">
-            </div>
-            <div class="admin-users-table-wrapper">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Игрок</th>
-                    <th>Ячейка</th>
-                    <th>Баланс</th>
-                    <th>Действие</th>
-                  </tr>
-                </thead>
-                <tbody id="admin-users-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div id="admin-tab-cells" class="tab-content">
-            <div style="background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 6px; padding: 10px; margin-top: 10px; margin-bottom: 15px; font-size: 11px; color: #00f0ff;">
-              💡 Вы можете кликнуть по ячейке на 3D-карте, чтобы быстро настроить её параметры.
-            </div>
-            <div class="form-group">
-              <label>Номер ячейки (0-299)</label>
-              <input type="number" id="admin-cell-number" min="0" max="299" value="0">
-            </div>
-            <div class="form-group">
-              <label>Тип ячейки</label>
-              <select id="admin-cell-type">
-                <option value="normal">Обычная</option>
-                <option value="forward">Портал вперед</option>
-                <option value="backward">Ловушка назад</option>
-                <option value="obstacle">Болото (пропуск хода)</option>
-                <option value="guild_tax">Налог гильдии</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Значение сдвига / штрафа / налога</label>
-              <input type="number" id="admin-cell-value" value="0">
-            </div>
-            <div class="form-group">
-              <label>Тип награды на ячейке</label>
-              <select id="admin-cell-rew-type">
-                <option value="none">Нет награды</option>
-                <option value="currency">Монеты</option>
-                <option value="card">Карта предметов</option>
-                <option value="premium">Премиум статус</option>
-              </select>
-            </div>
-            <div id="admin-card-helper-group" class="form-group hidden" style="background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 6px; margin-bottom: 12px;">
-              <label style="font-size: 10px; color: #00f0ff;">Ссылка на карту Remanga</label>
-              <input type="text" id="admin-cell-card-url" placeholder="https://remanga.org/card/124112" style="margin-bottom: 6px; font-size: 11px;">
-              <button id="admin-fetch-card-btn" class="btn btn-secondary btn-sm btn-block" style="padding: 4px; font-size: 10px;">📥 Загрузить данные карты</button>
-            </div>
-            <div class="form-group">
-              <label>Название награды</label>
-              <input type="text" id="admin-cell-rew-name" placeholder="Например: 50 монет">
-            </div>
-            <div class="form-group">
-              <label>Детали награды (JSON / Значение)</label>
-              <input type="text" id="admin-cell-rew-detail" placeholder="Например: 50">
-            </div>
-            <button id="save-cell-btn" class="btn btn-primary btn-block">Сохранить ячейку</button>
-          </div>
-
-          <div id="admin-tab-settings" class="tab-content">
-            <div class="form-group" style="margin-top: 15px;">
-              <label>Время отката броска кубика (в секундах)</label>
-              <input type="number" id="admin-setting-cooldown" min="0" placeholder="Например: 1800">
-            </div>
-            <h3 style="margin-top: 20px; font-size: 11px; text-transform: uppercase; color: #8c9ba5; font-weight: 600;">Цены в магазине</h3>
-            <div class="form-group">
-              <label>Энергетический Щит (Shield)</label>
-              <input type="number" id="admin-price-shield" min="0">
-            </div>
-            <div class="form-group">
-              <label>Ледяной Свиток (Freeze)</label>
-              <input type="number" id="admin-price-freeze" min="0">
-            </div>
-            <div class="form-group">
-              <label>Гравитационный Импульс (Pusher)</label>
-              <input type="number" id="admin-price-pusher" min="0">
-            </div>
-            <div class="form-group">
-              <label>Очищающее Зелье (Cure)</label>
-              <input type="number" id="admin-price-cure" min="0">
-            </div>
-            <div class="form-group">
-              <label>Магические Оковы (Slowness)</label>
-              <input type="number" id="admin-price-slowness" min="0">
-            </div>
-            <div class="form-group">
-              <label>Крылья Ветра (Double Roll)</label>
-              <input type="number" id="admin-price-double_roll" min="0">
-            </div>
-            <div class="form-group">
-              <label>Стоимость удаления награды из инвентаря</label>
-              <input type="number" id="admin-price-remove-reward" min="0">
-            </div>
-            <button id="save-settings-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Сохранить настройки</button>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
+    <div class="toast" id="toast">Ошибка</div>
 
-  <div id="profile-drawer" class="profile-drawer">
-    <div class="drawer-header">
-      <h2>Профиль игрока</h2>
-      <button id="close-profile-btn" class="close-btn">&times;</button>
-    </div>
-    <div class="drawer-content">
-      <div class="drawer-profile-card">
-        <div class="drawer-avatar-wrapper">
-          <img id="drawer-avatar-img" class="hidden avatar-img" src="" alt="">
-          <div id="drawer-avatar-fallback" class="avatar-placeholder"></div>
-        </div>
-        <div class="drawer-names">
-          <div id="drawer-display-name" class="display-name">-</div>
-          <div id="drawer-tg-username" class="tg-username">-</div>
-        </div>
-        <div class="remanga-info-box">
-          <span class="label">Remanga профиль:</span>
-          <span id="drawer-remanga-name" class="value text-gold">-</span>
-          <span id="drawer-remanga-id" class="sub-value">-</span>
-        </div>
-      </div>
-      <div class="drawer-char-preview">
-        <div id="drawer-char-canvas"></div>
-        <div class="lock-tag">Персонаж закреплен (изменение заблокировано)</div>
-      </div>
-      <div class="drawer-section">
-        <h3>Характеристики персонажа</h3>
-        <div class="drawer-stats-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-          <div class="drawer-stat">
-            <span class="stat-label">Здоровье (HP)</span>
-            <span id="drawer-hp" class="stat-value text-green" style="color: #00ff66;">100</span>
-          </div>
-          <div class="drawer-stat">
-            <span class="stat-label">Урон (DMG)</span>
-            <span id="drawer-dmg" class="stat-value text-yellow" style="color: #ffcc00;">10</span>
-          </div>
-          <div class="drawer-stat">
-            <span class="stat-label">Стихия</span>
-            <span id="drawer-element" class="stat-value text-cyan" style="color: #00f0ff; text-transform: capitalize;">-</span>
-          </div>
-        </div>
-      </div>
-      <div class="drawer-section">
-        <h3>Статистика</h3>
-        <div class="drawer-stats-row">
-          <div class="drawer-stat">
-            <span class="stat-label">Монеты</span>
-            <span id="drawer-balance" class="stat-value text-gold">0</span>
-          </div>
-          <div class="drawer-stat" style="display: none;">
-            <span class="stat-label">Победы</span>
-            <span id="drawer-wins" class="stat-value text-cyan">0</span>
-          </div>
-        </div>
-      </div>
-      <div class="drawer-section">
-        <h3>Ваши предметы</h3>
-        <div id="drawer-inventory-list" class="inventory-grid"></div>
-      </div>
-      <div class="drawer-section">
-        <h3>Активные эффекты</h3>
-        <div id="drawer-effects-list" class="effects-list"></div>
-      </div>
-      <div class="drawer-section">
-        <h3>История действий</h3>
-        <div id="drawer-history-list" class="history-list"></div>
-      </div>
-    </div>
-  </div>
 
-  <div id="confirm-char-modal" class="modal hidden">
-    <div class="modal-content modal-sm">
-      <div class="modal-header">
-        <h2>Подтверждение создания</h2>
-      </div>
-      <div class="modal-body">
-        <p style="font-size: 12px; line-height: 1.5; margin-bottom: 20px;">Вы уверены? После подтверждения персонажа больше нельзя будет поменять!</p>
-        <div style="display: flex; gap: 10px;">
-          <button id="confirm-char-yes" class="btn btn-primary" style="flex: 1;">Да, создать</button>
-          <button id="confirm-char-no" class="btn btn-secondary" style="flex: 1;">Отмена</button>
-        </div>
-      </div>
-    </div>
-  </div>
+    <div id="authOverlay" class="auth-overlay" style="display: none;">
+        <div class="auth-modal">
+            <h2>👋 Привет!</h2>
+            <p style="margin-bottom: 20px;">Чтобы ставить пиксели, выберите платформу для авторизации:</p>
 
-  <div id="use-item-modal" class="modal hidden">
-    <div class="modal-content modal-sm">
-      <div class="modal-header">
-        <h2>Применить способность</h2>
-        <button id="close-use-modal-btn" class="close-btn">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p id="use-item-name" class="text-gold font-bold"></p>
-        <p id="use-item-desc"></p>
-        <div class="form-group">
-          <label for="use-target-select">Выберите цель (игрока)</label>
-          <select id="use-target-select"></select>
-        </div>
-        <button id="confirm-use-btn" class="btn btn-primary btn-block btn-glow">Применить способность</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="admin-edit-modal" class="modal hidden">
-    <div class="modal-content modal-lg">
-      <div class="modal-header">
-        <h2>Редактирование игрока</h2>
-        <button id="close-admin-edit-btn" class="close-btn">&times;</button>
-      </div>
-      <div class="modal-body" style="display: grid; grid-template-columns: 350px 1fr; gap: 24px;">
-        <div>
-          <input type="hidden" id="edit-user-id">
-          <div class="form-group">
-            <label>Игрок</label>
-            <input type="text" id="edit-user-name" disabled style="opacity: 0.6;">
-          </div>
-          <div class="form-group">
-            <label>Баланс монет</label>
-            <input type="number" id="edit-user-balance">
-          </div>
-          <div class="form-group">
-            <label>Текущая ячейка (0-299)</label>
-            <input type="number" id="edit-user-cell" min="0" max="299">
-          </div>
-          <div class="form-group">
-            <label>Налог гильдии (Требуется)</label>
-            <input type="number" id="edit-user-tax-required" min="0">
-          </div>
-          <div class="form-group">
-            <label>Налог гильдии (Оплачено)</label>
-            <input type="number" id="edit-user-tax-paid" min="0">
-          </div>
-          <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="edit-user-admin" style="width: auto; margin: 0;">
-            <label for="edit-user-admin" style="margin: 0; cursor: pointer;">Администратор</label>
-          </div>
-          <button id="save-user-edit-btn" class="btn btn-primary btn-block btn-glow" style="margin-top: 15px;">Сохранить изменения</button>
-        </div>
-        <div style="border-left: 1px solid rgba(255,255,255,0.08); padding-left: 20px; display: flex; flex-direction: column; gap: 15px;">
-          <div>
-            <h3 style="font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 8px; font-weight: 600;">Инвентарь игрока</h3>
-            <div id="edit-user-inventory" class="inventory-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; max-height: 420px; overflow-y: auto;">
-              <div style="font-size: 11px; color: #8c9ba5;">Загрузка...</div>
+            <div class="auth-platforms" style="display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;">
+                <button id="btnRemanga" class="auth-platform-btn active" onclick="selectPlatform('remanga')"
+                    style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; padding: 10px; background: #313244; color: #cdd6f4; border: 2px solid #89b4fa; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: inherit; font-family: inherit;">
+                    <img src="remanga.png" style="height: 1.2em; border-radius: 4px;"> ReManga
+                </button>
+                <button id="btnAstra" class="auth-platform-btn" onclick="selectPlatform('astra')"
+                    style="display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; padding: 10px; background: #313244; color: #cdd6f4; border: 2px solid transparent; border-radius: 8px; cursor: pointer; transition: all 0.2s; font-size: inherit; font-family: inherit;">
+                    <img src="Astramanga.png" style="height: 1.2em; border-radius: 4px; background: transparent;">
+                    AstraManga
+                </button>
             </div>
-          </div>
-          <div>
-            <h3 style="font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 8px; font-weight: 600;">Активные эффекты</h3>
-            <div id="edit-user-effects" style="display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto;">
-              <div style="font-size: 11px; color: #8c9ba5;">Загрузка...</div>
+
+            <input type="text" id="authInput" class="auth-input" placeholder="Ссылка на профиль или ID ReManga">
+            <button class="auth-btn" onclick="authenticateSelected()">Войти</button>
+            <div id="authError" class="auth-error">Некорректная ссылка</div>
+            <div id="authHint" style="margin-top: 15px; font-size: 11px; color: #6c7086;">
+                Пример: https://remanga.org/user/12345/about<br>
+                Или просто ID: 12345
             </div>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <div id="dice-overlay" class="modal hidden" style="background: rgba(0, 0, 0, 0.85); display: flex; align-items: center; justify-content: center; z-index: 10000;">
-    <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 30px;">
-      <div id="dice-container" class="dice-scene">
-        <div id="dice-cube" class="dice-cube">
-          <div class="dice-face front">1</div>
-          <div class="dice-face back">6</div>
-          <div class="dice-face right">2</div>
-          <div class="dice-face left">5</div>
-          <div class="dice-face top">3</div>
-          <div class="dice-face bottom">4</div>
+    <div id="pinEnterOverlay" class="pin-overlay" style="display:none;">
+        <div class="pin-modal">
+            <h2>🔒 Введите PIN</h2>
+            <p>Для входа с этого устройства введите ваш PIN-код</p>
+            <input type="tel" id="pinEnterInput" class="pin-input" maxlength="4" placeholder="••••" inputmode="numeric"
+                pattern="[0-9]*">
+            <div id="pinEnterError" class="pin-error">Неверный PIN</div>
+            <button class="pin-btn" onclick="verifyPin()">Войти</button>
         </div>
-      </div>
-      <div id="dice-result-text" class="text-gold font-bold" style="font-size: 24px; min-height: 36px; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);"></div>
     </div>
-  </div>
 
-
-  <div id="reward-popup" class="reward-popup hidden">
-    <h3 id="reward-popup-title">Вы получили награду!</h3>
-    <div id="reward-popup-body"></div>
-  </div>
-
-  <div id="guild-tax-modal" class="modal hidden" style="z-index: 9999;">
-    <div class="modal-content modal-sm">
-      <div class="modal-header">
-        <h2>Налог гильдии!</h2>
-      </div>
-      <div class="modal-body">
-        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 15px;">Вы попали на ячейку налога гильдии. Вы не сможете ходить дальше, пока не пожертвуете в сумме <span id="tax-amount-span" class="text-gold font-bold">0</span> молний в любую из следующих гильдий на Remanga:</p>
-        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 15px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; text-align: center;">
-          Внесено: <span id="tax-paid-span" class="text-cyan font-bold">0</span> / <span id="tax-total-span" class="text-gold font-bold">0</span> молний<br>
-          <span style="font-size: 11px; color: #8c9ba5;">Сканер обновит статус в течение 5 минут.</span>
-        </p>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <a href="https://remanga.org/clubs/eternal-watchers-5fdc5a3d/" target="_blank" class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Watchers</a>
-          <a href="https://remanga.org/clubs/eternal-keepers-of-knowledge-06969ad9/" target="_blank" class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Keepers</a>
-          <a href="https://remanga.org/clubs/eternalangelicguardianse-w-da9b9d1b/" target="_blank" class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Angelic Guardians</a>
-          <button id="close-guild-tax-btn" class="btn btn-secondary">Закрыть</button>
+    <div id="pinSetupOverlay" class="pin-overlay" style="display:none;">
+        <div class="pin-modal">
+            <h2>🔐 Установите PIN</h2>
+            <p>Придумайте PIN-код (1-4 цифры) для защиты вашего аккаунта.<br>Он понадобится при входе с другого
+                устройства.</p>
+            <input type="tel" id="pinSetupInput" class="pin-input" maxlength="4" placeholder="••••" inputmode="numeric"
+                pattern="[0-9]*">
+            <div id="pinSetupError" class="pin-error"></div>
+            <button class="pin-btn" onclick="setupPin()">Сохранить PIN</button>
         </div>
-      </div>
     </div>
-  </div>
 
-  <div id="reward-choice-modal" class="modal hidden" style="z-index: 9999;">
-    <div class="modal-content modal-sm">
-      <div class="modal-header">
-        <h2>Награда найдена!</h2>
-      </div>
-      <div class="modal-body">
-        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 15px;">Вы попали на ячейку с наградой. Хотите забрать её?</p>
-        <div style="font-size: 16px; font-weight: 700; color: #ffb800; text-align: center; margin-bottom: 15px;" id="reward-choice-name"></div>
-        <p style="font-size: 12px; color: #8c9ba5; line-height: 1.4; margin-bottom: 15px; text-align: center;" id="reward-choice-desc"></p>
-        <div style="display: flex; gap: 10px;">
-          <button id="claim-reward-yes-btn" class="btn btn-primary" style="flex: 1;">Забрать</button>
-          <button id="claim-reward-no-btn" class="btn btn-secondary" style="flex: 1;">Отказаться</button>
+    <div id="pinSuggestOverlay" class="pin-overlay" style="display:none;">
+        <div class="pin-modal">
+            <h2>🛡️ Установите PIN</h2>
+            <p>Для защиты аккаунта необходимо установить PIN-код (1-4 цифры).</p>
+            <input type="tel" id="pinSuggestInput" class="pin-input" maxlength="4" placeholder="••••"
+                inputmode="numeric" pattern="[0-9]*">
+            <div id="pinSuggestError" class="pin-error"></div>
+            <button class="pin-btn" onclick="suggestSetPin()">Установить PIN</button>
         </div>
-      </div>
     </div>
-  </div>
 
-  <script src="app.js?v=1.7.0"></script>
+    <div id="bindingsOverlay" class="bindings-overlay">
+        <div class="bindings-panel">
+            <h2>👥 Управление привязками</h2>
+            <div id="bindingsList" class="bindings-list">
+                <div style="text-align:center; padding:20px; color:#6c7086;">Загрузка...</div>
+            </div>
+            <button class="bindings-close" onclick="closeBindingsPanel()">Закрыть</button>
+        </div>
+    </div>
+
+    <div id="onlineOverlay" class="bindings-overlay">
+        <div class="bindings-panel">
+            <h2>🟢 Онлайн пользователи</h2>
+            <div id="onlineList" class="bindings-list">
+                <div style="text-align:center; padding:20px; color:#6c7086;">Загрузка...</div>
+            </div>
+            <button class="bindings-close" onclick="closeOnlinePanel()">Закрыть</button>
+        </div>
+    </div>
+
+    <div id="rollbackPanel" class="rollback-panel">
+        <div class="rollback-header">
+            <span>Откат во времени</span>
+            <button onclick="cancelRollback()"
+                style="background:none; border:none; color:#f38ba8; cursor:pointer; font-size:20px;">✖</button>
+        </div>
+        <div style="font-size: 14px; color: #a6adc8;">Выберите время, к которому нужно вернуть выделенный участок:</div>
+        <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #6c7086;">
+                    <span>Часы</span>
+                    <span id="rollbackHoursVal">0</span>
+                </div>
+                <input type="range" id="rollbackHours" min="0" max="24" value="0"
+                    oninput="document.getElementById('rollbackHoursVal').innerText = this.value; updateRollbackPreview()"
+                    style="cursor: pointer; accent-color: #a6e3a1; height: 6px;">
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #6c7086;">
+                    <span>Минуты</span>
+                    <span id="rollbackMinutesVal">5</span>
+                </div>
+                <input type="range" id="rollbackMinutes" min="0" max="59" value="5"
+                    oninput="document.getElementById('rollbackMinutesVal').innerText = this.value; updateRollbackPreview()"
+                    style="cursor: pointer; accent-color: #a6e3a1; height: 6px;">
+            </div>
+        </div>
+        <div style="display: flex; justify-content: center; font-weight: bold; margin-top: 10px;">
+            <span id="rollbackTimeText" style="color: #a6e3a1;">5 мин. назад</span>
+        </div>
+        <button onclick="applyRollback()"
+            style="background: #a6e3a1; color: #11111b; border: none; padding: 10px; border-radius: 5px; font-weight: bold; cursor: pointer; width: 100%; margin-top: 10px;">Применить
+            изменения</button>
+    </div>
+
+    <div id="timelapseOverlay" class="timelapse-overlay">
+        <div class="timelapse-container">
+            <div class="timelapse-header">
+                <span>📹 Таймлапс полотна</span>
+                <button onclick="closeTimelapse()">✖</button>
+            </div>
+            <div id="timelapseContent">
+                <div class="timelapse-loading" id="timelapseLoading">
+                    <div class="spinner"></div>
+                    <div id="timelapseLoadingText">Загрузка истории...</div>
+                </div>
+            </div>
+            <div id="timelapsePlayer"
+                style="display:none; width:100%; display:none; flex-direction:column; align-items:center; gap:15px;">
+                <div class="timelapse-canvas-wrap">
+                    <canvas id="timelapseCanvas" width="500" height="500"></canvas>
+                </div>
+                <div class="timelapse-controls" style="display: flex; align-items: center; gap: 10px; width: 100%;">
+                    <button class="timelapse-play-btn" id="timelapsePlayBtn" onclick="toggleTimelapsePlay()">▶</button>
+                    <input type="range" id="timelapseSlider" min="0" max="0" value="0" oninput="scrubTimelapse()"
+                        style="flex: 1;">
+                    <select class="timelapse-speed" id="timelapseSpeed" onchange="updateTimelapseSpeed()">
+                        <option value="1">1x</option>
+                        <option value="5">5x</option>
+                        <option value="10" selected>10x</option>
+                        <option value="50">50x</option>
+                        <option value="100">100x</option>
+                        <option value="500">500x</option>
+                    </select>
+                </div>
+                <div class="timelapse-info">
+                    <div>📅 <span id="timelapseDate">—</span></div>
+                    <div>🕐 <span id="timelapseTime">—</span></div>
+                    <div>📊 <span id="timelapseProgress">0 / 0</span></div>
+                </div>
+                <div class="timelapse-download"
+                    style="margin-top: 10px; width: 100%; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #313244; padding-top: 10px;">
+                    <div
+                        style="font-weight: bold; font-size: 14px; text-align: center; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                        Скачать таймлапс
+                        <label
+                            style="font-size: 12px; font-weight: normal; display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                            <input type="checkbox" id="tlRangeToggle" onchange="toggleDownloadRange()"> Выбрать период
+                        </label>
+                    </div>
+                    <div id="tlDownloadControls" style="display: none; flex-direction: column; gap: 10px;">
+                        <div
+                            style="display: flex; gap: 15px; justify-content: center; font-size: 12px; color: #cdd6f4;">
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                                <span>Начало: <span id="tlDownStartLabel" style="color: #a6e3a1;">—</span></span>
+                                <button onclick="setDownloadStart()"
+                                    style="background: #313244; color: #a6e3a1; border: 1px solid #45475a; padding: 2px 10px; border-radius: 4px; cursor: pointer;">Взять
+                                    текущее</button>
+                            </div>
+                            <div style="display: flex; flex-direction: column; align-items: center; gap: 5px;">
+                                <span>Конец: <span id="tlDownEndLabel" style="color: #f38ba8;">—</span></span>
+                                <button onclick="setDownloadEnd()"
+                                    style="background: #313244; color: #f38ba8; border: 1px solid #45475a; padding: 2px 10px; border-radius: 4px; cursor: pointer;">Взять
+                                    текущее</button>
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px; justify-content: center;">
+                            <select id="tlDownFormat"
+                                style="background: #11111b; color: #cdd6f4; border: 1px solid #45475a; padding: 5px; border-radius: 4px;">
+                                <option value="webp" selected>WebP (Анимация, идеальное качество)</option>
+                                <option value="video">Видео (MP4)</option>
+                                <option value="gif">GIF</option>
+                            </select>
+                            <button onclick="downloadTimelapseBtn()" id="tlDownloadBtn"
+                                style="background: #a6e3a1; color: #11111b; border: none; padding: 5px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;">Скачать</button>
+                        </div>
+                        <div id="tlDownloadProgress"
+                            style="display: none; width: 100%; text-align: center; font-size: 12px; margin-top: 5px;">
+                            <div
+                                style="width: 100%; background: #313244; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 5px;">
+                                <div id="tlDownloadProgressBar"
+                                    style="width: 0%; height: 100%; background: #a6e3a1; transition: width 0.3s;"></div>
+                            </div>
+                            <span id="tlDownloadProgressText" style="color: #cdd6f4;">Инициализация...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvasWrapper = document.getElementById('canvasWrapper');
+        const canvas = document.getElementById('pixelCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.imageSmoothingEnabled = false;
+        ctx.webkitImageSmoothingEnabled = false;
+        ctx.mozImageSmoothingEnabled = false;
+        const highlightCanvas = document.getElementById('highlightCanvas');
+        const hiCtx = highlightCanvas.getContext('2d');
+        hiCtx.imageSmoothingEnabled = false;
+        const hoverCanvas = document.getElementById('hoverCanvas');
+        const hCtx = hoverCanvas.getContext('2d');
+        hCtx.imageSmoothingEnabled = false;
+        const minimapCanvas = document.getElementById('minimapCanvas');
+        const mCtx = minimapCanvas.getContext('2d', { willReadFrequently: true });
+        mCtx.imageSmoothingEnabled = false;
+        const minimapViewport = document.getElementById('minimapViewport');
+        const minimapWrapper = document.getElementById('minimapWrapper');
+        const container = document.getElementById('container');
+        const statusEl = document.getElementById('status');
+        const cooldownText = document.getElementById('cooldownText');
+        const toastEl = document.getElementById('toast');
+        const cursorCoords = document.getElementById('cursorCoords');
+        const zoomVal = document.getElementById('zoomVal');
+        let currentColor = '#000000';
+        let cooldownTime = 0;
+        let selectedPixel = null;
+        let IS_ADMIN = false;
+        let IS_MASTER = false;
+        let rollbackMode = false;
+        let selectionStart = null;
+        let selectionEnd = null;
+        let areaHistoryData = [];
+        let originalAreaPixels = null;
+        let serverTimeOffset = 0;
+        let brushSize = 1;
+
+        const COLOR_PALETTE = [
+            "#000000", "#828282", "#ffffff", "#ff0000", "#ff4500", "#ff8800",
+            "#ffd700", "#ffff00", "#00ff00", "#006400", "#00ffff", "#0000ff",
+            "#00008b", "#8a2be2", "#ff00ff", "#ffb6c1", "#8b4513", "#d2b48c",
+            "#4b0082", "#9966cc", "#000080", "#0000cd", "#ffa500", "#ff8c00",
+            "#ff6347", "#f5deb3", "#646464", "#ffc0cb",
+            "#cc9999", "#dc6464"
+        ];
+
+        let remangaUser = JSON.parse(localStorage.getItem('remangaUser'));
+        let pixelOwners = new Uint16Array(500 * 500);
+        let allUsernames = [];
+        let userIcons = {};
+        function getUserIconHtml(username) {
+            const p = userIcons[username];
+            if (p === 'remanga') return '<img src="remanga.png" style="width:12px;height:12px;vertical-align:middle;border-radius:2px;margin-right:4px;">';
+            if (p === 'astra') return '<img src="astra.png" style="width:12px;height:12px;vertical-align:middle;border-radius:2px;margin-right:4px;background:transparent;">';
+            if (p === 'nova') return '<img src="nova.png" style="width:12px;height:12px;vertical-align:middle;border-radius:2px;margin-right:4px;background:transparent;">';
+            if (username !== 'Admin') return '<img src="remanga.png" style="width:12px;height:12px;vertical-align:middle;border-radius:2px;margin-right:4px;">';
+            return '';
+        }
+        const authOverlay = document.getElementById('authOverlay');
+        const authInput = document.getElementById('authInput');
+        const authError = document.getElementById('authError');
+        const statsList = document.getElementById('statsList');
+        const pixelTooltip = document.getElementById('pixelTooltip');
+        let tooltipPixel = null;
+        let tooltipTimeout = null;
+
+        const tickerContent = document.getElementById('tickerContent');
+        let tickerQueue = [];
+        let isTickerRunning = false;
+
+        function addTickerEvents(events) {
+            if (!events || events.length === 0) return;
+            tickerQueue.push(...events);
+            if (!isTickerRunning) playNextTicker();
+        }
+
+        function playNextTicker() {
+            if (tickerQueue.length === 0) {
+                isTickerRunning = false;
+                tickerContent.style.animation = 'none';
+                tickerContent.innerText = '';
+                return;
+            }
+            isTickerRunning = true;
+            const text = tickerQueue.join('  •  ');
+            tickerQueue = [];
+
+            tickerContent.innerText = text;
+            tickerContent.style.animation = 'none';
+            void tickerContent.offsetWidth;
+
+            const duration = (tickerContent.offsetWidth + window.innerWidth) / 100;
+            tickerContent.style.animation = `ticker ${duration}s linear`;
+
+            tickerContent.onanimationend = () => {
+                playNextTicker();
+            };
+        }
+
+        let highlightSticky = false;
+        let highlightCurrent = { type: null, name: null };
+
+        function applyHighlight(type, name, isClick = false, forceUpdate = false) {
+            try {
+                if (!forceUpdate) {
+                    if (isClick) {
+                        if (highlightSticky && highlightCurrent.type === type && highlightCurrent.name === name) {
+                            highlightSticky = false;
+                            name = null;
+                        } else {
+                            highlightSticky = true;
+                        }
+                    } else {
+                        if (highlightSticky && highlightCurrent.name === name) return;
+                        if (highlightSticky && name === null) return;
+                    }
+                }
+
+                highlightCurrent = { type, name };
+
+                if (!name) {
+                    hiCtx.clearRect(0, 0, 500, 500);
+                    highlightCanvas.style.display = 'none';
+                    return;
+                }
+
+                highlightCanvas.style.display = 'block';
+                const imgData = hiCtx.createImageData(500, 500);
+                const data = imgData.data;
+
+                for (let i = 0; i < 500 * 500; i++) {
+                    const uidx = pixelOwners[i];
+                    let matches = false;
+                    if (uidx > 0 && allUsernames[uidx - 1]) {
+                        const uname = allUsernames[uidx - 1];
+                        if (type === 'players' && uname === name) matches = true;
+                        else if (type === 'guilds' && currentStats.user_guilds_map && currentStats.user_guilds_map[uname] === name) matches = true;
+                        else if (type === 'constellations' && currentStats.user_constellations_map && currentStats.user_constellations_map[uname] && currentStats.user_constellations_map[uname].includes(name)) matches = true;
+                    }
+
+                    if (!matches) {
+                        data[i * 4] = 255;
+                        data[i * 4 + 1] = 255;
+                        data[i * 4 + 2] = 255;
+                        data[i * 4 + 3] = 240;
+                    } else {
+                        data[i * 4 + 3] = 0;
+                    }
+                }
+                hiCtx.putImageData(imgData, 0, 0);
+            } catch (err) {
+                console.error("Ошибка подсветки:", err);
+            }
+        }
+
+        function updateTooltipPosition() {
+            if (!tooltipPixel) return;
+            const screenX = panX + (tooltipPixel.x + 0.5) * scale;
+            const screenY = panY + tooltipPixel.y * scale;
+            pixelTooltip.style.left = screenX + 'px';
+            pixelTooltip.style.top = (screenY - 30) + 'px';
+        }
+
+        function showTooltipAtPixel(x, y) {
+            if (x < 0 || x >= 500 || y < 0 || y >= 500) return;
+            const uidx = pixelOwners[y * 500 + x];
+            if (uidx > 0 && allUsernames[uidx - 1]) {
+                tooltipPixel = { x, y };
+                const username = allUsernames[uidx - 1];
+                pixelTooltip.innerHTML = getUserIconHtml(username) + username;
+                pixelTooltip.style.display = 'block';
+                updateTooltipPosition();
+                if (tooltipTimeout) clearTimeout(tooltipTimeout);
+                tooltipTimeout = setTimeout(() => {
+                    pixelTooltip.style.display = 'none';
+                    tooltipPixel = null;
+                }, 3000);
+            } else {
+                pixelTooltip.style.display = 'none';
+                tooltipPixel = null;
+            }
+        }
+
+        function checkAuth() {
+            if (!remangaUser && !IS_ADMIN) {
+                authOverlay.style.display = 'flex';
+            } else {
+                authOverlay.style.display = 'none';
+                if (socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ type: 'auth_remanga', user: remangaUser }));
+                    if (remangaUser) {
+                        setTimeout(() => {
+                            if (!socket || socket.readyState !== WebSocket.OPEN) return;
+                            const handler = (event) => {
+                                const msg = JSON.parse(event.data);
+                                if (msg.type === 'pin_status') {
+                                    socket.removeEventListener('message', handler);
+                                    if (!msg.has_pin) {
+                                        document.getElementById('pinSuggestOverlay').style.display = 'flex';
+                                        document.getElementById('pinSuggestInput').value = '';
+                                    }
+                                }
+                            };
+                            socket.addEventListener('message', handler);
+                            socket.send(JSON.stringify({ type: 'check_pin', remanga_id: remangaUser.id }));
+                        }, 1500);
+                    }
+                }
+            }
+        }
+
+        let pendingAuthUser = null;
+
+        let selectedAuthPlatform = 'remanga';
+
+        function selectPlatform(platform) {
+            selectedAuthPlatform = platform;
+            const btnR = document.getElementById('btnRemanga');
+            const btnA = document.getElementById('btnAstra');
+            const input = document.getElementById('authInput');
+            const hint = document.getElementById('authHint');
+
+            if (platform === 'remanga') {
+                btnR.style.borderColor = '#89b4fa';
+                btnA.style.borderColor = 'transparent';
+                input.placeholder = 'Ссылка на профиль или ID ReManga';
+                hint.innerHTML = 'Пример: https://remanga.org/user/12345/about<br>Или просто ID: 12345';
+            } else {
+                btnA.style.borderColor = '#89b4fa';
+                btnR.style.borderColor = 'transparent';
+                input.placeholder = 'Ссылка на профиль AstraManga';
+                hint.innerHTML = 'Пример: https://astramanga.org/users/Saitama<br>Или просто юзернейм: Saitama';
+            }
+        }
+
+        async function authenticateSelected() {
+            let input = authInput.value.trim();
+            if (!input) return;
+
+            if (selectedAuthPlatform === 'astra' || input.includes('astramanga.org')) {
+                let username = input;
+                const urlMatch = input.match(/users\/([^\/]+)/);
+                if (urlMatch) username = urlMatch[1];
+
+                try {
+                    if (!socket || socket.readyState !== WebSocket.OPEN) {
+                        authError.innerText = "Нет подключения к серверу. Подождите...";
+                        authError.style.display = 'block';
+                        return;
+                    }
+
+                    const result = await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+                        const handler = (event) => {
+                            const msg = JSON.parse(event.data);
+                            if (msg.type === 'astramanga_result') {
+                                socket.removeEventListener('message', handler);
+                                clearTimeout(timeout);
+                                resolve(msg);
+                            }
+                        };
+                        socket.addEventListener('message', handler);
+                        socket.send(JSON.stringify({ type: 'lookup_astramanga', username: username }));
+                    });
+
+                    if (result.error || !result.id) throw new Error(result.error || "User not found");
+                    const userData = { id: result.id, username: result.username, platform: result.platform };
+                    pendingAuthUser = userData;
+                    authError.style.display = 'none';
+                    checkPinAndFinishAuth(userData);
+                } catch (e) {
+                    authError.innerText = "Пользователь не найден или ошибка API";
+                    authError.style.display = 'block';
+                }
+            } else {
+                let userId = input;
+                const urlMatch = input.match(/user\/(\d+)/);
+                if (urlMatch) userId = urlMatch[1];
+
+                if (!/^\d+$/.test(userId)) {
+                    authError.innerText = "Некорректный ID или ссылка. Пример: 12345";
+                    authError.style.display = 'block';
+                    return;
+                }
+
+                try {
+                    if (!socket || socket.readyState !== WebSocket.OPEN) {
+                        authError.innerText = "Нет подключения к серверу. Подождите...";
+                        authError.style.display = 'block';
+                        return;
+                    }
+
+                    const result = await new Promise((resolve, reject) => {
+                        const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+                        const handler = (event) => {
+                            const msg = JSON.parse(event.data);
+                            if (msg.type === 'remanga_result') {
+                                socket.removeEventListener('message', handler);
+                                clearTimeout(timeout);
+                                resolve(msg);
+                            }
+                        };
+                        socket.addEventListener('message', handler);
+                        socket.send(JSON.stringify({ type: 'lookup_remanga', user_id: userId }));
+                    });
+
+                    if (result.error || !result.id) throw new Error(result.error || "User not found");
+                    const userData = { id: result.id, username: result.username, platform: result.platform };
+                    pendingAuthUser = userData;
+                    authError.style.display = 'none';
+                    checkPinAndFinishAuth(userData);
+                } catch (e) {
+                    authError.innerText = "Пользователь не найден или ошибка API";
+                    authError.style.display = 'block';
+                }
+            }
+        }
+
+        async function checkPinAndFinishAuth(userData) {
+            const deviceKey = localStorage.getItem('deviceKey_' + userData.id);
+
+            const pinStatus = await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+                const handler = (event) => {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'pin_status') {
+                        socket.removeEventListener('message', handler);
+                        clearTimeout(timeout);
+                        resolve(msg);
+                    }
+                };
+                socket.addEventListener('message', handler);
+                socket.send(JSON.stringify({ type: 'check_pin', remanga_id: userData.id }));
+            });
+
+            if (pinStatus.has_pin) {
+                if (deviceKey) {
+                    finishAuth(userData);
+                } else {
+                    authOverlay.style.display = 'none';
+                    document.getElementById('pinEnterOverlay').style.display = 'flex';
+                    document.getElementById('pinEnterInput').value = '';
+                    document.getElementById('pinEnterError').style.display = 'none';
+                    document.getElementById('pinEnterInput').focus();
+                }
+            } else {
+                authOverlay.style.display = 'none';
+                document.getElementById('pinSetupOverlay').style.display = 'flex';
+                document.getElementById('pinSetupInput').value = '';
+                document.getElementById('pinSetupInput').focus();
+            }
+        }
+
+        authInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') authenticateReManga();
+        });
+
+        function finishAuth(userData) {
+            remangaUser = userData;
+            localStorage.setItem('remangaUser', JSON.stringify(userData));
+            localStorage.setItem('deviceKey_' + userData.id, 'verified');
+            authOverlay.style.display = 'none';
+            checkAuth();
+            pendingAuthUser = null;
+        }
+
+        async function verifyPin() {
+            const pin = document.getElementById('pinEnterInput').value;
+            if (!pin || !pendingAuthUser) return;
+
+            const result = await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+                const handler = (event) => {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'pin_verified') {
+                        socket.removeEventListener('message', handler);
+                        clearTimeout(timeout);
+                        resolve(msg);
+                    }
+                };
+                socket.addEventListener('message', handler);
+                socket.send(JSON.stringify({ type: 'verify_pin', remanga_id: pendingAuthUser.id, pin: pin }));
+            });
+
+            if (result.success) {
+                document.getElementById('pinEnterOverlay').style.display = 'none';
+                finishAuth(pendingAuthUser);
+            } else {
+                const err = document.getElementById('pinEnterError');
+                err.innerText = result.message || 'Неверный PIN';
+                err.style.display = 'block';
+                document.getElementById('pinEnterInput').value = '';
+                document.getElementById('pinEnterInput').focus();
+            }
+        }
+
+        async function setupPin() {
+            const pin = document.getElementById('pinSetupInput').value;
+            if (!pendingAuthUser) return;
+
+            if (!pin || !/^\d+$/.test(pin) || pin.length > 4) {
+                const err = document.getElementById('pinSetupError');
+                err.innerText = 'Введите PIN (1-4 цифры)';
+                err.style.display = 'block';
+                return;
+            }
+
+            const result = await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+                const handler = (event) => {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'pin_set_result') {
+                        socket.removeEventListener('message', handler);
+                        clearTimeout(timeout);
+                        resolve(msg);
+                    }
+                };
+                socket.addEventListener('message', handler);
+                socket.send(JSON.stringify({ type: 'set_pin', remanga_id: pendingAuthUser.id, pin: pin }));
+            });
+
+            if (result.success) {
+                showToast('PIN установлен!');
+                document.getElementById('pinSetupOverlay').style.display = 'none';
+                finishAuth(pendingAuthUser);
+            } else {
+                const err = document.getElementById('pinSetupError');
+                err.innerText = result.message || 'Ошибка';
+                err.style.display = 'block';
+            }
+        }
+
+        async function suggestSetPin() {
+            const pin = document.getElementById('pinSuggestInput').value;
+            if (!remangaUser) return;
+
+            if (!pin || !/^\d+$/.test(pin) || pin.length > 4) {
+                const err = document.getElementById('pinSuggestError');
+                err.innerText = 'Введите PIN (1-4 цифры)';
+                err.style.display = 'block';
+                return;
+            }
+
+            const result = await new Promise((resolve, reject) => {
+                const timeout = setTimeout(() => reject(new Error("Timeout")), 10000);
+                const handler = (event) => {
+                    const msg = JSON.parse(event.data);
+                    if (msg.type === 'pin_set_result') {
+                        socket.removeEventListener('message', handler);
+                        clearTimeout(timeout);
+                        resolve(msg);
+                    }
+                };
+                socket.addEventListener('message', handler);
+                socket.send(JSON.stringify({ type: 'set_pin', remanga_id: remangaUser.id, pin: pin }));
+            });
+
+            if (result.success) {
+                showToast('PIN установлен!');
+                document.getElementById('pinSuggestOverlay').style.display = 'none';
+            } else {
+                const err = document.getElementById('pinSuggestError');
+                err.innerText = result.message || 'Ошибка';
+                err.style.display = 'block';
+            }
+        }
+
+        function openBindingsPanel() {
+            if (!IS_MASTER) return;
+            document.getElementById('bindingsOverlay').style.display = 'flex';
+            socket.send(JSON.stringify({ type: 'get_bindings' }));
+
+            const handler = (event) => {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'bindings_list') {
+                    socket.removeEventListener('message', handler);
+                    renderBindingsList(msg.users);
+                }
+            };
+            socket.addEventListener('message', handler);
+        }
+
+        function closeBindingsPanel() {
+            document.getElementById('bindingsOverlay').style.display = 'none';
+        }
+
+        function renderBindingsList(users) {
+            const list = document.getElementById('bindingsList');
+            const entries = Object.entries(users);
+
+            if (entries.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:20px; color:#6c7086;">Нет пользователей</div>';
+                return;
+            }
+
+            list.innerHTML = entries.map(([username, info]) => `
+                <div class="binding-item" data-original-id="${info.id}" data-original-username="${username}">
+                    <div class="binding-row">
+                        <label>Ник:</label>
+                        <input type="text" class="binding-name-input" value="${username}">
+                    </div>
+                    <div class="binding-row">
+                        <label>ID:</label>
+                        <input type="text" class="binding-id-input" value="${info.id}" placeholder="не привязан">
+                    </div>
+                    <div class="binding-pin-info">PIN: ${info.has_pin} | Пикселей: ${info.pixels}</div>
+                    <div class="binding-actions">
+                        <button class="binding-save" onclick="saveBinding(this)">💾 Сохранить</button>
+                        <button class="binding-delete" onclick="deleteBinding(this)">🗑 Удалить</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function saveBinding(btn) {
+            const item = btn.closest('.binding-item');
+            const oldId = item.dataset.originalId;
+            const oldUsername = item.dataset.originalUsername;
+            const newId = item.querySelector('.binding-id-input').value.trim();
+            const newUsername = item.querySelector('.binding-name-input').value.trim();
+
+            if (!newUsername) {
+                showToast('Введите никнейм');
+                return;
+            }
+
+            socket.send(JSON.stringify({
+                type: 'update_binding',
+                old_id: oldId,
+                new_id: newId,
+                old_username: oldUsername,
+                new_username: newUsername
+            }));
+
+            const handler = (event) => {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'binding_updated') {
+                    socket.removeEventListener('message', handler);
+                    if (msg.success) {
+                        showToast('Привязка обновлена!');
+                        item.dataset.originalId = newId;
+                        item.dataset.originalUsername = newUsername;
+                    }
+                }
+            };
+            socket.addEventListener('message', handler);
+        }
+
+        function deleteBinding(btn) {
+            const item = btn.closest('.binding-item');
+            const rid = item.dataset.originalId;
+
+            if (!confirm('Удалить привязку для ID ' + rid + '?')) return;
+
+            socket.send(JSON.stringify({ type: 'delete_binding', remanga_id: rid }));
+
+            const handler = (event) => {
+                const msg = JSON.parse(event.data);
+                if (msg.type === 'binding_updated') {
+                    socket.removeEventListener('message', handler);
+                    if (msg.success) {
+                        item.remove();
+                        showToast('Привязка удалена');
+                    }
+                }
+            };
+            socket.addEventListener('message', handler);
+        }
+
+        document.querySelectorAll('.pin-input').forEach(input => {
+            input.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4);
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    const overlay = e.target.closest('.pin-overlay');
+                    const btn = overlay.querySelector('.pin-btn');
+                    if (btn) btn.click();
+                }
+            });
+        });
+        function updateStatsUI(stats) {
+            if (!stats) return;
+            currentStats = stats;
+            if (!currentStats.players && !currentStats.guilds && !currentStats.constellations) {
+                currentStats = { players: stats, guilds: {}, constellations: {} };
+            }
+            renderStats();
+        }
+        const toggleNoCooldown = document.getElementById('toggleNoCooldown');
+        const toggleContinuous = document.getElementById('toggleContinuous');
+        const brushSizeVal = document.getElementById('brushSizeVal');
+        function updateBrushSizeLabel(val) {
+            brushSize = parseInt(val);
+            brushSizeVal.innerText = `${val}x${val}`;
+        }
+        const colorBtns = document.querySelectorAll('.color-btn');
+        colorBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                colorBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentColor = btn.getAttribute('data-color');
+            });
+        });
+        function showToast(msg) {
+            toastEl.innerText = msg;
+            toastEl.style.opacity = 1;
+            setTimeout(() => { toastEl.style.opacity = 0; }, 2000);
+        }
+        function syncMinimap() {
+            mCtx.imageSmoothingEnabled = true;
+            mCtx.drawImage(canvas, 0, 0, minimapCanvas.width, minimapCanvas.height);
+            mCtx.imageSmoothingEnabled = false;
+        }
+        function clearHover() {
+            hCtx.clearRect(0, 0, 500, 500);
+            if (rollbackMode) updateSelectionUI();
+        }
+        function getCanvasCoords(e) {
+            const rect = canvasWrapper.getBoundingClientRect();
+            let clientX, clientY;
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            const x = Math.floor((clientX - rect.left) / (rect.width / 500));
+            const y = Math.floor((clientY - rect.top) / (rect.height / 500));
+            return { x, y };
+        }
+
+        function drawHover(mouseX, mouseY) {
+            clearHover();
+            if (rollbackMode && isDragging) return;
+            if (selectedPixel) {
+                const { x, y } = selectedPixel;
+                hCtx.globalAlpha = 0.8;
+                hCtx.fillStyle = currentColor;
+                hCtx.fillRect(x, y, 1, 1);
+                hCtx.globalAlpha = 1.0;
+                hCtx.strokeStyle = currentColor === '#ffffff' ? '#000000' : '#ffffff';
+                hCtx.lineWidth = 2 / scale;
+                hCtx.strokeRect(x, y, 1, 1);
+            }
+            if (mouseX !== null && mouseY !== null && mouseX >= 0 && mouseX < 500 && mouseY >= 0 && mouseY < 500) {
+                if (!selectedPixel || selectedPixel.x !== mouseX || selectedPixel.y !== mouseY) {
+                    hCtx.globalAlpha = 0.4;
+                    hCtx.fillStyle = currentColor;
+                    hCtx.fillRect(mouseX, mouseY, 1, 1);
+                    hCtx.globalAlpha = 0.8;
+                    hCtx.strokeStyle = currentColor === '#ffffff' ? '#000000' : '#ffffff';
+                    hCtx.lineWidth = 1 / scale;
+                    hCtx.strokeRect(mouseX, mouseY, 1, 1);
+                    hCtx.globalAlpha = 1.0;
+                }
+            }
+        }
+        const _0x4f21 = "d3NzOi8vcGF0cmluYS11bmx1c3R5LXZpbmNlLm5ncm9rLWZyZWUuZGV2L3dz";
+        const wsUrl = (location.hostname === "localhost" || location.hostname === "127.0.0.1")
+            ? atob('d3M6Ly8=') + location.host + atob('L3dz')
+            : atob(_0x4f21);
+        let socket;
+        let reconnectTimeout;
+        let pingInterval;
+        let reconnectDelay = 2000;
+
+        function connectSocket() {
+            if (socket) {
+                socket.onopen = null;
+                socket.onmessage = null;
+                socket.onerror = null;
+                socket.onclose = null;
+                socket.close();
+            }
+
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                statusEl.innerText = '🟢 Активно (В сети)';
+                statusEl.style.color = '#a6e3a1';
+                reconnectDelay = 2000;
+
+                if (remangaUser) {
+                    socket.send(JSON.stringify({ type: 'auth_remanga', user: remangaUser }));
+                }
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const key = urlParams.get('key') || urlParams.get('token') || localStorage.getItem(atob('YWRtaW5Ub2tlbg=='));
+                if (key) {
+                    socket.send(JSON.stringify({ type: 'auth', token: key }));
+                    if (urlParams.get('key') || urlParams.get('token')) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
+                }
+
+                if (pingInterval) clearInterval(pingInterval);
+                pingInterval = setInterval(() => {
+                    if (socket.readyState === WebSocket.OPEN) {
+                        socket.send(JSON.stringify({ type: 'ping' }));
+                    }
+                }, 30000);
+            };
+            socket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'init') {
+                    const canvasData = data.data;
+                    for (let y = 0; y < 500; y++) {
+                        for (let x = 0; x < 500; x++) {
+                            ctx.fillStyle = canvasData[y][x];
+                            ctx.fillRect(x, y, 1, 1);
+                        }
+                    }
+                    if (data.owners) {
+                        pixelOwners.set(data.owners);
+                    }
+                    if (data.usernames) {
+                        allUsernames = data.usernames;
+                    }
+                    if (data.user_icons) {
+                        userIcons = data.user_icons;
+                    }
+                    if (data.stats) {
+                        updateStatsUI(data.stats);
+                    }
+                    serverTimeOffset = Date.now() - (data.server_time * 1000);
+                    syncMinimap();
+                    checkAuth();
+                } else if (data.type === 'update') {
+                    ctx.fillStyle = data.color;
+                    ctx.fillRect(data.x, data.y, 1, 1);
+                    if (data.uidx !== undefined) {
+                        pixelOwners[data.y * 500 + data.x] = data.uidx;
+                    }
+                    if (data.usernames) allUsernames = data.usernames;
+                    if (data.user_icons) userIcons = data.user_icons;
+                    if (data.stats) updateStatsUI(data.stats);
+                    if (data.ticker_events) addTickerEvents(data.ticker_events);
+                    if (highlightCurrent.name) applyHighlight(highlightCurrent.type, highlightCurrent.name, false, true);
+                    syncMinimap();
+                } else if (data.type === 'batch') {
+                    data.pixels.forEach(p => {
+                        ctx.fillStyle = p.color;
+                        ctx.fillRect(p.x, p.y, 1, 1);
+                        if (p.uidx !== undefined) {
+                            pixelOwners[p.y * 500 + p.x] = p.uidx;
+                        }
+                    });
+                    if (data.usernames) allUsernames = data.usernames;
+                    if (data.user_icons) userIcons = data.user_icons;
+                    if (data.stats) updateStatsUI(data.stats);
+                    if (data.ticker_events) addTickerEvents(data.ticker_events);
+                    if (highlightCurrent.name) applyHighlight(highlightCurrent.type, highlightCurrent.name, false, true);
+                    syncMinimap();
+                } else if (data.type === 'admin_status') {
+                    IS_ADMIN = data.value;
+                    IS_MASTER = data.is_master;
+
+                    if (IS_ADMIN) {
+                        if (data.token) {
+                            localStorage.setItem(atob('YWRtaW5Ub2tlbg=='), data.token);
+                        }
+                        document.querySelectorAll('.admin-only').forEach(el => {
+                            el.classList.add('show-admin');
+                            el.style.setProperty('display', 'flex', 'important');
+                        });
+
+                        const tokenGroup = document.getElementById('mTokenGroup');
+                        if (tokenGroup) {
+                            tokenGroup.style.setProperty('display', IS_MASTER ? 'flex' : 'none', 'important');
+                        }
+
+                        if (IS_MASTER) {
+                            document.querySelectorAll('.master-only').forEach(el => {
+                                el.classList.add('show-master');
+                                el.style.setProperty('display', 'flex', 'important');
+                            });
+                        }
+
+                        showToast("Режим администратора активирован!");
+                    } else {
+                        document.querySelectorAll('.admin-only').forEach(el => {
+                            el.classList.remove('show-admin');
+                            el.style.setProperty('display', 'none', 'important');
+                        });
+                        document.querySelectorAll('.master-only').forEach(el => {
+                            el.classList.remove('show-master');
+                            el.style.setProperty('display', 'none', 'important');
+                        });
+                        if (selectedPixel) cancelSelection();
+                        localStorage.removeItem(atob('YWRtaW5Ub2tlbg=='));
+                        showToast("Режим администратора отключен");
+                    }
+                } else if (data.type === 'area_history') {
+                    areaHistoryData = data.history;
+                    showToast("История получена. Двигайте ползунок!");
+                    previewRollback();
+                } else if (data.type === 'token_generated') {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('key', data.token);
+                    const fullUrl = url.toString();
+
+                    navigator.clipboard.writeText(fullUrl).then(() => {
+                        showToast("Ссылка скопирована! (10 минут)");
+                        alert("Временная ссылка создана и скопирована:\n" + fullUrl);
+                    });
+                } else if (data.type === 'error') {
+                    showToast(data.message);
+                } else if (data.type === 'success') {
+                    startCooldown(7);
+                } else if (data.type === 'usernames_update') {
+                    if (data.usernames) allUsernames = data.usernames;
+                    if (data.user_icons) userIcons = data.user_icons;
+                    if (data.stats) updateStatsUI(data.stats);
+                } else if (data.type === 'force_reauth') {
+                    if (remangaUser) {
+                        const myId = String(remangaUser.id);
+                        const myName = remangaUser.username;
+                        if (myId === data.old_id || myName === data.old_username) {
+                            remangaUser.id = data.new_id || remangaUser.id;
+                            remangaUser.username = data.new_username || remangaUser.username;
+                            localStorage.setItem('remangaUser', JSON.stringify(remangaUser));
+                            if (data.old_id) localStorage.removeItem('deviceKey_' + data.old_id);
+                            if (data.new_id) localStorage.setItem('deviceKey_' + data.new_id, 'verified');
+                            socket.send(JSON.stringify({ type: 'auth_remanga', user: remangaUser }));
+                        }
+                    }
+                } else if (data.type === 'force_reauth_self') {
+                    if (remangaUser) {
+                        const oldId = String(remangaUser.id);
+                        remangaUser.id = data.new_id || remangaUser.id;
+                        remangaUser.username = data.new_username || remangaUser.username;
+                        localStorage.setItem('remangaUser', JSON.stringify(remangaUser));
+                        if (oldId !== String(data.new_id)) {
+                            localStorage.removeItem('deviceKey_' + oldId);
+                        }
+                        localStorage.setItem('deviceKey_' + remangaUser.id, 'verified');
+                        console.log('[AUTH] Server corrected our identity:', remangaUser);
+                    }
+                } else if (data.type === 'force_logout') {
+                    if (remangaUser) {
+                        localStorage.removeItem('deviceKey_' + remangaUser.id);
+                    }
+                    remangaUser = null;
+                    localStorage.removeItem('remangaUser');
+                    checkAuth();
+                } else if (data.type === 'online') {
+                    const badge = document.getElementById('onlineBadge');
+                    const icon = data.count === 1 ? '\ud83d\udc64' : '\ud83d\udc65';
+                    badge.innerText = icon + ' ' + data.count;
+                }
+            };
+            socket.onerror = () => {
+                statusEl.innerText = '🔴 Ошибка подключения';
+                statusEl.style.color = '#f38ba8';
+            };
+            socket.onclose = () => {
+                statusEl.innerText = '🔴 Реконнект...';
+                statusEl.style.color = '#f38ba8';
+                if (pingInterval) clearInterval(pingInterval);
+
+                clearTimeout(reconnectTimeout);
+                reconnectTimeout = setTimeout(connectSocket, reconnectDelay);
+                reconnectDelay = Math.min(reconnectDelay * 2, 30000);
+            };
+        }
+
+        connectSocket();
+        checkAuth();
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                if (!socket || socket.readyState === WebSocket.CLOSED || socket.readyState === WebSocket.CLOSING) {
+                    reconnectDelay = 2000;
+                    connectSocket();
+                }
+            }
+        });
+        function startCooldown(seconds) {
+            if (IS_ADMIN && toggleNoCooldown.checked) return;
+            cooldownActive = true;
+            cooldownTime = seconds;
+            document.getElementById('confirmWrapper').style.display = 'none';
+            document.getElementById('cooldownText').style.display = 'block';
+            updateCooldownUI();
+            const timer = setInterval(() => {
+                cooldownTime--;
+                updateCooldownUI();
+                if (cooldownTime <= 0) {
+                    clearInterval(timer);
+                    cooldownActive = false;
+                    cooldownText.innerText = "Готов к битве";
+                    cooldownText.style.color = '#a6e3a1';
+                }
+            }, 1000);
+        }
+        function updateCooldownUI() {
+            if (cooldownTime > 0) {
+                cooldownText.innerText = `Ждите: ${cooldownTime} с`;
+                cooldownText.style.color = '#f38ba8';
+            }
+        }
+        let minScale = Math.min(container.clientWidth / 600, container.clientHeight / 600);
+        if (minScale < 0.1) minScale = 0.1;
+        let scale = minScale;
+        let maxScale = minScale * 200;
+        let panX = (container.clientWidth - 500 * scale) / 2;
+        let panY = (container.clientHeight - 500 * scale) / 2;
+        function applyTransform() {
+            canvasWrapper.style.left = panX + 'px';
+            canvasWrapper.style.top = panY + 'px';
+            canvasWrapper.style.width = (500 * scale) + 'px';
+            canvasWrapper.style.height = (500 * scale) + 'px';
+
+            const tickerWrapper = document.getElementById('tickerWrapper');
+            if (tickerWrapper) {
+                tickerWrapper.style.left = panX + 'px';
+                tickerWrapper.style.top = (panY + 500 * scale) + 'px';
+                tickerWrapper.style.width = (500 * scale) + 'px';
+            }
+
+            const visibleW_pct = (container.clientWidth / scale) / 500 * 100;
+            const visibleH_pct = (container.clientHeight / scale) / 500 * 100;
+            const startX_pct = (-panX / scale) / 500 * 100;
+            const startY_pct = (-panY / scale) / 500 * 100;
+            minimapViewport.style.left = startX_pct + '%';
+            minimapViewport.style.top = startY_pct + '%';
+            minimapViewport.style.width = visibleW_pct + '%';
+            minimapViewport.style.height = visibleH_pct + '%';
+            const zoomPercent = 100 + Math.round(((scale - minScale) / (maxScale - minScale)) * 400);
+            zoomVal.innerText = zoomPercent;
+            updateTooltipPosition();
+        }
+        window.addEventListener('resize', () => {
+            const oldMinScale = minScale;
+            minScale = Math.min(container.clientWidth / 600, container.clientHeight / 600);
+            if (minScale < 0.1) minScale = 0.1;
+            const ratio = minScale / oldMinScale;
+            scale *= ratio;
+            maxScale = minScale * 200;
+            panX *= ratio;
+            panY *= ratio;
+            applyTransform();
+        });
+        applyTransform();
+        function zoomInOut(delta, mouseX = null, mouseY = null) {
+            let oldScale = scale;
+            let zoomFactor = Math.abs(delta) < 1 ? scale * delta : delta;
+            scale += zoomFactor;
+            if (scale < minScale) scale = minScale;
+            if (scale > maxScale) scale = maxScale;
+            const cx = mouseX !== null ? mouseX : container.clientWidth / 2;
+            const cy = mouseY !== null ? mouseY : container.clientHeight / 2;
+            panX = cx - (cx - panX) * (scale / oldScale);
+            panY = cy - (cy - panY) * (scale / oldScale);
+            applyTransform();
+        }
+        container.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomAmount = e.deltaY < 0 ? 0.3 : -0.3;
+            zoomInOut(zoomAmount, e.clientX, e.clientY);
+            const { x, y } = getCanvasCoords(e);
+            if (!isDragging) { drawHover(x, y); }
+        }, { passive: false });
+        let isPanning = false;
+        let isDragging = false;
+        let startPanX = 0;
+        let startPanY = 0;
+        let hasMoved = false;
+        let cooldownActive = false;
+        container.addEventListener('mousedown', (e) => {
+            if (e.target.closest('#container')) {
+                const { x, y } = getCanvasCoords(e);
+                if (rollbackMode) {
+                    selectionStart = { x, y };
+                    selectionEnd = { x, y };
+                    updateSelectionUI();
+                    isPanning = false;
+                    isDragging = true;
+                } else if (IS_ADMIN && toggleContinuous.checked && x >= 0 && x < 500 && y >= 0 && y < 500) {
+                    isPanning = false;
+                    isDragging = true;
+                    placePixelDirectly(x, y);
+                } else {
+                    isPanning = true;
+                    isDragging = false;
+                    startPanX = e.clientX - panX;
+                    startPanY = e.clientY - panY;
+                    hasMoved = false;
+                    clearHover();
+                }
+            }
+        });
+        container.addEventListener('mousemove', (e) => {
+            const { x, y } = getCanvasCoords(e);
+            if (x >= 0 && x < 500 && y >= 0 && y < 500) {
+                cursorCoords.innerText = `${x}, ${y}`;
+                const uidx = pixelOwners[y * 500 + x];
+                if (uidx > 0 && allUsernames[uidx - 1]) {
+                    tooltipPixel = { x, y };
+                    const username = allUsernames[uidx - 1];
+                    pixelTooltip.innerHTML = getUserIconHtml(username) + username;
+                    updateTooltipPosition();
+                    pixelTooltip.style.display = 'block';
+                } else {
+                    pixelTooltip.style.display = 'none';
+                    tooltipPixel = null;
+                }
+            } else {
+                pixelTooltip.style.display = 'none';
+                tooltipPixel = null;
+            }
+
+            if (isPanning) {
+                hasMoved = true;
+                panX = e.clientX - startPanX;
+                panY = e.clientY - startPanY;
+                applyTransform();
+            } else if (!isDragging) {
+                drawHover(x, y);
+            } else if (isDragging && rollbackMode) {
+                selectionEnd = { x, y };
+                updateSelectionUI();
+            } else if (isDragging && IS_ADMIN && toggleContinuous.checked) {
+                if (x >= 0 && x < 500 && y >= 0 && y < 500) {
+                    placePixelDirectly(x, y);
+                }
+            }
+        });
+
+        container.addEventListener('mouseleave', () => {
+            clearHover();
+            pixelTooltip.style.display = 'none';
+            tooltipPixel = null;
+        });
+        window.addEventListener('mouseup', (e) => {
+            isPanning = false;
+            if (isDragging && rollbackMode && selectionStart && selectionEnd) {
+                const x1 = Math.min(selectionStart.x, selectionEnd.x);
+                const y1 = Math.min(selectionStart.y, selectionEnd.y);
+                const x2 = Math.max(selectionStart.x, selectionEnd.x);
+                const y2 = Math.max(selectionStart.y, selectionEnd.y);
+                const w = x2 - x1 + 1;
+                const h = y2 - y1 + 1;
+
+
+                originalAreaPixels = ctx.getImageData(x1, y1, w, h);
+
+                socket.send(JSON.stringify({
+                    type: 'get_area_history',
+                    x1, y1, x2, y2
+                }));
+                document.getElementById('rollbackPanel').style.display = 'flex';
+            }
+            isDragging = false;
+            const rect = canvasWrapper.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / scale);
+            const y = Math.floor((e.clientY - rect.top) / scale);
+            if (e.target.closest('#container')) { drawHover(x, y); }
+        });
+        canvasWrapper.addEventListener('click', (e) => {
+            if (hasMoved || rollbackMode) return;
+            if (cooldownActive) { showToast("Кулдаун еще не прошел!"); return; }
+            const rect = canvasWrapper.getBoundingClientRect();
+            const x = Math.floor((e.clientX - rect.left) / scale);
+            const y = Math.floor((e.clientY - rect.top) / scale);
+            if (x >= 0 && x < 500 && y >= 0 && y < 500) {
+                const p = ctx.getImageData(x, y, 1, 1).data;
+                const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1).toLowerCase();
+                if (hex === currentColor.toLowerCase()) { showToast("Этот цвет уже здесь!"); return; }
+                if (IS_ADMIN && (toggleContinuous.checked || toggleNoCooldown.checked)) {
+                    placePixelDirectly(x, y);
+                    return;
+                }
+                selectedPixel = { x, y };
+                drawHover(x, y);
+                document.getElementById('confirmWrapper').style.display = 'flex';
+            }
+        });
+        function sendPixel() {
+            if (!selectedPixel || cooldownActive) return;
+            placePixelDirectly(selectedPixel.x, selectedPixel.y);
+            cancelSelection();
+        }
+        function placePixelDirectly(x, y) {
+            if (cooldownActive && (!IS_ADMIN || !toggleNoCooldown.checked)) return;
+            if (socket.readyState === WebSocket.OPEN) {
+                if (brushSize > 1) {
+                    const pixels = [];
+                    const offset = Math.floor(brushSize / 2);
+                    for (let i = -offset; i < -offset + brushSize; i++) {
+                        for (let j = -offset; j < -offset + brushSize; j++) {
+                            const px = x + i, py = y + j;
+                            if (px >= 0 && px < 500 && py >= 0 && py < 500) {
+                                const p = ctx.getImageData(px, py, 1, 1).data;
+                                const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1).toLowerCase();
+                                if (hex !== currentColor.toLowerCase()) {
+                                    pixels.push({ x: px, y: py, color: currentColor });
+                                    if (toggleNoCooldown.checked) {
+                                        ctx.fillStyle = currentColor;
+                                        ctx.fillRect(px, py, 1, 1);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (pixels.length > 0) socket.send(JSON.stringify({ pixels: pixels, no_cd: toggleNoCooldown.checked }));
+                } else {
+                    const p = ctx.getImageData(x, y, 1, 1).data;
+                    const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1).toLowerCase();
+                    if (hex !== currentColor.toLowerCase()) {
+                        socket.send(JSON.stringify({ x: x, y: y, color: currentColor, no_cd: toggleNoCooldown.checked }));
+                        if (toggleNoCooldown.checked) {
+                            ctx.fillStyle = currentColor;
+                            ctx.fillRect(x, y, 1, 1);
+                        }
+                    }
+                }
+            } else { showToast("Нет подключения к серверу"); }
+        }
+        function cancelSelection() {
+            selectedPixel = null;
+            document.getElementById('confirmWrapper').style.display = 'none';
+            document.getElementById('cooldownText').style.display = 'block';
+            clearHover();
+        }
+        minimapWrapper.addEventListener('mousedown', (e) => {
+            e.stopPropagation();
+            const rect = minimapWrapper.getBoundingClientRect();
+            const clickPercentX = (e.clientX - rect.left) / rect.width;
+            const clickPercentY = (e.clientY - rect.top) / rect.height;
+            const targetCanvasX = clickPercentX * 500;
+            const targetCanvasY = clickPercentY * 500;
+            panX = (container.clientWidth / 2) - (targetCanvasX * scale);
+            panY = (container.clientHeight / 2) - (targetCanvasY * scale);
+            applyTransform();
+        });
+        let initialPinchDistance = null;
+        let initialScale = 1;
+        container.addEventListener('touchstart', (e) => {
+            clearHover();
+            if (e.touches.length === 1 && !e.target.closest('#minimapWrapper')) {
+                const rect = canvasWrapper.getBoundingClientRect();
+                const x = Math.floor((e.touches[0].clientX - rect.left) / scale);
+                const y = Math.floor((e.touches[0].clientY - rect.top) / scale);
+
+                showTooltipAtPixel(x, y);
+
+                if (rollbackMode) {
+                    isPanning = false;
+                    isDragging = true;
+                    selectionStart = { x, y };
+                    selectionEnd = { x, y };
+                    updateSelectionUI();
+                } else if (IS_ADMIN && toggleContinuous.checked && x >= 0 && x < 500 && y >= 0 && y < 500) {
+                    isPanning = false;
+                    isDragging = true;
+                    placePixelDirectly(x, y);
+                } else {
+                    isPanning = true;
+                    isDragging = false;
+                }
+                hasMoved = false;
+                startPanX = e.touches[0].clientX - panX;
+                startPanY = e.touches[0].clientY - panY;
+            } else if (e.touches.length === 2) {
+                isDragging = false;
+                pixelTooltip.style.display = 'none';
+                tooltipPixel = null;
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                initialPinchDistance = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
+                initialScale = scale;
+            }
+        }, { passive: false });
+        container.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const rect = canvasWrapper.getBoundingClientRect();
+            if (e.touches.length === 1 && (isPanning || isDragging)) {
+                const x = Math.floor((e.touches[0].clientX - rect.left) / scale);
+                const y = Math.floor((e.touches[0].clientY - rect.top) / scale);
+                if (isPanning) {
+                    hasMoved = true;
+                    panX = e.touches[0].clientX - startPanX;
+                    panY = e.touches[0].clientY - startPanY;
+                    applyTransform();
+                } else if (isDragging && rollbackMode) {
+                    selectionEnd = { x, y };
+                    updateSelectionUI();
+                } else if (!isPanning && isDragging && IS_ADMIN && toggleContinuous.checked) {
+                    if (x >= 0 && x < 500 && y >= 0 && y < 500) { placePixelDirectly(x, y); }
+                }
+            } else if (e.touches.length === 2 && initialPinchDistance) {
+                const touch1 = e.touches[0];
+                const touch2 = e.touches[1];
+                const currentDistance = Math.hypot(touch1.clientX - touch2.clientX, touch1.clientY - touch2.clientY);
+                const zoomFactor = currentDistance / initialPinchDistance;
+                let oldScale = scale;
+                scale = initialScale * zoomFactor;
+                if (scale < minScale) scale = minScale;
+                if (scale > maxScale) scale = maxScale;
+                const cx = (touch1.clientX + touch2.clientX) / 2;
+                const cy = (touch1.clientY + touch2.clientY) / 2;
+                panX = cx - (cx - panX) * (scale / oldScale);
+                panY = cy - (cy - panY) * (scale / oldScale);
+                applyTransform();
+            }
+        }, { passive: false });
+        container.addEventListener('touchend', (e) => {
+            if (isDragging && rollbackMode && selectionStart && selectionEnd) {
+                const x1 = Math.min(selectionStart.x, selectionEnd.x);
+                const y1 = Math.min(selectionStart.y, selectionEnd.y);
+                const x2 = Math.max(selectionStart.x, selectionEnd.x);
+                const y2 = Math.max(selectionStart.y, selectionEnd.y);
+                const w = x2 - x1 + 1;
+                const h = y2 - y1 + 1;
+
+                originalAreaPixels = ctx.getImageData(x1, y1, w, h);
+
+                socket.send(JSON.stringify({
+                    type: 'get_area_history',
+                    x1, y1, x2, y2
+                }));
+                document.getElementById('rollbackPanel').style.display = 'flex';
+            }
+            isDragging = false;
+            isPanning = false;
+            initialPinchDistance = null;
+        });
+        function adminClearCanvas() { }
+        function generateTempToken() {
+            if (IS_ADMIN) {
+                socket.send(JSON.stringify({ type: 'generate_token', duration: 600 }));
+            }
+        }
+
+        function toggleRollbackMode() {
+            rollbackMode = !rollbackMode;
+            const btn = document.getElementById('rollbackModeBtn');
+            btn.style.background = rollbackMode ? '#a6e3a1' : '#f38ba8';
+            btn.innerText = rollbackMode ? '✅ Выделите область' : '⏪ Откат участка';
+            if (!rollbackMode) cancelRollback();
+        }
+
+        function updateSelectionUI() {
+            if (!rollbackMode) return;
+            hCtx.clearRect(0, 0, 500, 500);
+
+            if (selectionStart && selectionEnd) {
+                const x1 = Math.min(selectionStart.x, selectionEnd.x);
+                const y1 = Math.min(selectionStart.y, selectionEnd.y);
+                const x2 = Math.max(selectionStart.x, selectionEnd.x);
+                const y2 = Math.max(selectionStart.y, selectionEnd.y);
+                const w = x2 - x1 + 1;
+                const h = y2 - y1 + 1;
+
+                hCtx.globalAlpha = 0.7;
+                hCtx.fillStyle = '#000000';
+                hCtx.fillRect(0, 0, 500, 500);
+
+                hCtx.globalCompositeOperation = 'destination-out';
+                hCtx.fillRect(x1, y1, w, h);
+                hCtx.globalCompositeOperation = 'source-over';
+                hCtx.globalAlpha = 1.0;
+
+                hCtx.strokeStyle = 'white';
+                hCtx.lineWidth = 1;
+                hCtx.strokeRect(x1 - 0.5, y1 - 0.5, w + 1, h + 1);
+            }
+        }
+
+        function applyRollbackPreviewToCanvas() {
+            if (!selectionStart || !selectionEnd || !originalAreaPixels) return;
+
+            const x1 = Math.min(selectionStart.x, selectionEnd.x);
+            const y1 = Math.min(selectionStart.y, selectionEnd.y);
+            const x2 = Math.max(selectionStart.x, selectionEnd.x);
+            const y2 = Math.max(selectionStart.y, selectionEnd.y);
+            const w = x2 - x1 + 1;
+            const h = y2 - y1 + 1;
+
+            ctx.putImageData(originalAreaPixels, x1, y1);
+
+            if (areaHistoryData && areaHistoryData.length > 0) {
+                const minutes = getRollbackMinutes();
+                const nowServer = (Date.now() - serverTimeOffset) / 1000;
+                const targetTs = nowServer - (minutes * 60);
+
+                const toRevert = areaHistoryData.filter(h => h.ts > targetTs);
+                toRevert.sort((a, b) => b.ts - a.ts);
+
+                toRevert.forEach(p => {
+                    ctx.fillStyle = COLOR_PALETTE[p.old];
+                    ctx.fillRect(p.x, p.y, 1, 1);
+                });
+            }
+
+            syncMinimap();
+        }
+
+        function restoreOriginalPixels() {
+            if (!selectionStart || !selectionEnd || !originalAreaPixels) return;
+            const x1 = Math.min(selectionStart.x, selectionEnd.x);
+            const y1 = Math.min(selectionStart.y, selectionEnd.y);
+            ctx.putImageData(originalAreaPixels, x1, y1);
+            syncMinimap();
+        }
+
+        function cancelRollback() {
+            restoreOriginalPixels();
+            selectionStart = null;
+            selectionEnd = null;
+            areaHistoryData = [];
+            originalAreaPixels = null;
+            hCtx.clearRect(0, 0, 500, 500);
+            document.getElementById('rollbackPanel').style.display = 'none';
+        }
+
+        function previewRollback() {
+            updateSelectionUI();
+            applyRollbackPreviewToCanvas();
+        }
+
+        function applyRollback() {
+            if (!selectionStart || !selectionEnd) return;
+            const x1 = Math.min(selectionStart.x, selectionEnd.x);
+            const y1 = Math.min(selectionStart.y, selectionEnd.y);
+            const x2 = Math.max(selectionStart.x, selectionEnd.x);
+            const y2 = Math.max(selectionStart.y, selectionEnd.y);
+
+            const minutes = getRollbackMinutes();
+            const targetTs = ((Date.now() - serverTimeOffset) / 1000) - (minutes * 60);
+
+            socket.send(JSON.stringify({
+                type: 'rollback',
+                x1, y1, x2, y2,
+                timestamp: targetTs
+            }));
+
+            showToast("Откат применен!");
+            originalAreaPixels = null;
+            cancelRollback();
+            toggleRollbackMode();
+        }
+
+        function getRollbackMinutes() {
+            let h = parseInt(document.getElementById('rollbackHours').value) || 0;
+            let m = parseInt(document.getElementById('rollbackMinutes').value) || 0;
+            return (h * 60) + m;
+        }
+
+        function updateRollbackPreview() {
+            let h = parseInt(document.getElementById('rollbackHours').value) || 0;
+            let m = parseInt(document.getElementById('rollbackMinutes').value) || 0;
+            if (h < 0) h = 0;
+            if (m < 0) m = 0;
+            let text = [];
+            if (h > 0) text.push(h + " ч.");
+            if (m > 0 || h === 0) text.push(m + " мин.");
+            document.getElementById('rollbackTimeText').innerText = text.join(" ") + " назад";
+            previewRollback();
+        }
+
+        let timelapseEvents = [];
+        let timelapseSnapshots = [];
+        let timelapseRealCanvasData = null;
+        let timelapseIsPlaying = false;
+        let timelapseCurrentIdx = 0;
+        let timelapseSpeed = 10;
+        let downloadStartIdx = 0;
+        let downloadEndIdx = 0;
+        let timelapseAnimFrame = null;
+        const TL_SNAPSHOT_INTERVAL = 10000;
+
+        function getApiUrl(path) {
+            const httpUrl = wsUrl.replace(atob('d3NzOi8v'), atob('aHR0cHM6Ly8=')).replace(atob('d3M6Ly8='), atob('aHR0cDovLw==')).replace(atob('L3dz'), '');
+            return httpUrl + path;
+        }
+
+        async function openTimelapse() {
+            if (!IS_MASTER) return;
+            document.getElementById('timelapseOverlay').style.display = 'flex';
+            document.getElementById('timelapseLoading').style.display = 'flex';
+            document.getElementById('timelapsePlayer').style.display = 'none';
+            document.getElementById('timelapseLoadingText').innerText = 'Загрузка истории...';
+
+            const token = localStorage.getItem(atob('YWRtaW5Ub2tlbg==')) || '';
+            try {
+                const resp = await fetch(getApiUrl(atob('L2FwaS9oaXN0b3J5P3Rva2VuPQ==') + encodeURIComponent(token)), {
+                    headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' }
+                });
+                const text = await resp.text();
+
+                document.getElementById('timelapseLoadingText').innerText = 'Обработка событий...';
+                await new Promise(r => setTimeout(r, 50));
+
+                timelapseEvents = [];
+                const lines = text.split('\n');
+                for (const line of lines) {
+                    const parts = line.trim().split(',');
+                    if (parts.length >= 5) {
+                        const x = parseInt(parts[0]);
+                        const y = parseInt(parts[1]);
+                        const newIdx = parseInt(parts[3]);
+                        const ts = parseFloat(parts[parts.length - 1]);
+                        if (!isNaN(x) && !isNaN(y) && !isNaN(newIdx) && !isNaN(ts)) {
+                            timelapseEvents.push({ x, y, c: newIdx, ts });
+                        }
+                    }
+                }
+
+                timelapseEvents.sort((a, b) => a.ts - b.ts);
+
+                document.getElementById('timelapseLoadingText').innerText = 'Построение снимков...';
+                await new Promise(r => setTimeout(r, 50));
+
+                buildTimelapseSnapshots();
+
+                const slider = document.getElementById('timelapseSlider');
+                slider.max = timelapseEvents.length;
+                slider.value = 0;
+                timelapseCurrentIdx = 0;
+
+                downloadStartIdx = 0;
+                downloadEndIdx = Math.max(0, timelapseEvents.length - 1);
+
+                document.getElementById('tlRangeToggle').checked = false;
+                toggleDownloadRange();
+
+                document.getElementById('timelapseLoading').style.display = 'none';
+                document.getElementById('timelapsePlayer').style.display = 'flex';
+
+                renderTimelapseAtIndex(0);
+                showToast('Загружено ' + timelapseEvents.length + ' событий');
+            } catch (e) {
+                showToast('Ошибка загрузки: ' + e.message);
+                closeTimelapse();
+            }
+        }
+
+        function buildTimelapseSnapshots() {
+            const tlCanvas = document.getElementById('timelapseCanvas');
+            const tlCtx = tlCanvas.getContext('2d', { willReadFrequently: true });
+            tlCtx.imageSmoothingEnabled = false;
+
+            timelapseSnapshots = [];
+
+            tlCtx.fillStyle = '#ffffff';
+            tlCtx.fillRect(0, 0, 500, 500);
+            timelapseSnapshots.push({ idx: 0, data: tlCtx.getImageData(0, 0, 500, 500) });
+
+            for (let i = 0; i < timelapseEvents.length; i++) {
+                const e = timelapseEvents[i];
+                tlCtx.fillStyle = COLOR_PALETTE[e.c] || '#ffffff';
+                tlCtx.fillRect(e.x, e.y, 1, 1);
+
+                if ((i + 1) % TL_SNAPSHOT_INTERVAL === 0) {
+                    timelapseSnapshots.push({ idx: i + 1, data: tlCtx.getImageData(0, 0, 500, 500) });
+                }
+            }
+
+            timelapseRealCanvasData = ctx.getImageData(0, 0, 500, 500);
+
+            tlCtx.fillStyle = '#ffffff';
+            tlCtx.fillRect(0, 0, 500, 500);
+        }
+
+        function renderTimelapseAtIndex(targetIdx) {
+            const tlCanvas = document.getElementById('timelapseCanvas');
+            const tlCtx = tlCanvas.getContext('2d', { willReadFrequently: true });
+            tlCtx.imageSmoothingEnabled = false;
+
+            if (targetIdx >= timelapseEvents.length && timelapseRealCanvasData) {
+                tlCtx.putImageData(timelapseRealCanvasData, 0, 0);
+                timelapseCurrentIdx = timelapseEvents.length;
+                updateTimelapseUI();
+                return;
+            }
+
+            let snapshotI = 0;
+            for (let i = timelapseSnapshots.length - 1; i >= 0; i--) {
+                if (timelapseSnapshots[i].idx <= targetIdx) {
+                    snapshotI = i;
+                    break;
+                }
+            }
+
+            const snapshot = timelapseSnapshots[snapshotI];
+            tlCtx.putImageData(snapshot.data, 0, 0);
+
+            for (let i = snapshot.idx; i < targetIdx; i++) {
+                const e = timelapseEvents[i];
+                tlCtx.fillStyle = COLOR_PALETTE[e.c] || '#ffffff';
+                tlCtx.fillRect(e.x, e.y, 1, 1);
+            }
+
+            timelapseCurrentIdx = targetIdx;
+            updateTimelapseUI();
+        }
+
+        function scrubTimelapse() {
+            const idx = parseInt(document.getElementById('timelapseSlider').value);
+            renderTimelapseAtIndex(idx);
+        }
+
+        function toggleTimelapsePlay() {
+            timelapseIsPlaying = !timelapseIsPlaying;
+            document.getElementById('timelapsePlayBtn').innerText = timelapseIsPlaying ? '⏸' : '▶';
+            if (timelapseIsPlaying) {
+                timelapseAnimate();
+            }
+        }
+
+        function timelapseAnimate() {
+            if (!timelapseIsPlaying) return;
+
+            const tlCanvas = document.getElementById('timelapseCanvas');
+            const tlCtx = tlCanvas.getContext('2d', { willReadFrequently: true });
+            tlCtx.imageSmoothingEnabled = false;
+
+            const endIdx = Math.min(timelapseCurrentIdx + timelapseSpeed, timelapseEvents.length);
+
+            for (let i = timelapseCurrentIdx; i < endIdx; i++) {
+                const e = timelapseEvents[i];
+                tlCtx.fillStyle = COLOR_PALETTE[e.c] || '#ffffff';
+                tlCtx.fillRect(e.x, e.y, 1, 1);
+            }
+
+            timelapseCurrentIdx = endIdx;
+            document.getElementById('timelapseSlider').value = timelapseCurrentIdx;
+            updateTimelapseUI();
+
+            if (timelapseCurrentIdx >= timelapseEvents.length) {
+                if (timelapseRealCanvasData) {
+                    tlCtx.putImageData(timelapseRealCanvasData, 0, 0);
+                }
+                timelapseIsPlaying = false;
+                document.getElementById('timelapsePlayBtn').innerText = '▶';
+                return;
+            }
+
+            timelapseAnimFrame = requestAnimationFrame(timelapseAnimate);
+        }
+
+        function updateTimelapseSpeed() {
+            timelapseSpeed = parseInt(document.getElementById('timelapseSpeed').value);
+        }
+
+        function updateTimelapseUI() {
+            if (timelapseEvents.length === 0) return;
+            const idx = Math.min(timelapseCurrentIdx, timelapseEvents.length - 1);
+            const ev = timelapseEvents[idx];
+            if (ev) {
+                const date = new Date(ev.ts * 1000);
+                document.getElementById('timelapseDate').innerText = date.toLocaleDateString('ru-RU');
+                document.getElementById('timelapseTime').innerText = date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+            document.getElementById('timelapseProgress').innerText = timelapseCurrentIdx + ' / ' + timelapseEvents.length;
+        }
+
+        function closeTimelapse() {
+            timelapseIsPlaying = false;
+            if (timelapseAnimFrame) cancelAnimationFrame(timelapseAnimFrame);
+            document.getElementById('timelapseOverlay').style.display = 'none';
+            timelapseEvents = [];
+            timelapseSnapshots = [];
+            timelapseRealCanvasData = null;
+        }
+
+        function toggleDownloadRange() {
+            const isChecked = document.getElementById('tlRangeToggle').checked;
+            const controls = document.getElementById('tlDownloadControls');
+
+            if (isChecked) {
+                controls.style.display = 'flex';
+                downloadStartIdx = timelapseCurrentIdx;
+                downloadEndIdx = Math.max(0, timelapseEvents.length - 1);
+                updateDownloadLabels();
+            } else {
+                controls.style.display = 'none';
+                downloadStartIdx = 0;
+                downloadEndIdx = Math.max(0, timelapseEvents.length - 1);
+            }
+        }
+
+        function setDownloadStart() {
+            downloadStartIdx = timelapseCurrentIdx;
+            updateDownloadLabels();
+            showToast("Точка начала установлена");
+        }
+
+        function setDownloadEnd() {
+            downloadEndIdx = timelapseCurrentIdx;
+            updateDownloadLabels();
+            showToast("Точка конца установлена");
+        }
+
+        function updateDownloadLabels() {
+            if (timelapseEvents.length === 0) return;
+            let sIdx = downloadStartIdx;
+            let eIdx = downloadEndIdx;
+            if (sIdx >= timelapseEvents.length) sIdx = timelapseEvents.length - 1;
+            if (eIdx >= timelapseEvents.length) eIdx = timelapseEvents.length - 1;
+            const sEv = timelapseEvents[sIdx];
+            const eEv = timelapseEvents[eIdx];
+            if (sEv) {
+                const d = new Date(sEv.ts * 1000);
+                document.getElementById('tlDownStartLabel').innerText = d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+            if (eEv) {
+                const d = new Date(eEv.ts * 1000);
+                document.getElementById('tlDownEndLabel').innerText = d.toLocaleDateString('ru-RU') + ' ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+        }
+
+        function downloadTimelapseBtn() {
+            if (timelapseEvents.length === 0) return;
+
+            const isChecked = document.getElementById('tlRangeToggle').checked;
+            let startIdx = isChecked ? downloadStartIdx : 0;
+            let endIdx = isChecked ? downloadEndIdx : Math.max(0, timelapseEvents.length - 1);
+
+            startIdx = Math.min(Math.max(0, startIdx), timelapseEvents.length - 1);
+            endIdx = Math.min(Math.max(0, endIdx), timelapseEvents.length - 1);
+
+            const format = document.getElementById('tlDownFormat').value;
+            const speed = document.getElementById('timelapseSpeed').value;
+
+            if (startIdx >= endIdx) {
+                showToast("Точка начала должна быть раньше точки конца");
+                return;
+            }
+
+            const startTs = timelapseEvents[startIdx].ts;
+            const endTs = timelapseEvents[endIdx].ts;
+
+            const token = localStorage.getItem(atob('YWRtaW5Ub2tlbg==')) || '';
+            const startUrl = getApiUrl(atob('L2FwaS90aW1lbGFwc2Vfc3RhcnQ/c3RhcnRfdHM9') + startTs + atob('JmVuZF90cz0=') + endTs + atob('JmZvcm1hdD0=') + format + atob('JnNwZWVkPQ==') + speed + atob('JnRva2VuPQ==') + encodeURIComponent(token));
+
+            const btn = document.getElementById('tlDownloadBtn');
+            const progressContainer = document.getElementById('tlDownloadProgress');
+            const progressBar = document.getElementById('tlDownloadProgressBar');
+            const progressText = document.getElementById('tlDownloadProgressText');
+
+            if (btn) {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+            }
+            if (progressContainer) progressContainer.style.display = 'block';
+            if (progressBar) progressBar.style.width = '0%';
+            if (progressText) progressText.innerText = 'Запуск задачи...';
+
+            fetch(startUrl, {
+                headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' }
+            }).then(resp => resp.json()).then(data => {
+                if (data.error) throw new Error(data.error);
+                const taskId = data.task_id;
+
+                const pollInterval = setInterval(() => {
+                    const statusUrl = getApiUrl(atob('L2FwaS90aW1lbGFwc2Vfc3RhdHVzP3Rhc2tfaWQ9') + taskId);
+                    fetch(statusUrl, { headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' } })
+                        .then(r => r.json())
+                        .then(statusData => {
+                            if (statusData.error) throw new Error(statusData.error);
+
+                            if (statusData.status === 'processing') {
+                                if (progressBar) progressBar.style.width = statusData.progress + '%';
+                                if (progressText) progressText.innerText = 'Генерация: ' + statusData.progress + '%';
+                            } else if (statusData.status === 'done') {
+                                clearInterval(pollInterval);
+                                if (progressBar) progressBar.style.width = '100%';
+                                if (progressText) progressText.innerText = 'Скачивание...';
+
+                                const downloadUrl = getApiUrl(atob('L2FwaS90aW1lbGFwc2VfZG93bmxvYWQ/dGFza19pZD0=') + taskId);
+                                fetch(downloadUrl, { headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' } })
+                                    .then(r => r.blob())
+                                    .then(blob => {
+                                        const blobUrl = window.URL.createObjectURL(blob);
+                                        const a = document.createElement('a');
+                                        a.href = blobUrl;
+                                        let ext = format === 'video' ? 'mp4' : format;
+                                        a.download = 'timelapse.' + ext;
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        window.URL.revokeObjectURL(blobUrl);
+                                        document.body.removeChild(a);
+
+                                        setTimeout(() => {
+                                            if (btn) {
+                                                btn.disabled = false;
+                                                btn.style.opacity = '1';
+                                            }
+                                            if (progressContainer) progressContainer.style.display = 'none';
+                                        }, 1000);
+                                    });
+                            } else if (statusData.status === 'error') {
+                                throw new Error(statusData.error);
+                            }
+                        }).catch(err => {
+                            clearInterval(pollInterval);
+                            showToast("Ошибка статуса: " + err.message);
+                            if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+                            if (progressContainer) progressContainer.style.display = 'none';
+                        });
+                }, 1000);
+
+            }).catch(err => {
+                showToast("Ошибка запуска: " + err.message);
+                if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+                if (progressContainer) progressContainer.style.display = 'none';
+            });
+        }
+
+        async function openOnlinePanel() {
+            document.getElementById('onlineOverlay').style.display = 'flex';
+            document.getElementById('onlineList').innerHTML = '<div style="text-align:center; padding:20px; color:#6c7086;">Загрузка...</div>';
+
+            const token = localStorage.getItem(atob('YWRtaW5Ub2tlbg==')) || '';
+            try {
+                const resp = await fetch(getApiUrl(atob('L2FwaS9vbmxpbmU/dG9rZW49') + encodeURIComponent(token)), {
+                    headers: { [atob('bmdyb2stc2tpcC1icm93c2VyLXdhcm5pbmc=')]: '1' }
+                });
+                const data = await resp.json();
+
+                if (data.error) throw new Error(data.error);
+
+                let html = '';
+                if (!data.users || data.users.length === 0) {
+                    html = '<div style="text-align:center; padding:20px; color:#6c7086;">Никого нет онлайн.</div>';
+                } else {
+                    data.users.forEach(u => {
+                        const isGuest = !u.id;
+                        html += `
+                            <div class="binding-item" style="margin-bottom: 8px;">
+                                <div class="binding-info">
+                                    <div class="binding-id" style="font-size: 11px; color: #6c7086;">${isGuest ? 'Гость' : 'ID: ' + u.id}</div>
+                                    <div class="binding-name" style="font-weight: bold;">${u.username || 'Без имени'}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                document.getElementById('onlineList').innerHTML = html;
+            } catch (e) {
+                document.getElementById('onlineList').innerHTML = `<div style="text-align:center; padding:20px; color:#f38ba8;">Ошибка: ${e.message}</div>`;
+            }
+        }
+
+        function closeOnlinePanel() {
+            document.getElementById('onlineOverlay').style.display = 'none';
+        }
+
+        let currentStats = { players: {}, guilds: {}, constellations: {} };
+        let currentStatsTab = 'players';
+
+        function switchStatsTab(tab) {
+            currentStatsTab = tab;
+            document.getElementById('tabPlayers').classList.toggle('active', tab === 'players');
+            document.getElementById('tabGuilds').classList.toggle('active', tab === 'guilds');
+            document.getElementById('tabConstellations').classList.toggle('active', tab === 'constellations');
+            renderStats();
+        }
+
+        function renderStats() {
+            const list = document.getElementById('statsList');
+            list.innerHTML = '';
+            let data = {};
+            if (currentStatsTab === 'players') data = currentStats.players || {};
+            else if (currentStatsTab === 'guilds') data = currentStats.guilds || {};
+            else if (currentStatsTab === 'constellations') data = currentStats.constellations || {};
+
+            if (!data || Object.keys(data).length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:10px; color:#6c7086; font-size:11px;">Нет данных</div>';
+                return;
+            }
+            const entries = Object.entries(data).sort((a, b) => b[1] - a[1]);
+            for (let i = 0; i < entries.length; i++) {
+                const item = document.createElement('div');
+                item.className = 'stats-item';
+                item.style.display = 'flex';
+                item.style.alignItems = 'center';
+
+                let iconHtml = '';
+                if (currentStatsTab === 'players') {
+                    iconHtml = getUserIconHtml(entries[i][0]);
+                }
+
+                item.style.cursor = 'pointer';
+                item.innerHTML = `
+                    <div class="stats-rank" style="color:#6c7086; width:30px; flex-shrink:0;">#${i + 1}</div>
+                    <div class="stats-name" style="flex:1; text-align:left; white-space:normal; word-break:break-word; overflow-wrap:anywhere; min-width:0;">${iconHtml}${entries[i][0]}</div>
+                    <div class="stats-count" style="flex-shrink:0; text-align:right; margin-left:10px;">${entries[i][1]}</div>
+                `;
+
+                const name = entries[i][0];
+                item.addEventListener('mouseenter', () => applyHighlight(currentStatsTab, name));
+                item.addEventListener('mouseleave', () => applyHighlight(null, null));
+                item.addEventListener('click', () => applyHighlight(currentStatsTab, name, true));
+
+                list.appendChild(item);
+            }
+        }
+    </script>
 </body>
+
 </html>
