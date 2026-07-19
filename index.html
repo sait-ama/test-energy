@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=1.0.14">
+  <link rel="stylesheet" href="style.css?v=1.1.0">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -527,12 +527,12 @@
   </div>
 
   <div id="admin-edit-modal" class="modal hidden">
-    <div class="modal-content modal-md">
+    <div class="modal-content modal-lg">
       <div class="modal-header">
         <h2>Редактирование игрока</h2>
         <button id="close-admin-edit-btn" class="close-btn">&times;</button>
       </div>
-      <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div class="modal-body" style="display: grid; grid-template-columns: 350px 1fr; gap: 24px;">
         <div>
           <input type="hidden" id="edit-user-id">
           <div class="form-group">
@@ -564,7 +564,7 @@
         <div style="border-left: 1px solid rgba(255,255,255,0.08); padding-left: 20px; display: flex; flex-direction: column; gap: 15px;">
           <div>
             <h3 style="font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 8px; font-weight: 600;">Инвентарь игрока</h3>
-            <div id="edit-user-inventory" class="inventory-grid" style="grid-template-columns: repeat(auto-fill, minmax(65px, 1fr)); gap: 6px; max-height: 180px; overflow-y: auto;">
+            <div id="edit-user-inventory" class="inventory-grid" style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; max-height: 420px; overflow-y: auto;">
               <div style="font-size: 11px; color: #8c9ba5;">Загрузка...</div>
             </div>
           </div>
@@ -639,6 +639,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=1.6.1"></script>
+  <script src="app.js?v=1.7.0"></script>
 </body>
 </html>

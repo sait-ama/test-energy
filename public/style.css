@@ -862,6 +862,10 @@ body {
   max-width: 600px;
 }
 
+.modal-content.modal-lg {
+  max-width: 1000px;
+}
+
 .modal-header {
   padding: 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);

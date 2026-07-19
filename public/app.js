@@ -6517,7 +6517,7 @@ window.editUserModal = async (userId, oldBalance, oldCell, isAdmin, name, taxReq
       } else {
         data.inventory.forEach(item => {
           const itemDiv = document.createElement('div');
-          itemDiv.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 6px; padding: 6px; font-size: 11px; display: flex; flex-direction: column; gap: 4px;';
+          itemDiv.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 8px; padding: 10px; font-size: 12px; display: flex; flex-direction: column; gap: 8px; align-items: center; text-align: center;';
 
           if (item.item_type === 'remanga_card') {
             let cover = item.description || '';
@@ -6526,20 +6526,20 @@ window.editUserModal = async (userId, oldBalance, oldCell, isAdmin, name, taxReq
             }
             const isPvp = item.is_pvp_trophy === 1;
             const typeText = isPvp ? 
-              `<div style="font-size: 9px; color: #ff007c; text-align: center; font-weight: bold;">🏆 Трофей PvP</div>` : 
-              `<div style="font-size: 9px; color: #8c9ba5; text-align: center;">Ячейка: ${item.origin_cell_number || '-'}</div>`;
+              `<div style="font-size: 10px; color: #ff007c; font-weight: bold;">🏆 Trophy PvP</div>` : 
+              `<div style="font-size: 10px; color: #8c9ba5;">Ячейка: ${item.origin_cell_number || '-'}</div>`;
             itemDiv.innerHTML = `
-              <div style="text-align: center;">
-                ${getCardMediaHTML(cover, '', 'width: 50px; height: auto; border-radius: 4px; border: 1px solid rgba(0,240,255,0.2);', `onerror="this.onerror=null; this.src=getCardCoverUrl('https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp');"`)}
+              <div style="text-align: center; margin-bottom: 4px;">
+                ${getCardMediaHTML(cover, '', 'width: 110px; height: 154px; border-radius: 6px; border: 1px solid rgba(0,240,255,0.2); object-fit: cover;', `onerror="this.onerror=null; this.src=getCardCoverUrl('https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp');"`)}
               </div>
-              <div style="font-weight: bold; color: #00f0ff; text-align: center; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${item.name}</div>
+              <div style="font-weight: bold; color: #00f0ff; font-size: 12px; line-height: 1.2; max-height: 2.8em; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; width: 100%; word-break: break-word;">${item.name}</div>
               ${typeText}
             `;
           } else {
             itemDiv.innerHTML = `
-              <div style="font-weight: bold; color: #ffb800; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${item.name}</div>
-              <div style="font-size: 9px; color: #8c9ba5; text-overflow: ellipsis; overflow: hidden;">${item.description}</div>
-              ${item.origin_cell_number !== null ? `<div style="font-size: 9px; color: #8c9ba5;">Ячейка: ${item.origin_cell_number}</div>` : ''}
+              <div style="width: 110px; height: 154px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.01); border: 1px dashed rgba(255,255,255,0.1); border-radius: 6px; font-size: 24px; color: #ffb800;">📦</div>
+              <div style="font-weight: bold; color: #ffb800; font-size: 12px; line-height: 1.2; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; width: 100%;">${item.name}</div>
+              <div style="font-size: 10px; color: #8c9ba5;">Обычный предмет</div>
             `;
           }
           invEl.appendChild(itemDiv);
