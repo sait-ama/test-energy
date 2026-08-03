@@ -85,6 +85,11 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json());
+
+app.get('/duck', (req, res) => {
+  res.sendFile(path.join(process.cwd(), 'public', 'duck', 'index.html'));
+});
+
 app.use((req, res, next) => {
   console.log(`[${new Date().toLocaleTimeString()}] ${req.method} ${req.path}`, req.method === 'POST' ? req.body : '');
   next();
