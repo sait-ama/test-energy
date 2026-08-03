@@ -43,6 +43,8 @@ async function proxyToDuckBackend(req, res, duckUrl) {
       }
     }
     headers['bypass-tunnel-reminder'] = 'true';
+    headers['Bypass-Tunnel-Reminder'] = 'true';
+    headers['user-agent'] = 'Mozilla/5.0';
 
     const fetchOptions = {
       method: req.method,
@@ -85,7 +87,7 @@ export default async function handler(req, res) {
   const now = Date.now();
   const url = req.url || '';
 
-  await refreshBackendUrls(now);
+  refreshBackendUrls(now);
 
   const isDuckRoute = url.startsWith('/api/state') || url.startsWith('/api/scan_now') || url.startsWith('/api/toggle_avatar') || url.startsWith('/api/toggle_prize_sent') || url.startsWith('/api/target_posts') || url.startsWith('/api/reset_participant_posts');
 
