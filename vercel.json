@@ -1,9 +1,6 @@
 {
-  "version": 2,
   "rewrites": [
-    {
-      "source": "/duck",
-      "destination": "/duck/index.html"
-    }
+    { "source": "/api/:path*", "destination": "/api/proxy.js" },
+    { "source": "/duck", "destination": "/duck/index.html" }
   ]
 }
