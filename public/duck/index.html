@@ -634,7 +634,7 @@
                         <th>Участник</th>
                         <th>Очки</th>
                         <th>Утиная аватарка (+10)</th>
-                        <th>Посты (+5)</th>
+                        <th>Целевые посты (+1)</th>
                         <th>«Кря»-комменты (+2)</th>
                         <th>Приз</th>
                         <th>Действия</th>
@@ -771,7 +771,7 @@
                         ${p.has_duck_avatar ? '🦆 Утка (+10)' : '❌ Нет (0)'}
                     </button>
                 </td>
-                <td><strong>${(p.duck_posts || []).length}</strong> (${(p.duck_posts || []).length * 5} очков)</td>
+                <td><strong>${p.target_post_points || 0}</strong> (${p.target_post_points || 0} очков)</td>
                 <td><strong>${(p.duck_comments || []).length}</strong> (${(p.duck_comments || []).length * 2} очков)</td>
                 <td>
                     <button class="toggle-btn ${p.prize_sent ? 'prize-sent-active' : ''}" onclick="togglePrizeSent(${p.id}, ${!p.prize_sent})">
@@ -902,7 +902,8 @@
             <div style="margin-bottom: 16px;">
                 <h4 style="margin-bottom: 8px;">Формула очков:</h4>
                 <div style="font-size: 14px; color: var(--text-muted);">
-                    Посты: ${(p.duck_posts || []).length} × 5 = <strong>${(p.duck_posts || []).length * 5}</strong><br>
+                    Целевые посты (Лайк/Коммент + Подписка): ${p.target_post_points || 0} × 1 = <strong>${p.target_post_points || 0}</strong><br>
+                    Пользовательские посты: ${(p.duck_posts || []).length} × 5 = <strong>${(p.duck_posts || []).length * 5}</strong><br>
                     Комментарии: ${(p.duck_comments || []).length} × 2 = <strong>${(p.duck_comments || []).length * 2}</strong><br>
                     Аватарка: <strong>${p.has_duck_avatar ? 10 : 0}</strong><br>
                     Итого: <strong style="color: var(--duck-yellow); font-size: 16px;">${p.points} очков</strong>
