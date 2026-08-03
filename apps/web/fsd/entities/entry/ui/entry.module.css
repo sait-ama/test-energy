@@ -1,0 +1,79 @@
+.root {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  margin: 24px 0;
+  padding-right: 20px;
+  padding-left: 20px;
+}
+
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 12px 24px;
+  word-break: break-word;
+}
+
+.container table {
+  display: block;
+  overflow: auto;
+}
+
+.container hr {
+  display: block;
+  height: 1px;
+  margin: 1em 0;
+  padding: 0;
+  border: 0;
+  border-top: 1px solid rgba(120, 120, 120, 0.1);
+}
+
+.container h2 {
+  font-size: 20px;
+}
+
+.container h1 {
+  margin: 16px 0 24px;
+  font-weight: 600;
+}
+
+.container ol,
+.container ul {
+  padding: 8px 16px;
+  list-style: cir outside none;
+}
+
+.container li {
+  margin-bottom: 8px;
+  font-weight: 500;
+  font-size: 18px;
+  margin-left: 16px;
+}
+
+.container p {
+  padding-bottom: 12px;
+  font-size: 16px !important;
+}
+
+@media (max-width: 599px) {
+  .container p span {
+    font-size: 16px !important;
+  }
+}
+.container a {
+  color: hsl(var(--r-primary));
+}
+
+.container a:hover {
+  text-decoration: underline;
+}
+
+.container img {
+  max-width: 100% !important;
+}
+
+.container td {
+  border: 1px solid hsl(var(--r-border));
+}
+
+/*# sourceMappingURL=entry.module.css.map */

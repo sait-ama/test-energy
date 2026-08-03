@@ -1,0 +1,37 @@
+{
+  "name": "@re/api",
+  "version": "1.0.0",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "engines": {
+    "node": ">=23.11.0"
+  },
+  "scripts": {
+    "preinstall": "npx only-allow pnpm",
+    "api:generate": "openapi-ts",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "pnpm dlx eslint"
+  },
+  "dependencies": {
+    "@tanstack/query-core": "catalog:",
+    "@tanstack/react-query": "catalog:",
+    "zod": "catalog:"
+  },
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "devDependencies": {
+    "@hey-api/openapi-ts": "^0.84.1",
+    "@re/eslint-config": "workspace:*",
+    "@re/prettier-config": "workspace:*",
+    "@re/typescript-config": "workspace:*",
+    "@types/node": "^22.10.2",
+    "commander": "^14.0.0"
+  },
+  "prettier": "@re/prettier-config",
+  "eslintConfig": {
+    "extends": "@re/eslint-config/next-js"
+  }
+}
+

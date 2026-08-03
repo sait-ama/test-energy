@@ -1,0 +1,54 @@
+{{- $cm := lookup "v1" "ConfigMap" .Release.Namespace .Values.envFrom.configMapName }}
+{{- if not $cm }}
+  {{- fail (printf "ConfigMap %s not found in namespace %s" .Values.envFrom.configMapName .Release.Namespace) }}
+{{- end }}
+{{- $apiUrl := index $cm.data "INGRESS_API_URL"}}
+{{- $mediaUrl := index $cm.data "INGRESS_MEDIA_URL"}}
+{{- $staticUrl := index $cm.data "INGRESS_STATIC_URL"}}
+{{- $storageUrl := index $cm.data "INGRESS_STORAGE_URL"}}
+{{- $INGRESS_DOMAIN := index $cm.data "INGRESS_DOMAIN"}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-admin-whitelist
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/whitelist-source-range: |
+      82.202.249.98/32,
+      92.246.136.177/32,
+      31.170.149.145/32,
+      92.246.136.177/32,
+      82.148.20.113/32,
+      212.3.131.100/32,
+      185.82.177.241/32,
+      46.8.159.238/32,
+      136.243.209.211/32
+    nginx.ingress.kubernetes.io/rewrite-target: /admin/$2
+    nginx.ingress.kubernetes.io/upstream-vhost: {{ $apiUrl }}
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ $INGRESS_DOMAIN }}
+      http:
+        paths:
+          - path: /admin(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "nextjs-monorepo.fullname" . }}-api
+                port:
+                  number: {{ .Values.services.api.port }}
+          - path: /ckeditor(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "nextjs-monorepo.fullname" . }}-api
+                port:
+                  number: {{ .Values.services.api.port }}
+          - path: /panel(/|$)(.*)
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "nextjs-monorepo.fullname" . }}-api
+                port:
+                  number: {{ .Values.services.api.port }}

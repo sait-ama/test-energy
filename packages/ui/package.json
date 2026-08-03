@@ -1,0 +1,88 @@
+{
+  "name": "@re/ui-kit",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./globals.css": "./src/globals.css",
+    "./postcss.config": "./postcss.config.mjs",
+    "./utils/*": [
+      "./src/utils/*.ts",
+      "./src/utils/*.tsx"
+    ],
+    "./ui/avatar": "./src/ui/avatar/index.ts",
+    "./ui/*": [
+      "./src/ui/*.tsx",
+      "./src/ui/*.ts"
+    ],
+    "./icons/*": "./src/icons/*.tsx",
+    "./theme/*": [
+      "./src/theme/colors/index.ts",
+      "./src/theme/colors/*.ts"
+    ],
+    "./hooks/*": [
+      "./src/hooks/*.ts"
+    ]
+  },
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "pnpm dlx eslint"
+  },
+  "dependencies": {
+    "@radix-ui/react-accordion": "catalog:radix-ui",
+    "@radix-ui/react-alert-dialog": "catalog:radix-ui",
+    "@radix-ui/react-avatar": "catalog:radix-ui",
+    "@radix-ui/react-checkbox": "catalog:radix-ui",
+    "@radix-ui/react-collapsible": "catalog:radix-ui",
+    "@radix-ui/react-dialog": "catalog:radix-ui",
+    "@radix-ui/react-dropdown-menu": "catalog:radix-ui",
+    "@radix-ui/react-hover-card": "catalog:radix-ui",
+    "@radix-ui/react-icons": "catalog:radix-ui",
+    "@radix-ui/react-label": "catalog:radix-ui",
+    "@radix-ui/react-navigation-menu": "catalog:radix-ui",
+    "@radix-ui/react-popover": "catalog:radix-ui",
+    "@radix-ui/react-portal": "catalog:radix-ui",
+    "@radix-ui/react-progress": "catalog:radix-ui",
+    "@radix-ui/react-radio-group": "catalog:radix-ui",
+    "@radix-ui/react-scroll-area": "catalog:radix-ui",
+    "@radix-ui/react-select": "catalog:radix-ui",
+    "@radix-ui/react-separator": "catalog:radix-ui",
+    "@radix-ui/react-slider": "catalog:radix-ui",
+    "@radix-ui/react-slot": "catalog:radix-ui",
+    "@radix-ui/react-switch": "catalog:radix-ui",
+    "@radix-ui/react-tabs": "catalog:radix-ui",
+    "@radix-ui/react-tooltip": "catalog:radix-ui",
+    "@re/core": "workspace:*",
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/postcss": "^4.0.6",
+    "class-variance-authority": "catalog:",
+    "clsx": "catalog:",
+    "cmdk": "^1.0.4",
+    "next": "catalog:",
+    "react": "catalog:react19",
+    "react-dom": "catalog:react19",
+    "tailwind-merge": "^3.0.1",
+    "tailwind-scrollbar-hide": "^2.0.0",
+    "tailwindcss": "catalog:",
+    "tailwindcss-animate": "catalog:",
+    "vaul": "^1.1.1"
+  },
+  "devDependencies": {
+    "@pyncz/tailwind-mask-image": "^2.0.0",
+    "@re/eslint-config": "workspace:*",
+    "@re/prettier-config": "workspace:*",
+    "@re/typescript-config": "workspace:*",
+    "@types/react": "catalog:react19",
+    "@types/react-dom": "catalog:react19",
+    "cssnano": "^7.0.6",
+    "postcss": "catalog:",
+    "postcss-nesting": "^13.0.1",
+    "postcss-preset-env": "^10.1.1",
+    "tailwindcss-capsize": "^4.0.1",
+    "tailwindcss-leading-trim": "^1.1.0"
+  },
+  "prettier": "@re/prettier-config"
+}

@@ -1,0 +1,43 @@
+.hidden {
+  display: none;
+}
+
+.tab {
+  padding: 0 !important;
+}
+
+.rounded10::before {
+  border-width: 0 !important;
+  border-radius: 100% !important;
+}
+
+.input::before {
+  border-width: 0 !important;
+  border-color: var(--bg-paper) !important;
+  border-radius: 100% !important;
+  background-color: var(--bg-paper) !important;
+}
+
+.input-secondary::before {
+  border-color: var(--bg-input) !important;
+  background-color: var(--bg-input) !important;
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  margin-right: 10px !important;
+  color: var(--text-secondary);
+  font-size: 20px !important;
+
+  &:hover {
+    color: var(--v2-brand-accent) !important;
+  }
+}
+
+.iconSearch {
+  width: 20px;
+  height: 20px;
+  color: var(--text-secondary);
+  font-size: 20px !important;
+}

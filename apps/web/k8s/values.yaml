@@ -1,0 +1,93 @@
+replicaCount: 1
+chartName: nextjs-monorepo
+chartVersion: 0.1.0
+image:
+  repository: cr.selcloud.ru/test-radix/auto-deploy
+  pullPolicy: Always
+  tag: "latest"
+  command: ["node"]
+  args: ["/app/apps/web/server.js", "--host=0.0.0.0"]
+createExternalServices: true
+imagePullSecrets: []
+envFrom:
+  configMapName: ""
+serviceAccount:
+  create: true
+  name: "default"
+podAnnotations: {}
+
+podSecurityContext: {}
+
+securityContext: {}
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+services:
+  api:
+    name: api
+    port: 443
+
+  media:
+    name: media
+    port: 80
+
+  storage:
+    name: storage
+    port: 80
+
+  static:
+    name: static
+    port: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  hostFromConfigMapKey: "INGRESS_DOMAIN"
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "999999"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "999999"
+  hosts: []
+  tls: []
+nameOverride: my-app-name
+fullnameOverride: my-app-fullname 
+resources:
+  requests:
+    cpu: "100m"
+    memory: "128Mi"
+
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+secretEnv: {}
+
+healthcheck:
+  path: "/bff-api/health-check"
+  livenessProbe:
+    httpGet:
+      path: /
+      port: 3000
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  readinessProbe:
+    httpGet:
+      path: /bff-api/health-check
+      port: 3000
+    initialDelaySeconds: 10
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3

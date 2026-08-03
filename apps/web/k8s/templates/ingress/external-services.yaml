@@ -1,0 +1,52 @@
+{{- $cm := lookup "v1" "ConfigMap" .Release.Namespace .Values.envFrom.configMapName }}
+{{- if not $cm }}
+  {{- fail (printf "ConfigMap %s not found in namespace %s" .Values.envFrom.configMapName .Release.Namespace) }}
+{{- end }}
+{{- $apiUrl := index $cm.data "INGRESS_API_URL"}}
+{{- $mediaUrl := index $cm.data "INGRESS_MEDIA_URL"}}
+{{- $staticUrl := index $cm.data "INGRESS_STATIC_URL"}}
+{{- $storageUrl := index $cm.data "INGRESS_STORAGE_URL"}}
+{{- $INGRESS_DOMAIN := index $cm.data "INGRESS_DOMAIN"}}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nextjs-monorepo.fullname" . }}-api
+spec:
+  type: ExternalName
+  externalName: {{ $apiUrl }}
+  ports:
+    - port: 443
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nextjs-monorepo.fullname" . }}-media
+spec:
+  type: ExternalName
+  externalName: {{ $mediaUrl }}
+  ports:
+    - port: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nextjs-monorepo.fullname" . }}-storage
+spec:
+  type: ExternalName
+  externalName: {{ $storageUrl }}
+  ports:
+    - port: 80
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "nextjs-monorepo.fullname" . }}-static
+spec:
+  type: ExternalName
+  externalName: {{ $staticUrl }}
+  ports:
+    - port: 80

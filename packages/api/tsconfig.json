@@ -1,0 +1,16 @@
+{
+  "extends": "@re/typescript-config/react-library.json",
+  "compilerOptions": {
+    "module": "commonjs",
+    "lib": ["esnext", "dom"],
+    "target": "esnext",
+    "esModuleInterop": false,
+    "isolatedModules": false,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "outDir": "./dist",
+  }
+}
+

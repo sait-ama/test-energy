@@ -1,0 +1,38 @@
+.captionsContainer {
+  position: absolute;
+  left: var(--yarl__container_padding, 0);
+  right: var(--yarl__container_padding, 0);
+  background-color: rgba(0, 0, 0, 0.5);
+  -webkit-transform: translateZ(0);
+  z-index: 10;
+}
+
+.titleContainer {
+  top: 0;
+  display: flex;
+  justify-content: flex-start;
+  width: 100%;
+  padding-right: var(--yarl__toolbar_width, 48px);
+}
+
+.title {
+  width: 100%;
+  padding: 1rem;
+  min-width: 0;
+  text-align: left;
+  font-size: 125%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.descriptionContainer {
+  bottom: 0;
+}
+
+.description {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: var(--yarl__slide_description_max_lines, 3);
+  padding: 1rem;
+}

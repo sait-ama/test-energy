@@ -1,0 +1,264 @@
+import * as React from 'react';
+
+import { useEventCallback } from '~shared/hooks/use-event-callback';
+import { EVENT_ON_KEY_DOWN, EVENT_ON_WHEEL } from '~shared/lib/lightbox/consts';
+import { useLightboxState } from '~shared/lib/lightbox/stores/lightbox-state';
+import { cleanup } from '~shared/lib/lightbox/utils';
+
+import { usePointerEvents } from '../../../hooks/use-pointer-events';
+import { useController } from '../../../modules/controller/store';
+import { useDocumentContext } from '../../../stores/document-store';
+import { useZoomProps } from './use-zoom-props';
+import { useZoomState } from './use-zoom-state';
+
+function distance(pointerA: React.MouseEvent, pointerB: React.MouseEvent) {
+  return (
+    ((pointerA.clientX - pointerB.clientX) ** 2 + (pointerA.clientY - pointerB.clientY) ** 2) ** 0.5
+  );
+}
+
+function scaleZoom(value: number, delta: number, factor = 100, clamp = 2) {
+  return value * Math.min(1 + Math.abs(delta / factor), clamp) ** Math.sign(delta);
+}
+const isDoubleArray = <TItem>(arr: TItem[]): arr is [TItem, TItem] => {
+  return arr.length >= 2;
+};
+export function useZoomSensors(
+  zoom: number,
+  maxZoom: number,
+  disabled: boolean,
+  changeZoom: ReturnType<typeof useZoomState>['changeZoom'],
+  changeOffsets: ReturnType<typeof useZoomState>['changeOffsets'],
+  zoomWrapperRef?: React.RefObject<HTMLDivElement | null>
+) {
+  const activePointers = React.useRef<React.PointerEvent[]>([]);
+  const lastPointerDown = React.useRef(0);
+  const pinchZoomDistance = React.useRef<number>(undefined);
+
+  const { globalIndex } = useLightboxState();
+  const { getOwnerWindow } = useDocumentContext();
+  const { containerRef, subscribeSensors } = useController();
+  const {
+    keyboardMoveDistance,
+    zoomInMultiplier,
+    wheelZoomDistanceFactor,
+    scrollToZoom,
+    doubleTapDelay,
+    doubleClickDelay,
+    doubleClickMaxStops,
+    pinchZoomDistanceFactor,
+  } = useZoomProps();
+
+  const translateCoordinates = React.useCallback(
+    (event: React.MouseEvent) => {
+      if (containerRef.current) {
+        const { pageX, pageY } = event;
+        const { scrollX, scrollY } = getOwnerWindow();
+        const { left, top, width, height } = containerRef.current.getBoundingClientRect();
+        return [pageX - left - scrollX - width / 2, pageY - top - scrollY - height / 2];
+      }
+      return [];
+    },
+    [containerRef, getOwnerWindow]
+  );
+
+  const onKeyDown = useEventCallback((event: React.KeyboardEvent) => {
+    const { key, metaKey, ctrlKey } = event;
+    const meta = metaKey || ctrlKey;
+
+    const preventDefault = () => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+
+    if (zoom > 1) {
+      const move = (deltaX: number, deltaY: number) => {
+        preventDefault();
+        changeOffsets(deltaX, deltaY);
+      };
+
+      if (key === 'ArrowDown') {
+        move(0, keyboardMoveDistance);
+      } else if (key === 'ArrowUp') {
+        move(0, -keyboardMoveDistance);
+      } else if (key === 'ArrowLeft') {
+        move(-keyboardMoveDistance, 0);
+      } else if (key === 'ArrowRight') {
+        move(keyboardMoveDistance, 0);
+      }
+    }
+
+    const handleChangeZoom = (zoomValue: number) => {
+      preventDefault();
+      changeZoom(zoomValue);
+    };
+
+    if (key === '+' || (meta && key === '=')) {
+      handleChangeZoom(zoom * zoomInMultiplier);
+    } else if (key === '-' || (meta && key === '_')) {
+      handleChangeZoom(zoom / zoomInMultiplier);
+    } else if (meta && key === '0') {
+      handleChangeZoom(1);
+    }
+  });
+
+  const onWheel = useEventCallback((event: React.WheelEvent) => {
+    if (event.ctrlKey || scrollToZoom) {
+      if (Math.abs(event.deltaY) > Math.abs(event.deltaX)) {
+        event.stopPropagation();
+
+        changeZoom(
+          scaleZoom(zoom, -event.deltaY, wheelZoomDistanceFactor),
+          true,
+          ...translateCoordinates(event)
+        );
+
+        return;
+      }
+    }
+
+    if (zoom > 1) {
+      event.stopPropagation();
+
+      if (!scrollToZoom) {
+        changeOffsets(event.deltaX, event.deltaY);
+      }
+    }
+  });
+
+  const clearPointer = React.useCallback((event: React.PointerEvent) => {
+    const pointers = activePointers.current;
+    pointers.splice(0, pointers.length, ...pointers.filter((p) => p.pointerId !== event.pointerId));
+  }, []);
+
+  const replacePointer = React.useCallback(
+    (event: React.PointerEvent) => {
+      clearPointer(event);
+      event.persist();
+      activePointers.current.push(event);
+    },
+    [clearPointer]
+  );
+
+  const onPointerDown = useEventCallback((event: React.PointerEvent) => {
+    const pointers = activePointers.current;
+
+    if (
+      // ignore right button clicks (e.g., context menu)
+      (event.pointerType === 'mouse' && event.buttons > 1) ||
+      // ignore clicks outside current slide (zoom icons, navigation buttons, etc.)
+      !zoomWrapperRef?.current?.contains(event.target as unknown as Element)
+    ) {
+      return;
+    }
+
+    if (zoom > 1) {
+      event.stopPropagation();
+    }
+
+    const { timeStamp } = event;
+    if (
+      pointers.length === 0 &&
+      timeStamp - lastPointerDown.current <
+        (event.pointerType === 'touch' ? doubleTapDelay : doubleClickDelay)
+    ) {
+      lastPointerDown.current = 0;
+      changeZoom(
+        zoom !== maxZoom
+          ? zoom * Math.max(maxZoom ** (1 / doubleClickMaxStops), zoomInMultiplier)
+          : 1,
+        false,
+        ...translateCoordinates(event)
+      );
+    } else {
+      lastPointerDown.current = timeStamp;
+    }
+
+    replacePointer(event);
+
+    if (isDoubleArray(pointers)) {
+      const [head, tail] = pointers;
+      pinchZoomDistance.current = distance(head, tail);
+    }
+  });
+
+  const onPointerMove = useEventCallback((event: React.PointerEvent) => {
+    const pointers = activePointers.current;
+
+    const activePointer = pointers.find((p) => p.pointerId === event.pointerId);
+
+    if (isDoubleArray(pointers) && pinchZoomDistance.current) {
+      event.stopPropagation();
+
+      replacePointer(event);
+      const [head, tail] = pointers as [React.PointerEvent<Element>, React.PointerEvent<Element>];
+      const currentDistance = distance(head, tail);
+      const delta = currentDistance - pinchZoomDistance.current;
+
+      if (Math.abs(delta) > 0) {
+        changeZoom(
+          scaleZoom(zoom, delta, pinchZoomDistanceFactor),
+          true,
+          ...pointers
+            .map((x) => translateCoordinates(x))
+            .reduce((acc, coordinate) => coordinate.map((x, i) => (acc?.[i] || 0) + x / 2))
+        );
+
+        pinchZoomDistance.current = currentDistance;
+      }
+
+      return;
+    }
+
+    if (zoom > 1) {
+      event.stopPropagation();
+
+      if (activePointer) {
+        if (pointers.length === 1) {
+          changeOffsets(
+            (activePointer.clientX - event.clientX) / zoom,
+            (activePointer.clientY - event.clientY) / zoom
+          );
+        }
+
+        replacePointer(event);
+      }
+    }
+  });
+
+  const onPointerUp = React.useCallback(
+    (event: React.PointerEvent) => {
+      const pointers = activePointers.current;
+
+      if (pointers.length === 2 && pointers.find((p) => p.pointerId === event.pointerId)) {
+        pinchZoomDistance.current = undefined;
+      }
+
+      clearPointer(event);
+    },
+    [clearPointer]
+  );
+
+  const cleanupSensors = React.useCallback(() => {
+    const pointers = activePointers.current;
+    pointers.splice(0, pointers.length);
+
+    lastPointerDown.current = 0;
+    pinchZoomDistance.current = undefined;
+  }, []);
+
+  usePointerEvents(subscribeSensors, onPointerDown, onPointerMove, onPointerUp, disabled);
+
+  React.useEffect(cleanupSensors, [globalIndex, cleanupSensors]);
+
+  React.useEffect(() => {
+    if (!disabled) {
+      return cleanup(
+        cleanupSensors,
+        subscribeSensors(EVENT_ON_KEY_DOWN, onKeyDown),
+        subscribeSensors(EVENT_ON_WHEEL, onWheel)
+      );
+    }
+    return () => {};
+  }, [disabled, subscribeSensors, cleanupSensors, onKeyDown, onWheel]);
+}

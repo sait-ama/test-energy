@@ -1,0 +1,69 @@
+import {
+  formsPublishersRetrieveQueryKey,
+  publishersCardsRetrieveQueryKey,
+  publishersContractFilesRetrieveQueryKey,
+  publishersContractorsRetrieveQueryKey,
+  publishersContractRetrieveQueryKey,
+  publishersContractsActsDownloadRetrieveQueryKey,
+  publishersContractsActsRetrieveQueryKey,
+  publishersDonatesRetrieveInfiniteQueryKey,
+  publishersDonatesRetrieveQueryKey,
+  publishersRetrieve2QueryKey,
+  publishersRetrieveQueryKey,
+  publishersStatisticsCsvRetrieveQueryKey,
+  publishersStatisticsRetrieveQueryKey,
+  publishersWithdrawRetrieveInfiniteQueryKey,
+  publishersWithdrawRetrieveQueryKey,
+  v2PublishersAchievementsListInfiniteQueryKey,
+  v2PublishersAchievementsListQueryKey,
+  v2PublishersCommentsListInfiniteQueryKey,
+  v2PublishersCommentsListQueryKey,
+  v2PublishersInvitationsRetrieveInfiniteQueryKey,
+  v2PublishersInvitationsRetrieveQueryKey,
+  v2PublishersMembersListQueryKey,
+  v2PublishersMembersRetrieveQueryKey,
+  v2PublishersRetrieve2QueryKey,
+  v2PublishersRetrieveQueryKey,
+  v2PublishersRightsRetrieveQueryKey,
+  v2PublishersStrikesListInfiniteQueryKey,
+  v2PublishersStrikesListQueryKey,
+  v2PublishersStrikesRetrieveQueryKey,
+} from '@re/api/generated/@tanstack/react-query.gen';
+
+export const reFormsPublishersRetrieveQueryKey = formsPublishersRetrieveQueryKey;
+export const rePublishersRetrieveQueryKey = publishersRetrieveQueryKey;
+export const rePublishersRetrieveByDirQueryKey = publishersRetrieve2QueryKey;
+export const rePublishersStatisticsRetrieveQueryKey = publishersStatisticsRetrieveQueryKey;
+export const rePublishersStatisticsCsvRetrieveQueryKey = publishersStatisticsCsvRetrieveQueryKey;
+export const rePublishersCardsRetrieveQueryKey = publishersCardsRetrieveQueryKey;
+export const rePublishersContractRetrieveQueryKey = publishersContractRetrieveQueryKey;
+export const rePublishersContractFilesRetrieveQueryKey = publishersContractFilesRetrieveQueryKey;
+export const rePublishersContractorsRetrieveQueryKey = publishersContractorsRetrieveQueryKey;
+export const rePublishersDonatesRetrieveQueryKey = publishersDonatesRetrieveQueryKey;
+export const rePublishersWithdrawRetrieveQueryKey = publishersWithdrawRetrieveQueryKey;
+export const rePublishersContractsActsRetrieveQueryKey = publishersContractsActsRetrieveQueryKey;
+export const rePublishersContractsActsDownloadRetrieveQueryKey =
+  publishersContractsActsDownloadRetrieveQueryKey;
+
+export const rePublishersDonatesRetrieveInfiniteQueryKey =
+  publishersDonatesRetrieveInfiniteQueryKey;
+export const rePublishersWithdrawRetrieveInfiniteQueryKey =
+  publishersWithdrawRetrieveInfiniteQueryKey;
+
+export const reV2PublishersRetrieveQueryKey = v2PublishersRetrieveQueryKey;
+export const reV2PublishersRetrieveByDirQueryKey = v2PublishersRetrieve2QueryKey;
+export const reV2PublishersAchievementsListQueryKey = v2PublishersAchievementsListQueryKey;
+export const reV2PublishersCommentsListQueryKey = v2PublishersCommentsListQueryKey;
+export const reV2PublishersMembersListQueryKey = v2PublishersMembersListQueryKey;
+export const reV2PublishersMembersRetrieveQueryKey = v2PublishersMembersRetrieveQueryKey;
+export const reV2PublishersStrikesListQueryKey = v2PublishersStrikesListQueryKey;
+export const reV2PublishersStrikesRetrieveQueryKey = v2PublishersStrikesRetrieveQueryKey;
+export const reV2PublishersInvitationsRetrieveQueryKey = v2PublishersInvitationsRetrieveQueryKey;
+export const reV2PublishersRightsRetrieveQueryKey = v2PublishersRightsRetrieveQueryKey;
+
+export const reV2PublishersAchievementsListInfiniteQueryKey =
+  v2PublishersAchievementsListInfiniteQueryKey;
+export const reV2PublishersCommentsListInfiniteQueryKey = v2PublishersCommentsListInfiniteQueryKey;
+export const reV2PublishersStrikesListInfiniteQueryKey = v2PublishersStrikesListInfiniteQueryKey;
+export const reV2PublishersInvitationsRetrieveInfiniteQueryKey =
+  v2PublishersInvitationsRetrieveInfiniteQueryKey;

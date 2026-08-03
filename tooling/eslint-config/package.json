@@ -1,0 +1,48 @@
+{
+  "name": "@re/eslint-config",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./base": {
+      "import": "./base.js",
+      "require": "./base.js"
+    },
+    "./next-js": {
+      "import": "./next.js",
+      "require": "./next.js"
+    },
+    "./react-internal": {
+      "import": "./react-internal.js",
+      "require": "./react-internal.js"
+    }
+  },
+  "devDependencies": {
+    "@eslint/compat": "^1.2.5",
+    "@eslint/eslintrc": "^3.2.0",
+    "@eslint/js": "^9.17.0",
+    "@next/eslint-plugin-next": "^15.1.4",
+    "@typescript-eslint/eslint-plugin": "^8.15.0",
+    "@typescript-eslint/parser": "^8.15.0",
+    "eslint": "catalog:",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-handle-errors": "^0.3.1",
+    "eslint-plugin-only-warn": "^1.1.0",
+    "eslint-plugin-react": "^7.37.2",
+    "eslint-plugin-react-hooks": "^5.0.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-turbo": "^2.3.0",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "globals": "^15.12.0",
+    "typescript": "^5.3.3",
+    "typescript-eslint": "^8.15.0",
+    "@re/prettier-config": "workspace:*"
+  },
+  "prettier": "@re/prettier-config",
+  "eslintConfig": {
+    "extends": [
+      "./base.js"
+    ]
+  }
+}
+

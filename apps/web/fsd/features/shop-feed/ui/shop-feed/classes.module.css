@@ -1,0 +1,33 @@
+.item {
+  box-sizing: border-box;
+}
+
+@media (max-width: 599px) {
+  .item {
+    width: calc((100% - 0.75rem) / 2);
+  }
+}
+
+@media (min-width: 600px) and (max-width: 799px) {
+  .item {
+    width: calc(33.33% - 0.75rem);
+  }
+}
+
+@media (min-width: 800px) and (max-width: 1023px) {
+  .item {
+    width: calc(25% - 0.75rem);
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1439px) {
+  .item {
+    width: calc(20% - 0.75rem);
+  }
+}
+
+@media (min-width: 1440px) {
+  .item {
+    width: calc((100% - 3.75rem) / 6);
+  }
+}

@@ -1,0 +1,1441 @@
+{
+  "pages": {
+    "home": {
+      "meta": {
+        "series": {
+          "title": "Watch Anime and Donghua Online",
+          "keywords": "watch anime, watch anime online, watch donghua, watch donghua online",
+          "description": "Watch anime and donghua online on ReAnime. The most convenient anime site with a huge catalog. Find top-rated titles, recommendations, collections, popular projects and more."
+        },
+        "manga": {
+          "title": "Read Manga Online",
+          "keywords": "read manga, manga online, read manga in english",
+          "description": "Read manga online on ReAnime. Huge library of manga across different genres. Comfortable reading experience and regular updates."
+        },
+        "novel": {
+          "title": "Read Light Novels and Web Novels Online",
+          "keywords": "read light novels, web novels online, read novels in english",
+          "description": "Read light novels and web novels online on ReAnime. Wide selection of titles with regular updates."
+        }
+      },
+      "seo": {
+        "title": "{content, select, novel {Read novels, books online in English} other {Read manga online in English}} - {siteName}",
+        "description": "Here you can read {content, select, novel {novels, books, LitRPG} other {manga, manhwa, manhua}} in English. The most convenient reader, a large catalog. You'll find ratings of the best titles, recommendations, collections, popular projects and much more.",
+        "keywords": "{content, select, novel {Read novels, read online novels in English, read online novels} other {Read manga, read online manga in English, read online manga}}"
+      }
+    },
+    "top": {
+      "meta": {
+        "series": {
+          "title": "Top 100 Anime and Donghua",
+          "keywords": "top anime, best anime, popular donghua, anime rankings",
+          "description": "Top 100 popular anime and donghua on the site! Best titles selected by users across the platform to help you find something new and exciting."
+        },
+        "manga": {
+          "title": "Top 100 Manga",
+          "keywords": "top manga, best manga, popular manga, manga rankings",
+          "description": "Top 100 popular manga on the site! Best titles selected by users across the platform to help you find something new and exciting."
+        },
+        "novel": {
+          "title": "Top 100 Light Novels and Web Novels",
+          "keywords": "top light novels, best light novels, popular web novels, novel rankings",
+          "description": "Top 100 popular light novels and web novels on the site! Best titles selected by users across the platform to help you find something new and exciting."
+        }
+      }
+    },
+    "catalog": {
+      "meta": {
+        "series": {
+          "title": "Anime and Donghua Catalog",
+          "keywords": "watch anime online, anime catalog, donghua, donghua online",
+          "description": "Anime and donghua catalog on {siteName}. Browse and watch anime by genres and categories, enjoying the best titles in high quality."
+        },
+        "manga": {
+          "title": "Manga Catalog",
+          "keywords": "read manga, manga online, manga catalog, manga in english",
+          "description": "Manga catalog on {siteName}. Browse and read manga by genres and categories, enjoying the best titles in high quality."
+        },
+        "novel": {
+          "title": "Ranobe and Web Novels Catalog",
+          "keywords": "read ranobe, web novels online, novel catalog, novels in english",
+          "description": "Ranobe and web novels catalog on {siteName}. Browse and read novels by genres and categories, enjoying the best works in a convenient format."
+        }
+      }
+    },
+    "common": {
+      "meta": {
+        "series": {
+          "title": "ReAnime - Watch Anime and Donghua Online",
+          "keywords": "watch anime, watch anime online, watch donghua, watch donghua online",
+          "description": "Watch anime and donghua for free on ReAnime. Huge selection of anime, top ratings, collections and recommendations for all tastes!"
+        },
+        "manga": {
+          "title": "ReAnime - Read Manga Online",
+          "keywords": "read manga, manga online, manga in english",
+          "description": "Read manga for free on ReAnime. Huge collection of manga, ratings and recommendations!"
+        },
+        "novel": {
+          "title": "ReAnime - Read Light Novels and Web Novels Online",
+          "keywords": "read light novels, web novels online, novels in english",
+          "description": "Read light novels and web novels for free on ReAnime. Large collection of works with regular updates!"
+        }
+      }
+    },
+    "reader": {
+      "meta": {
+        "series": {
+          "keywords": "read manga online, manga reader",
+          "title": "Watch for free volume {tome} chapter {chapter} {type} {main_name}",
+          "description": "Watch for free volume {tome} chapter {chapter} {type} {main_name} / {secondary_name} / {another_name}"
+        },
+        "manga": {
+          "keywords": "read manga online, manga reader",
+          "title": "Read for free volume {tome} chapter {chapter} {type} {main_name}",
+          "description": "Read for free volume {tome} chapter {chapter} {type} {main_name} / {secondary_name} / {another_name}"
+        },
+        "novel": {
+          "keywords": "read novel online, novel reader",
+          "title": "Read for free volume {tome} chapter {chapter} {type} {main_name}",
+          "description": "Read for free volume {tome} chapter {chapter} {type} {main_name} / {secondary_name} / {another_name}"
+        }
+      }
+    },
+    "title": {
+      "meta": {
+        "series": {
+          "title": "Watch {title name} Online",
+          "keywords": "watch anime {title name}, anime {title name} online, {genre} anime",
+          "description": "{title name} — watch anime {title name} online on ReAnime. Learn all about the characters, plot, and world of this title."
+        },
+        "manga": {
+          "title": "Read {manga name} Online",
+          "keywords": "read manga {manga name}, manga {manga name} online, {genre} manga",
+          "description": "{manga name} — read manga online on ReAnime. Complete collection of chapters with regular updates."
+        },
+        "novel": {
+          "title": "Read {novel name} Online",
+          "keywords": "read novel {novel name}, novel {novel name} online, {genre} novel",
+          "description": "{novel name} — read novel online on ReAnime. Complete translation of chapters with regular updates."
+        }
+      }
+    },
+    "similar": {
+      "meta": {
+        "series": {
+          "title": "Similar works to {name}",
+          "keywords": "similar works to {name}, similar works to {name} online, {genre} anime",
+          "description": "{name} — watch anime {name} online. Similar works: {similarTitles}"
+        },
+        "manga": {
+          "title": "Similar mangas to {name}",
+          "keywords": "similar mangas to {name}, similar mangas to {name} online, {genre} manga",
+          "description": "{name} — read manga {name} online. Similar mangas: {similarTitles}"
+        },
+        "novel": {
+          "title": "Similar novels to {name}",
+          "keywords": "similar novels to {name}, similar novels to {name} online, {genre} novel",
+          "description": "{name} — read novel {name} online. Similar novels: {similarTitles}"
+        }
+      }
+    },
+    "hotUpdates": {
+      "meta": {
+        "series": {
+          "title": "Hot Updates",
+          "keywords": "hot updates, latest anime, new releases",
+          "description": "Watch the latest anime releases and hot updates online for free on ReAnime. Discover new titles and stay updated with the newest episodes."
+        },
+        "manga": {
+          "title": "Hot Manga Updates",
+          "keywords": "hot manga updates, latest manga, new manga releases",
+          "description": "Read the latest manga releases and hot updates online for free on ReAnime. Discover new manga titles and stay updated with the newest chapters."
+        },
+        "novel": {
+          "title": "Hot Novel Updates",
+          "keywords": "hot novel updates, latest novels, new novel releases",
+          "description": "Read the latest novel releases and hot updates online for free on ReAnime. Discover new novel titles and stay updated with the newest chapters."
+        }
+      }
+    },
+    "edit": {
+      "meta": {
+        "series": {
+          "title": "Edit Series",
+          "keywords": "Edit series, series, anime series",
+          "description": "Edit series, series, anime series"
+        },
+        "manga": {
+          "title": "Edit Chapter",
+          "keywords": "Edit chapter, chapter, manga chapter",
+          "description": "Edit chapter, chapter, manga chapter"
+        },
+        "novel": {
+          "title": "Edit Chapter",
+          "keywords": "Edit chapter, chapter, novel chapter",
+          "description": "Edit chapter, chapter, novel chapter"
+        }
+      }
+    },
+    "addChapter": {
+      "meta": {
+        "series": {
+          "title": "Add Chapter to Series",
+          "description": "Add a new chapter to the series"
+        },
+        "novel": {
+          "title": "Add Chapter to Novel",
+          "description": "Add a new chapter to the anime"
+        },
+        "manga": {
+          "title": "Add Chapter to Manga",
+          "description": "Add a new chapter to the manga"
+        }
+      }
+    },
+    "character": {
+      "meta": {
+        "title": "Information about {characterName} from {titleName}",
+        "description": "Discover more about the character {characterName} from the work {titleMainName} | {titleSecondaryName}"
+      }
+    },
+    "user-about": {
+      "meta": {
+        "json-ld": {
+          "title": "User profile {username}",
+          "subscribers": "Subscribers",
+          "friends": "Friends",
+          "user-stats": "User statistics",
+          "total-views": "Total views",
+          "badges": "Badges",
+          "user-achievements": "User achievements",
+          "guild-member": "Guild member",
+          "publisher-member": "Publisher member",
+          "hero-cards": "Cards"
+        },
+        "title": "Profile {username} #{id}",
+        "description": "Page of user {username}, {membershipText}. Create a unique profile on Remanga to share your favorite cards {favoriteCards} and titles. Mark your achievements {badges} and accomplishments {achievements}. Join guilds and teams!",
+        "membership": {
+          "none": "is not a member of any guild or team",
+          "singlePublisher": "is a member of team {publisher}",
+          "multiplePublishers": "is a member of teams {publishers}",
+          "singleClub": "is a member of guild {club}",
+          "multipleClubs": "is a member of guilds {clubs}",
+          "singlePublisherSingleClub": "is a member of team {publisher} and guild {club}",
+          "singlePublisherMultipleClubs": "is a member of team {publisher} and guilds {clubs}",
+          "multiplePublishersSingleClub": "is a member of teams {publishers} and guild {club}",
+          "multiplePublishersMultipleClubs": "is a member of teams {publishers} and guilds {clubs}"
+        }
+      }
+    }
+  },
+  "notifications": {
+    "tabs": {
+      "social": "Social",
+      "updates": "Updates",
+      "important": "Important"
+    },
+    "statuses": {
+      "new": "New",
+      "read": "Read"
+    }
+  },
+  "form": {},
+  "customErrors": {},
+  "zod": {
+    "errors": {
+      "invalid_type": "Expected {expected}, received {received}",
+      "invalid_type_received_undefined": "Required",
+      "invalid_literal": "Invalid literal value, expected {expected}",
+      "unrecognized_keys": "Unrecognized key(s) in object: {keys}",
+      "invalid_union": "Invalid input",
+      "invalid_union_discriminator": "Invalid discriminator value. Expected {options}",
+      "invalid_enum_value": "Invalid enum value. Expected {options}, received {received}",
+      "invalid_arguments": "Invalid function arguments",
+      "invalid_return_type": "Invalid function return type",
+      "invalid_date": "Invalid date",
+      "custom": "Invalid input",
+      "invalid_intersection_types": "Intersection results could not be merged",
+      "not_multiple_of": "Number must be a multiple of {multipleOf}",
+      "not_finite": "Number must be finite",
+      "invalid_string": {
+        "email": "Invalid {validation}",
+        "emoji": "Invalid {validation}",
+        "url": "Invalid {validation}",
+        "uuid": "Invalid {validation}",
+        "ulid": "Invalid {validation}",
+        "ip": "Invalid {validation}",
+        "cuid": "Invalid {validation}",
+        "cuid2": "Invalid {validation}",
+        "regex": "Invalid",
+        "datetime": "Invalid {validation}",
+        "startsWith": "Invalid input: must start with \"{startsWith}\"",
+        "endsWith": "Invalid input: must end with \"{endsWith}\""
+      },
+      "too_small": {
+        "array": {
+          "exact": "{path, select, missingTranslation {Array} other {{path}}} must contain exactly {minimum} element(s)",
+          "inclusive": "{path, select, missingTranslation {Array} other {{path}}} must contain at least {minimum} element(s)",
+          "not_inclusive": "{path, select, missingTranslation {Array} other {{path}}} must contain more than {minimum} element(s)"
+        },
+        "string": {
+          "exact": "{path, select, missingTranslation {String} other {{path}}}  must contain exactly {minimum} character(s)",
+          "inclusive": "{path, select, missingTranslation {String} other {{path}}}  must contain at least {minimum} character(s)",
+          "not_inclusive": "{path, select, missingTranslation {String} other {{path}}}  must contain over {minimum} character(s)"
+        },
+        "number": {
+          "exact": "{path, select, missingTranslation {Number} other {{path}}}  must be exactly {minimum}",
+          "inclusive": "{path, select, missingTranslation {Number} other {{path}}} must be greater than or equal to {minimum}",
+          "not_inclusive": "{path, select, missingTranslation {Number} other {{path}}} must be greater than {minimum}"
+        },
+        "bigint": {
+          "exact": "{path, select, missingTranslation {Number} other {{path}}} must be exactly {minimum}",
+          "inclusive": "{path, select, missingTranslation {Number} other {{path}}} must be greater than or equal to {minimum}",
+          "not_inclusive": "{path, select, missingTranslation {Number} other {{path}}} must be greater than {minimum}"
+        },
+        "set": {
+          "exact": "Invalid input",
+          "inclusive": "Invalid input",
+          "not_inclusive": "Invalid input"
+        },
+        "date": {
+          "exact": "Date must be exactly {minimum, date, short}",
+          "inclusive": "Date must be greater than or equal to {minimum, date, short}",
+          "not_inclusive": "Date must be greater than {minimum, date, short}"
+        }
+      },
+      "too_big": {
+        "array": {
+          "exact": "{path, select, missingTranslation {Array} other {{path}}} must contain exactly {maximum} element(s)",
+          "inclusive": "{path, select, missingTranslation {Array} other {{path}}} must contain at most {maximum} element(s)",
+          "not_inclusive": "{path, select, missingTranslation {Array} other {{path}}} must contain less than {maximum} element(s)"
+        },
+        "string": {
+          "exact": "{path, select, missingTranslation {String} other {{path}}} must contain exactly {maximum} character(s)",
+          "inclusive": "{path, select, missingTranslation {String} other {{path}}} must contain at most {maximum} character(s)",
+          "not_inclusive": "{path, select, missingTranslation {String} other {{path}}} must contain under {maximum} character(s)"
+        },
+        "number": {
+          "exact": "{path, select, missingTranslation {Number} other {{path}}} must be exactly {maximum}",
+          "inclusive": "{path, select, missingTranslation {Number} other {{path}}} must be less than or equal to {maximum}",
+          "not_inclusive": "{path, select, missingTranslation {Number} other {{path}}} must be less than {maximum}"
+        },
+        "bigint": {
+          "exact": "{path, select, missingTranslation {Number} other {{path}}} must be exactly {maximum}",
+          "inclusive": "{path, select, missingTranslation {Number} other {{path}}} must be less than or equal to {maximum}",
+          "not_inclusive": "{path, select, missingTranslation {Number} other {{path}}} must be less than {maximum}"
+        },
+        "set": {
+          "exact": "Invalid input",
+          "inclusive": "Invalid input",
+          "not_inclusive": "Invalid input"
+        },
+        "date": {
+          "exact": "Date must be exactly {maximum, date, short}",
+          "inclusive": "Date must be smaller than or equal to {maximum, date, short}",
+          "not_inclusive": "Date must be smaller than {maximum, date, short}"
+        }
+      }
+    },
+    "validations": {
+      "email": "email",
+      "emoji": "emoji",
+      "url": "url",
+      "uuid": "uuid",
+      "ulid": "ulid",
+      "ip": "up",
+      "cuid": "cuid",
+      "cuid2": "cuid2",
+      "regex": "regex",
+      "datetime": "datetime"
+    },
+    "types": {
+      "function": "function",
+      "number": "number",
+      "string": "string",
+      "nan": "nan",
+      "integer": "integer",
+      "float": "float",
+      "boolean": "boolean",
+      "date": "date",
+      "bigint": "bigint",
+      "undefined": "undefined",
+      "symbol": "symbol",
+      "null": "null",
+      "array": "array",
+      "object": "object",
+      "unknown": "unknown",
+      "promise": "promise",
+      "void": "void",
+      "never": "never",
+      "map": "map",
+      "set": "set"
+    }
+  },
+  "common": {
+    "Больше": "More",
+    "Скрыть": "Less",
+    "еще": " and {num} more",
+    "Применить": "Apply",
+    "Добавить": "Add",
+    "Подтвердить": "Confirm",
+    "Подтвердите действие": "Confirm the action",
+    "Назад": "Back",
+    "Редактировать": "Edit",
+    "Сохранить": "Save",
+    "Удалить": "Delete",
+    "Отмена": "Cancel",
+    "Наверх": "Up",
+    "Нет результатов": "No results",
+    "SEO заголовок": "{content, select, novel {Read novels, books online in English} other {Read manga online in English}} - {name}",
+    "SEO описание": "{content, select, novel {Website for reading novels, books, ranobe and LitRPG} other {Here you can read manga, mankhwa, manhua in English. The most convenient manga reader, a large catalog of manga. Read from us}}",
+    "Ключевые слова": "{content, select, novel {Read ranobe, read novels, read novels online, read ranobe in english} other {read manga, read manga online, read manhua, read manhua online in english, read manhwa, read manhwa online in english}}",
+    "Мы рады тому, что вы скачали приложение": "We are glad that you have downloaded the app",
+    "Не забудьте включить расширенный каталог в настройках": "Dont forget to enable a <span>\"Extended catalog\"</span> in<br></br>setting for sync bookmarks with website in app",
+    "error": {
+      "Страница в разработке": "Page in development",
+      "Внутренняя ошибка сервера": "Internal server error",
+      "Информация для технической поддержки": "Information for the technical support",
+      "Войти в аккаунт": "Sign in",
+      "Вернуться назад": "Back",
+      "Перезагрузить": "Reload",
+      "Страница не найдена": "Page not found",
+      "Требуется авторизация": "Authorization required",
+      "Недоступен контент": "Content is unavailable",
+      "Произошла ошибка": "Error occurred",
+      "Обратная связь": "Feedback"
+    },
+    "modals": {
+      "cookieConsent": {
+        "Ясно": "Got it",
+        "Мы используем cookie и обрабатываем ваши персональные данные": "We use cookies and process your personal data. <br></br> You can disable this in the browser settings."
+      },
+      "promoConsent": {
+        "specialOfferType1": "Special offer! Top up at least {minCharge} and get {bonus, plural, one {ticket} other {tickets}}",
+        "specialOfferType2": "Special offer! Top up your balance from {minCharge} and get {bonus, plural, one {time} other {times}} more tickets!",
+        "Ясно": "Ok"
+      }
+    },
+    "branches": {
+      "Показать с конца": "Show from the end",
+      "Показать с начала": "Show from the beginning",
+      "Номер главы": "Chapter {index}",
+      "Cтанет бесплатной": "Make free {day} in {date}"
+    },
+    "charge": {
+      "Пополнить баланс": "Top up",
+      "Сколько закинем?": "How much would you like to top up?",
+      "Бонус тикетов": "+ {count} {count, selectordinal, one {ticket} other {tickets}}",
+      "Баланс будет пополнен на": "Balance will be topped up on {money} coins and {tickets} tickets",
+      "Платежная система": "Payment system",
+      "Готово": "Done!",
+      "Проведите перевод средств в открывшемся окне": "Make a transfer of funds in the window that opens. If the window does not open, follow the <link>link</link>",
+      "После выполнения, ваш баланс пополнится в течение пары минут": "After completion, your balance will be replenished within a couple of minutes",
+      "С иностранной кассы деньги зачисляются дольше": "If you have used a foreign card, the money is credited up to 24 hours. If the problem persists, contact <link>support</link>",
+      "Понял": "Got it",
+      "Временно недоступно": "(unavailable)",
+      "Важная информация": "Important!",
+      "Если платеж по иностранной кассе не прошел": "If the payment to a non-foreign cashier failed, click on the button below",
+      "Проверить платеж": "Сheck the payment",
+      "Платеж успешно проверен": "Payment successfully verified, status: {status, select, true {successful} other {unsuccessful}}",
+      "Платеж отменен": "Payment is canceled",
+      "Платеж получен": "Payment is received",
+      "К оплате": "Pay",
+      "Минимум 100 монет": "Min 100 coins",
+      "Максимум 5000 монет": "Max 5000 coins",
+      "Обязательно": "Required"
+    },
+    "publishers": {
+      "переводчик": "publisher",
+      "Новые": "New"
+    },
+    "header": {
+      "Каталог": "Catalog",
+      "Топы": "Top",
+      "Форум": "Forum",
+      "Поиск": "Search",
+      "Закладки": "Bookmarks",
+      "Войти": "Sign In"
+    },
+    "report": {
+      "Отправить жалобу": "Send a report",
+      "Сообщить о проблеме": "Report a problem",
+      "Сообщение": "Message",
+      "Варианты": "Variants",
+      "Пожаловаться": "Report",
+      "Обязательно": "Required"
+    },
+    "footer": {
+      "Всегда готовы ответить на вопросы": "We are always ready to answer any questions",
+      "Задать вопрос": "Ask a question",
+      "Разделы": "Sections",
+      "Инфо": "Information",
+      "Скачать приложение": "Download our app",
+      "Контакты": "Contacts",
+      "ПРАВИЛА САЙТА": "SITE RULES",
+      "DMCA": "DMCA",
+      "АВТОРСКОЕ ПРАВО": "COPYRIGHT",
+      "О НАС": "ABOUT US",
+      "ПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ": "TERMS OF USE",
+      "АГЕНТСКИЙ ДОГОВОР": "AGENCY AGREEMENT",
+      "СОГЛАШЕНИЕ О КОНФИДЕНЦИАЛЬНОСТИ": "PRIVACY POLICY",
+      "МОБИЛЬНОЕ ПРИЛОЖЕНИЕ": "MOBILE APPLICATIONS",
+      "FAQ": "FAQ",
+      "ВАКАНСИИ": "VACANCY"
+    },
+    "userInfo": {
+      "Информация о Re: Pass": "Complete tasks and get rewards",
+      "История прочтения": "History",
+      "Админка": "Admin panel",
+      "Модерка": "Moderator panel",
+      "Изменить тему": "Change a theme",
+      "Выйти": "Logout",
+      "Пополнить": "Top up",
+      "Поиск": "Search",
+      "Каталог": "Catalog",
+      "Закладки": "Закладки",
+      "Баланс": "{balance, plural, =1 {coin} other {coins}}",
+      "Пожалуйста, привяжите email к своему аккаунту": "Please, link your email to your account",
+      "Проверьте свою почту и подтвердите email": "Check your email and confirm your email address",
+      "Отправить Email": "Send Email"
+    },
+    "bookmarks": {
+      "Читаю": "Read",
+      "Буду читать": "Will read",
+      "Прочитано": "Completed",
+      "Отложено": "Stopped reading",
+      "Брошено": "Gave up",
+      "Не интересно": "Not interesting"
+    },
+    "search": {
+      "Что ищем, семпай?": "Are you looking for something, Senpai?",
+      "Часто ищут": "Frequent queries",
+      "Тайтлы": "Titles",
+      "Команды": "Teams",
+      "Авторы": "Authors",
+      "Показать все": "Show all"
+    },
+    "last_updates": {
+      "Описание главы последних обновлений": "\"{title}\" tome {tome} chapter {chapter}",
+      "Заголовок в последних обновлениях": "Tome {tome} Chapter {chapter} {name}"
+    }
+  },
+  "index": {
+    "Горячие новинки": "New Featured Titles",
+    "Горячие новинки описание": "Read the latest manga, manhwa, manhua titles online for free on {sitename}. Read manhwa about reincarnations and magic, read manhwa about villains",
+    "Читать тайтлы": "Read {type, select, novel {novels} other {manga}} online",
+    "Подборки": "Collections",
+    "Новеллы": "Novels",
+    "Последние обновления": "Latest Updates",
+    "Популярно сегодня": "Trending Now",
+    "Новый сезон": "New Season",
+    "Вам понравится": "Recommendations For You",
+    "Топ месяца": "Top of the Month",
+    "Только мои закладки": "Show my bookmarks",
+    "Промоакции": "Promotions",
+    "preferences": {
+      "Предпочтения": "Preferences",
+      "Адам": "Adam",
+      "Ева": "Eva",
+      "Описание Адам": "Description Adam",
+      "Описание Ева": "Description Eve",
+      "Можно изменить позже": "You can change it later",
+      "Применить": "Submit",
+      "Выберите, что нравится читать": "Choose what you like to read"
+    }
+  },
+  "feedback": {
+    "metadata": {
+      "Оставить фидбек": "Оставить фидбек"
+    }
+  },
+  "catalog": {
+    "Каталог SEO заголовок": "{content, select, novel {Catalog of books, ranobe, short stories, LitRPG} other {Manga catalog online in English}} - {siteName}",
+    "Каталог SEO описание": "{content, select, novel {Catalog of books, short stories, ranobe, LitRPG, where you can find a good book to read online using convenient filters} other {Here you can read manga, manhwa, manhua in English. The most convenient manga reader, a large catalog of manga. Read with us}}",
+    "Каталог SEO ключевые слова": "{content, select, novel {Read short stories, read online short stories in English, read online short stories} other {Read manga, manhua, manhwa, read online manga, manhua, manhwa, read online manga in English}}",
+    "Каталог описание": "Catalog of {content, select, novel {books, novells, litRPG} other {manga, manhua, manhwa}}",
+    "Каталог": "Catalog",
+    "Нет элементов": "No items with these filters",
+    "Фильтры": "Filters",
+    "Очистить": "Clear filters",
+    "Типы": "Types",
+    "Жанры": "Genres",
+    "Теги": "Tags",
+    "Статус проекта": "Status",
+    "Возрастной рейтинг": "Age Limit",
+    "Год выпуска": "Release date",
+    "От": "From",
+    "До": "To",
+    "Оценка": "Rating",
+    "Количество глав": "Number of chapters",
+    "Исключить": "Exclude",
+    "Закладки": "Bookmarks",
+    "Только закладки": "Only my bookmarks",
+    "Все тайтлы": "Everything",
+    "Исключить закладки": "Exclude bookmarks",
+    "Автоподгрузка": "Autoload",
+    "Нет глав более 45 дней": "There are no chapters for more than 45 days",
+    "Сортировать по": "Sort by",
+    "По новизне": "Newest",
+    "По последним обновлениям": "Last update",
+    "По популярности": "Popularity",
+    "По лайкам": "Likes",
+    "По просмотрам": "Views",
+    "По количеству глав": "Number of chapters",
+    "Мне повезет": "Random"
+  },
+  "search": {
+    "metadata": {
+      "Поиск": "Search"
+    }
+  },
+  "hero-card": {
+    "metadata": {
+      "Добавить карточку": "Add a card"
+    }
+  },
+  "bookmarks": {
+    "Сортировать по": "Sort by",
+    "Закладки": "Bookmarks",
+    "Закладки описание": "User bookmarks page",
+    "Нет закладок": "No bookmarks",
+    "Все": "All",
+    "Изменение закладок": "Edit bookmarks",
+    "Добавить закладки": "Add a new bookmark",
+    "Редактирование закладки": "Edit a bookmark «{bookmark}»",
+    "Название закладки": "Name of a bookmark",
+    "Видимость": "Visibility",
+    "Инфо о видимости": "Information about visibility",
+    "Уведомления": "Notifications",
+    "Инфо о уведомлениях": "Information about notifications",
+    "Удалить закладку": "Delete a bookmark «{bookmark}»",
+    "Не уведомлять о выходе платных глав": "Do not notify about paid chapters releases",
+    "Уведомлять о выходе платных глав": "Notify about paid chapters releases",
+    "Изменить выбранное": "Edit selected",
+    "Сначала непрочитанные": "Unread first",
+    "По дате обновлений глав": "By chapter's update",
+    "Сначала новые": "Newest",
+    "Новые": "Newest",
+    "Сначала старые": "Oldest",
+    "По алфавиту (А-Я)": "A-Z",
+    "По алфавиту (Я-А)": "Z-A",
+    "По количеству глав": "By number of chapters",
+    "Что такое «Изменение закладок»": "What is \"Edit Bookmarks\"",
+    "Инфо об изменении закладок": "Here you can create new bookmark categories (up to 3) and change functionality such as: <br></br> <item>Bookmark name</item> <item>Notification status (whether to notify about new chapters)</item><item>Visibility for others</item><br></br>You cannot change the standard bookmarks.",
+    "Название обязательно": "Name is required",
+    "Минимальная длина": "Minimum length is 3 characters",
+    "Максимальная длина": "Maximum length is 20 characters",
+    "Введите название закладки": "Enter a name of a bookmark"
+  },
+  "notifications": {
+    "Страница уведомлений": "Notifications page",
+    "Страница уведомлений описание": "Notifications page description",
+    "Уведомления": "Notifications",
+    "Новые": "New",
+    "Прочитанные": "Already read",
+    "Сортировать": "Sort by",
+    "Удалить все прочитанные из вкладки": "Delete all read",
+    "Пометить вкладку как прочитанную": "Mark as read",
+    "Наверх": "Up",
+    "Обновление": "Updates {count}",
+    "Социальное": "Social {count}",
+    "Важное": "Important {count}",
+    "Нет ни одного уведомления": "No new notifications",
+    "Удалить ветку": "Delete a branch",
+    "Пометить ветку как прочитанное": "Mark a branch as read"
+  },
+  "inventory": {
+    "Изменить порядок": "Change order ({count}/{countMax})"
+  },
+  "profile": {
+    "metadata": {
+      "Профиль": "{tab, select, about {Profile} bookmarks {Bookmarks} comments {Comments} exchanges {Exchanges} friend_requests {Friend requests} inventory {Inventory} posts {Posts} subscriptions {Subscriptions} achievements {Achievements} badges {Badges} followers {Followers} friends {Friends} publishers {Publishers} other {Profile} } {username}",
+      "Настройки": "{tab, select, appearance {Appearace settings} email_change {Change email} notifications {Notifications settings} password_reset {Reset password} preferences {Preference settings} profile {Profile settings} social {Socials} other {Settings} }",
+      "Подписка": "Subscription",
+      "Восстановление пароля": "Password recovery",
+      "Восстановление пароля описание": "Restore a password page",
+      "История": "History"
+    },
+    "Профиль пользователя": "Profile {username} - {siteName}",
+    "Дата присоединения": "Joined the site on {date_joined}",
+    "Нет ни одного бейджа": "There is not a single badge",
+    "Выбрать бейдж": "Select a badge",
+    "Слишком большая картинка": "The picture is too large",
+    "Имя должно быть в пределах 3-20 символов": "Name must be within 3 and 20 symbols",
+    "прочитано глав": "{count, plural, one {chapter} two {chapters} few {chapters} many {chapters} other {chapter} } read",
+    "лайков": "{count, plural, one {like} two {likes} few {likes} many {likes} other {like} }",
+    "комментариев": "{count, plural, one {comment} two {comments} few {comments} many {comments} other {comment} }",
+    "Настройки": "Settings",
+    "Почта": "Email",
+    "Пол": "Gender: {gender, select, female {female} male {male} other {not specified}}",
+    "Ачивки": "Achievements",
+    "Добавить": "Add",
+    "Нет ни одной закладки": "There are no bookmarks yet",
+    "Здесь пока нет ни одного комментария": "There are no comments yet",
+    "Здесь нет ни одного элемента": "There are no elements",
+    "Промокоды": "Promo codes",
+    "Тайтлы": "Titles",
+    "Карты": "Cards",
+    "Подробнее об элементе": "More info about the element",
+    "Вы можете активировать промокод на сайте компании, от которой получили промокод": "You can activate the promo code on the website of the company from which you received the promo code",
+    "Код активации": "Activation code:",
+    "Нажми, чтобы скопировать в буфер": "Click to copy to clipboard",
+    "(нажми, чтобы скопировать)": "Click to copy",
+    "Обложка произведения": "Title's cover",
+    "Нет доступных глав": "There are no available chapters",
+    "В составе": "Teams",
+    "Профиль": "Profile",
+    "Закладки": "Bookmarks",
+    "Инвентарь": "Inventory",
+    "Обмены": "Обмены",
+    "Посты": "Posts",
+    "Редактировать": "Edit",
+    "Комментарии": "Comments",
+    "Постер тайтла": "Title's poster",
+    "Сначала старые": "Old first",
+    "Род деятельности :D": "Type of activity :D",
+    "к тайтлу": "To the title",
+    "к главе": "To the chapter",
+    "Пожаловаться": "Report",
+    "Общее": "General",
+    "Смена пароля": "Change a password",
+    "Социалки": "Socials",
+    "Укажите свой пол": "Indicate your gender",
+    "Показывать": "Show",
+    "Показывать только яой": "Show only Yaoi",
+    "Скрывать яой?": "Hide Yaoi?",
+    "Скрывать хентай?": "Hide Hentai?",
+    "Смазливые мальчики?": "Pretty boys?",
+    "Показывать только хентай": "Show only Hentai",
+    "Скрывать": "Hide",
+    "Рассылка на почту": "Mailing list",
+    "Двухфакторная аутентификация": "Two-factor authentication",
+    "Доступ к полному каталогу в приложении": "Access to the full catalog in the app",
+    "Уведомления ВК": "VK notifications",
+    "Сменить пароль": "Change a password",
+    "Пароль успешно изменен": "Password is successfully changed",
+    "Старый пароль": "Old password",
+    "Новый пароль": "New password",
+    "Пароль должен быть больше 6 символов": "Password must contain more than 6 symbols",
+    "Новый пароль должен быть новым :)": "The new password should be 'new' :)",
+    "Обязательно": "Required",
+    "Пароли не совпадают": "Passwords do not match",
+    "Пароль ещё раз": "Password again",
+    "Перепривязать": "Re-link",
+    "Привязанные соц сети": "Social nets linked",
+    "Привязать": "Link",
+    "Ваша заявка принята и отправлена на модерацию, скоро придет уведомление с решением модерации": "Your request has been accepted and sent to moderation. Soon you will receive a notification with a moderation decision",
+    "Название": "Name",
+    "Название должно быть больше 6 символов": "Name must contain more than 6 symbols",
+    "Ссылка на группу или сообщество": "Group's link or VK page",
+    "Например": "For example",
+    "Согласен с правилами сайта": "Agree with <link>rules</link> of the site",
+    "Создать отряд контент-мейкеров": "Create a squad of content makers",
+    "Снять бейдж": "Remove badge",
+    "Интересные": "Interesting",
+    "Новые": "Newest",
+    "Удален": "Deleted",
+    "Забанен": "Banned",
+    "Закрытый профиль": "Private profile",
+    "Это закрытый профиль": "This profile is private",
+    "Расскажите о себе": "Tell about yourself",
+    "Добавим описание?": "You can add a description",
+    "О себе": "About",
+    "Деактивировать аккаунт": "Deactivate account",
+    "Подтвердите деактивацию аккаунта": "Please, confirm account deactivation. Further, account activation will be available only via the site moderation team",
+    "Аккаунт успешно деактивирован": "Your accout is successfully deactivated",
+    "Ошибка деактивации аккаунта": "Account deactivation error",
+    "Вы не состоите в командах": "You have not joined any team",
+    "Минимальная длина описания": "Min description length is {length} symbols",
+    "Максимальная длина описания": "Max description length is {length} symbols"
+  },
+  "publisher": {
+    "tabs": {
+      "about": "Profile",
+      "advertisement": "Promotion",
+      "comments": "Comments",
+      "contract": "Contract",
+      "feed": "Feed",
+      "posts": "Posts",
+      "statistic": "Statistics",
+      "strikes": "Strikes",
+      "titles": "Titles"
+    },
+    "settings": {
+      "general": "General",
+      "members": "Members",
+      "monetization": "Monetization",
+      "documents": "Documents",
+      "social": "Social Networks"
+    },
+    "metadata": {
+      "Создать команду": "Create publisher"
+    },
+    "количество тайтлов": "{count, selectordinal, one {title} two {titles} few {titles} many {titles} other {title} }",
+    "тайтл": "Title",
+    "тайтла": "Title",
+    "тайтлов": "Titles",
+    "лайков": "Likes",
+    "глав/мес": "Chapters/month",
+    "Доступно к выводу": "Available for withdrawal",
+    "на выводе": "Cashout",
+    "Включить монетизацию": "Enable monetization",
+    "Добавить тайтл": "Add a title",
+    "Назад": "Back",
+    "Настройки": "Settings",
+    "Профиль": "Profile",
+    "Тайтлы": "Titles",
+    "Лента": "Feed",
+    "Продвижение": "Promotion",
+    "Статистика": "Statistics",
+    "Комментарии": "Comments",
+    "Общее": "General",
+    "Монетизация": "Monetization",
+    "Социалки": "Socials",
+    "Документы": "Documents",
+    "К списку": "To the list",
+    "Статус": "Status",
+    "Активен": "Active",
+    "Неактивен": "Disabled",
+    "Дата начала": "Start date",
+    "Дата окончания": "End date",
+    "Дней откручено": "Days used",
+    "Осталось открутить": "Days left",
+    "Кликов сегодня": "Clicks for today",
+    "Кликов итого": "Clicks in total",
+    "Клики": "Clicks",
+    "Показов сегодня": "Displays for today",
+    "Показов итого": "Displays in total",
+    "CTR сегодня": "CTR today",
+    "CTR итого": "CTR in total",
+    "Остановить": "Stop",
+    "Укажите дату": "Specify a date",
+    "Активировать": "Activate",
+    "Изменение статуса рекламы": "Edit a promo status",
+    "Выберите дату (не раньше следующего дня)": "Select a date (not before the next day)",
+    "Подтвердить": "Confirm",
+    "Укажите пакет дней": "Select a package of days",
+    "Приобрести пакет": "Buy a package",
+    "Приобретение рекламы": "Buy a promotion",
+    "Согласие с правилами оказания рекламных услуг": "By using advertising services, you agree to the <link>rules for the provision of advertising services</link>",
+    "Перейти к оплате": "Proceed to checkout",
+    "дн": "Days",
+    "р": "Rubles",
+    "Реклама успешно остановлена": "Promotion is successfully stopped",
+    "Не удалось остановить рекламу": "Failed to stop a promotion",
+    "Принудительный стоп": "Forced stop",
+    "Рекламные произведения": "Advertised titles",
+    "Нет ни одного рекламного тайтла": "No advertised titles",
+    "Название": "Name",
+    "Показов": "Displays",
+    "Кликов": "Clicks",
+    "Длительность кампании, дн": "Promotion campaign duration (days)",
+    "CTR": "CTR",
+    "Включена": "Turn on",
+    "Выключена": "Turn off",
+    "По новизне": "Newest",
+    "По последним обновлениям": "Latest Updates",
+    "По популярности": "Popularity",
+    "По лайкам": "Likes",
+    "По просмотрам": "Views",
+    "Все тайтлы": "All Titles",
+    "Продолжается": "Ongoing",
+    "Закончен": "Completed",
+    "Заморожено": "Paused",
+    "Сортировать": "Sort dy",
+    "Выберите тайтл и бранч": "Select a title and thread",
+    "Добавление нового рекламного тайтла": "Add a new advertised title",
+    "Произведение": "Title",
+    "Ветка перевода": "Translation thread",
+    "Добавить": "Add",
+    "Чеканных монет": "Coins",
+    "Покупки": "Purchases",
+    "Донатов": "Donations",
+    "Рефералов": "Referrals",
+    "Указать": "Select",
+    "От": "From",
+    "До": "Till",
+    "Сбросить": "Reset",
+    "Закрыть": "Close",
+    "Фильтры тайтлов": "Title filters",
+    "Тайтлов": "Titles",
+    "в день": "Per day",
+    "Получить реферальную ссылку можно в настройках, раздел монетизация": "You can get a referral link in the monetization section of the settings",
+    "Дней": "Days",
+    "Монет": "Coins",
+    "Лукасов": "Likes",
+    "Закладок": "Bookmarks",
+    "Взглядов": "Peeks",
+    "Бесстыдных закладок": "Shameless bookmarks",
+    "Просмотров": "Views",
+    "Имя должно быть в пределах 3-30 символов": "Name must contain from 3 to 20 symbols",
+    "Подпись": "Signature",
+    "Обязательно": "Required",
+    "Подпись должна быть в пределах 3-40 символов": "Signature must contain from 3 to 20 symbols",
+    "Описание": "Description",
+    "Сохранить": "Save",
+    "Принять": "Accept",
+    "Контакты": "Contacts",
+    "Состав": "Members",
+    "Участник": "Member",
+    "Ник пользователя": "Username",
+    "Права": "Rights",
+    "Создатель": "Creator",
+    "Модератор": "Moderator",
+    "Нет результатов": "No results",
+    "Общий рекламный баланс": "General advertise balance",
+    "Статистика рекламы": "Advertisement statistics",
+    "Дата": "Date",
+    "Недостаточно дней на балансе": "Not enough days on balance",
+    "Обязательное поле": "Required",
+    "actions": {
+      "add-days": {
+        "do": {
+          "title": "Add days",
+          "submit": "Days have been added",
+          "trigger": "Add",
+          "form-fields": {
+            "days": {
+              "label": "Days count",
+              "description": "Days count, which will have been added"
+            }
+          }
+        }
+      },
+      "buy-days": {
+        "do": {
+          "title": "Buy days",
+          "trigger": "Buy days",
+          "form-fields": {
+            "days": {
+              "label": "Days count",
+              "placeholder": "Chose tariff",
+              "values": "{days} {days, plural, one {day} few {days} many {days} other {days}} - {price} {price, plural, one {монета} few {coins} many {coins} other {coins}}"
+            }
+          }
+        }
+      },
+      "exit": {
+        "do": {
+          "alert": "Вы точно хотите покинуть команду? Нажмите продолжить, если да, и отмена - если нет",
+          "submit": "Вы больше не состоите в этой команде",
+          "trigger": "Покинуть команду"
+        }
+      }
+    }
+  },
+  "creator": {
+    "Тайтлы": "Titles",
+    "Описание": "Описание",
+    "Главная": "Main",
+    "По новизне": "Newest",
+    "По последним обновлениям": "Latest Updates",
+    "По популярности": "Popularity",
+    "По лайкам": "Likes",
+    "По просмотрам": "Views",
+    "Все тайтлы": "All Titles",
+    "Продолжается": "Ongoing",
+    "Закончен": "Completed",
+    "Заморожено": "Paused",
+    "Сортировать": "Sort dy"
+  },
+  "creatorEdit": {
+    "Имя/название": "Name",
+    "Альтернативное имя/название": "Alternative name",
+    "Тип автора": "Creator type",
+    "Описание": "Description",
+    "Отправить": "Submit",
+    "Добавить автора": "Add creator",
+    "Укажите тип автора": "Specify creator type",
+    "Укажите нмя/Название": "Specify name",
+    "Автор успешно добавлен": "Creator is successfully added",
+    "Внутренняя ошибка": "Internal error",
+    "Страна": "Country"
+  },
+  "top": {
+    "metadata": {
+      "manga": {
+        "Заголовок": "Top 100 popular manga, manhwa and manhua",
+        "Описание": "Top 100 popular manga, manhwa and manhua on the site! Here are collected the best titles according to the tastes of users from all over the site so that you can find something new and interesting"
+      },
+      "novel": {
+        "Заголовок": "Top 100 popular novels",
+        "Описание": "Top 100 popular books, ranobe, novels and litRPGs on the site! The best titles according to the tastes of users from all over the site are collected here so that you can find something new and interesting for yourself."
+      }
+    },
+    "Топ": "Top",
+    "Топ 100 описание": "Top 100 {content}",
+    "Месяца": "Month",
+    "Новинок": "New",
+    "Года": "Year",
+    "Авторское": "From the Authors",
+    "Веб": "Web",
+    "Манга": "Manga",
+    "Система": "System",
+    "Комедия": "Comedy",
+    "Культяпки": "Cultivation",
+    "Романтика": "Romance",
+    "Вторая жизнь": "Reincarnation",
+    "Понравится леди": "For ladies",
+    "Все подряд": "Random"
+  },
+  "title": {
+    "Заголовок адаптации": "{content, select, novel {This novel has a manga} other {This manga has a novel}}",
+    "submitAgeModal": {
+      "Содержание для взрослых": "Mature content",
+      "Запрещено для лиц младше 18": "Prohibited for persons under 18 y.o.",
+      "Больше не показывать": "Do not show again",
+      "Назад": "Back",
+      "Подтвердить": "Confirm"
+    },
+    "rating": {
+      "ЭТО ШЕДЕВР!": "THIS IS MASTERPIECE!",
+      "Отлично": "Brillian",
+      "Очень хорошо": "Excellent",
+      "Хорошо": "Good",
+      "Нормас": "Nice",
+      "Под пивас пойдет": "Mid",
+      "Ну такое": "Meh",
+      "Убожество": "Bad",
+      "Ниже плинтуса": "Awful",
+      "*********": "OH MY EYES"
+    },
+    "Комментарии под тайтлом отключены": "Comments under the title are disabled",
+    "Тайтл описание": "Title description {content} {anotherNames}",
+    "Выпуск": "Year",
+    "Рейтинг": "Rating",
+    "Глав": "Chapters",
+    "Лайков": "Likes",
+    "В закладках": "In bookmarks",
+    "голосов": "Votes",
+    "Главы": "Chapters",
+    "Комментарии": "Comments",
+    "Описание": "Description",
+    "Описание отсутствует": "No description",
+    "Добавить в закладки": "Add to bookmarks",
+    "Редактировать": "Edit",
+    "Изменить главы": "Edit chapters",
+    "Тайтл в админке": "Admin panel",
+    "Читать": "Read",
+    "Прочитано": "Completed",
+    "Нет глав": "No chapters",
+    "Продолжить": "Continue",
+    "Том": "Volume",
+    "Глава": "Chapters",
+    "Всего лайков на главах": "Total likes on chapters",
+    "Всего просмотров": "Total views",
+    "Скрыт": "Hidden",
+    "Персонажи": "Characters",
+    "Карточки": "Cards",
+    "Заметка": "Note",
+    "Добавить": "Add",
+    "Сохранить": "Save"
+  },
+  "similar": {
+    "Похожее": "Similar",
+    "добавить": "Add",
+    "Добавление нового тайтла": "Add a new title",
+    "Введите название произведения": "Enter a title's name",
+    "Похож на": "Similar to \"{title}\" by: ",
+    "Похож по": "Similar by",
+    "Тайтл успешно добавлен": "Title is successfully added to the list of similar titles \"{title}\"",
+    "рисовке": "Artstyle",
+    "жанрам": "Genres",
+    "сюжету": "Plot"
+  },
+  "comments": {
+    "Редактировать комментарий": "Edit a comment",
+    "Здесь пока нет ни одного комментария": "There are no comments yet",
+    "Комментарии": "Comments",
+    "Просматривать комментарии могут только авторизованные пользователи": "Only logged in users can read the comments",
+    "Показать следующие комментарии": "Show next comments",
+    "символов": "Symbols",
+    "Оставить комментарий": "Leave a comment",
+    "Спойлер": "Spoiler",
+    "Закрепить": "Pin",
+    "Ответить": "Respond",
+    "скрыть": "less",
+    "раскрыть": "more",
+    "Отмена": "Cancel",
+    "Ответ на комментарий": "Reply to comment",
+    "Глава тайтла": "Title chapter",
+    "Тайтл": "Title",
+    "Сначала старые": "Old first",
+    "Интересные": "Interesting",
+    "Новые": "Newest"
+  },
+  "titleEdit": {
+    "Тайтл успешно добавлен": "Title is successfully added",
+    "Основное название": "Main name (on English)",
+    "Укажите локализованное название": "Enter a localized name",
+    "Дополнительное название": "Secondary name (on original language)",
+    "Укажите второе название": "Enter the second name",
+    "Другое название": "Other names",
+    "Описание": "Description",
+    "Тип": "Type",
+    "Укажите тип": "Specify a type",
+    "Статус проекта": "Status",
+    "Укажите статус": "Specify a status",
+    "Ограничение": "Age limit",
+    "Укажите ограничение": "Specify the age limit",
+    "Год выпуска": "Year",
+    "Укажите год выхода": "Specify a year",
+    "Категории": "Categories",
+    "Укажите категории": "Specify categories",
+    "Жанры": "Genres",
+    "Укажите жанры": "Specify genres",
+    "Ссылка на анонс/оригинал": "Link to the preview/original",
+    "Ссылка на анлейт": "Link to the English translation",
+    "Связанная новелла/тайтл": "Related {type, select, novel {manga} other {novel}}",
+    "Владелец(цы) проекта": "Owners",
+    "Укажите как минимум одного паблишера": "Specify at least 1 publisher",
+    "Сообщение модератору": "Message to moderators",
+    "Отправить на модерацию": "Send to moderation",
+    "Новый сезон": "New season",
+    "Начался новый сезон? Хотите в горячие новинки? Отправьте заявку в модерацию": "Has the new season started? Do you want to add a title to the hot new releases? Submit your request for moderation.",
+    "Передать тайтл": "Transfer the title",
+    "Передать тайтл другой команде": "Pass the title to another team.",
+    "Укажите владельцев перевода": "Specify the owners of the translation",
+    "transferPublishersDescription": "Enter the team key, which can be obtained from the browser's address bar. You can specify multiple commands"
+  },
+  "notifications": {
+    "tabs": {
+      "social": "Social {count, number}",
+      "updates": "Updates {count, number}",
+      "important": "Important {count, number}"
+    },
+    "statuses": {
+      "new": "New",
+      "read": "Read"
+    }
+  },
+  "chapter": {
+    "Описание картинки": "Picture's description {name}",
+    "новеллы": "Novels",
+    "манги": "Manga",
+    "Заголовок главы": "{main_name} Volume {volume} - chapter {chapter} - {content, select, novel {novel} other {manga}}",
+    "Описание главы": "Volume {volume} chapter {chapter} in genres {categories} on {siteName}",
+    "В закладки": "To bookmarks",
+    "Похожие произведения": "Similar titles",
+    "Вот и все": "That's all",
+    "К тайтлу": "To the title",
+    "Комментарии": "Comments",
+    "Сказали спасибо": "Likes {score}",
+    "Спасибо!": "Thanks!",
+    "aside": {
+      "Скролл по тапу": "Scroll by taps",
+      "Основной": "Main",
+      "Резервный": "Reserved",
+      "Настройки читалки": "Reader settings",
+      "Лентой": "Infinite",
+      "Постраничная": "Paginated",
+      "Цветовая схема": "Color scheme",
+      "Размер шрифта": "Font Size",
+      "Высота строк": "Line height",
+      "Ширина контейнера": "Container width",
+      "Тип читалки": "Type of reader",
+      "Сервер картинок": "Image server",
+      "Автоподгрузка следующей главы": "Auto-loading the next chapter"
+    },
+    "donate": {
+      "Спасибо": "Thanks",
+      "Отблагодарить": "Donate"
+    }
+  },
+  "chaptersEdit": {
+    "Опубликованные главы": "Published chapters {count}",
+    "Ожидают публикации": "Awaiting publication {count}",
+    "Главы": "Chapters",
+    "Бандлы": "Bundles",
+    "Сделать бесплатными": "Make free",
+    "Удалить": "Delete",
+    "Выбрано": " Selected {count}",
+    "Действие": "Actions",
+    "Выполнить": "Done",
+    "Опубликовать выделенное": "Publish selected",
+    "Номер главы": "Volume {volume} chapter {chapter}",
+    "Дата публикации": "Publication date",
+    "Дата когда станет бесплатной": "Becomes free on",
+    "Бесплатная": "Free",
+    "Доход сайта": "Site income {sum} rub",
+    "Доход паблишера": "Publisher's income {sum} rub",
+    "Покупки": "Purchases {count}",
+    "Дата залива": "Upload date",
+    "Изменить главу": "Edit a chapter",
+    "Добавить главу": "Add a chapter",
+    "Загрузить все": "Upload all",
+    "Изменить": "Edit",
+    "Том": "Volume",
+    "Глава": "Chapter",
+    "Название": "Name",
+    "Опции": "Options",
+    "Загрузить": "Upload",
+    "Платная": "Paid chapter?",
+    "К списку глав": "To the list of chapters"
+  },
+  "cardEdit": {
+    "Отправить на модерацию": "Send to moderation",
+    "Альтернативное имя/название": "Альтернативное имя/название"
+  },
+  "characterEdit": {
+    "Отправить на модерацию": "Send to moderation",
+    "Альтернативное имя/название": "Альтернативное имя/название"
+  },
+  "entries": {
+    "Пользовательское соглашение": "Terms of use - {name}",
+    "Пользовательское соглашение описание": "Terms of use description - {name}",
+    "Войти через соцсети": "Login via social nets - {name}",
+    "Страница входа описание": "Login page",
+    "Попробуйте заново": "Try again",
+    "Публичная оферта продавца": "Seller's public offer - {name}",
+    "Публичная оферта продавца описание": "Seller's public offer page - {name}",
+    "Безопасная сделка описание": "Secure transaction - {name}",
+    "Безопасная сделка": "Secure transaction - {name}",
+    "Основные положения и правила сайта": "General provisions and rules of the site",
+    "Правила сайта описание": "Site rules page",
+    "FAQ описание": "FAQ page",
+    "FAQ о мобильном приложении": "FAQ about the mobile app",
+    "FAQ о мобильном приложении описание": "FAQ about the mobile app page",
+    "Соглашение конфиденциальности": "Privacy Policy",
+    "Соглашение конфиденциальности описание": "Privacy Policy page",
+    "Правообладателям": "For Copyright holders",
+    "Правообладателям описание": "For Copyright holders page",
+    "Агентский договор": "Agency agreement",
+    "Агентский договор описание": "Agency agreement page",
+    "Правила оказания рекламных услуг": "Rules for the provision of advertising services",
+    "Правила оказания рекламных услуг описание": "Rules for the provision of advertising services page",
+    "О нас": "About us",
+    "О нас описание": "About us page",
+    "Страница в разработке": "The page is under construction",
+    "Подтверждение регистрации": "Confirm registration",
+    "Подтверждение регистрации описание": "Confirm registration page",
+    "Регистрация": "Registration",
+    "Регистрация описание": "Registration page",
+    "Восстановление пароля": "Restore a password",
+    "Восстановление пароля описание": "Restore a password page",
+    "Вход в аккаунт": "Log in to account",
+    "Вакансии": "Vacancy"
+  },
+  "battlepass": {
+    "Здесь пока нет ни одной задачи": "There are no tasks yet",
+    "Читательский пропуск": "Reader's pass",
+    "Инфо": "Info",
+    "Задачи": "Tasks",
+    "Награды": "Rewards",
+    "Вы успешно вступили в пропуск": "You have successfully entered a battlepass",
+    "Сезон ещё не начался": "Battlepass season has not started",
+    "Что это такое": "What is it?",
+    "Пропуск, дающий доступ к задачам и уникальным наградам": "It is a pass giving access to the various tasks and unique rewards",
+    "Выполняйте задания, повышайте уровень и получайте награды": "Complete tasks, level up and get rewards",
+    "Что я могу получить, выполняя задания": "What can I get by completing tasks?",
+    "Особые бейджи, тикеты, награды для профиля и возможность читать тайтлы бесплатно": "Special badges, tickets, profile rewards and reading titles for free",
+    "Как поучаствовать": "How to participate?",
+    "Для получения базового пропуска достаточно нажать на кнопку ниже": "To get a basic pass, just click on the button below",
+    "Пропуски вводятся в тестовом режиме, со временем количество заданий, уровней и наград будет увеличено": "Battlepass is in a test mode. Soon the number of tasks, levels and rewards will be increased",
+    "Вы уже вступили": "You have already joined",
+    "Начать": "Start",
+    "Получено": "Received",
+    "Получить": "Get",
+    "опыта": "Experience",
+    "Все": "All",
+    "Ежедневные": "Daily",
+    "Еженедельные": "Weekly",
+    "Ежемесячные": "Monthly",
+    "Специальные": "Special",
+    "Глобальные": "Global",
+    "Доступ успешно открыт": "Access successfully received",
+    "Проверить доступ": "Check the access",
+    "недоступно": "Locked",
+    "Бесплатный": "Free",
+    "уровень": "Level",
+    "Изображение награды": "Reward image",
+    "Без награды": "No reward",
+    "Награда успешно получена": "Reward is successfully obtained",
+    "Недоступно": "Locked",
+    "Не удалось загрузить пропуск": "Failed to load the pass"
+  },
+  "history": {
+    "Обложка произведения": "Title's cover",
+    "История": "History",
+    "История описание": "History description"
+  },
+  "social": {
+    "Соглашение с пользовательским соглашением": "By registering on the site, you agree to <link>By the User Agreement</link> and subscribe to the newsletter",
+    "Регистрация": "Registration",
+    "*Почта": "*Email",
+    "*Никнейм": "*Nickname",
+    "*Пароль": "*Password",
+    "*Пароль еще раз": "*Password again",
+    "Попробуйте заново": "Try again",
+    "Восстановление пароля": "Restore a password",
+    "Введите новый пароль для вашего аккаунта": "Enter a new password for your account",
+    "Ко всем вариантам": "To all options",
+    "Войти в аккаунт": "Login to account",
+    "Зарегистрировать аккаунт": "Register a new account",
+    "Забыли пароль": "Forgot a password?",
+    "Через": "Via",
+    "Войти": "Login",
+    "Зарегистрироваться": "Register",
+    "Обязательно": "Required",
+    "Логин": "Login",
+    "почта": "Email",
+    "Пароль": "Password",
+    "Не пройдена верификация": "Verification failed",
+    "Помните свой пароль": "Remember your password",
+    "Уже есть аккаунт": "Already have an account",
+    "Нет учетной записи": "No account",
+    "Почту или логин": "Email or login",
+    "Вконтакте": "VK",
+    "Telegram": "Telegram",
+    "Яндекс": "Yandex",
+    "Google": "Google",
+    "Discord": "Discord",
+    "До повторной отправки": "Resending in",
+    "Отправить заново": "Send again",
+    "Регистрация успешна": "Registration is successful",
+    "Осталось только подтвердить почту": "You have to confirm your email",
+    "Мы отправили вам письмо": "We have sent a confirmation email",
+    "Письмо отправлено": "Email is sent",
+    "Понял": "Got it",
+    "На ваш адрес электронной почты было отправлено письмо с инструкциями о том, как сбросить пароль": "An email has been sent to your email address with instructions on how to reset your password",
+    "Если вы не получите его в течение нескольких минут, убедитесь, что вы указали адрес электронной почты для своей учётной записи, и повторите попытку или обратитесь к нам за помощью": "If you do not receive an email within a few minutes, please make sure you have entered the right email address and try again or contact us for help.",
+    "Нажимая «Продолжить», вы принимаете": "By clicking 'Continue', you accept",
+    "пользовательское соглашение": "the terms of service",
+    "и": "and",
+    "политику конфиденциальности": "the privacy policy",
+    "или": "or"
+  },
+  "collections": {
+    "Description of collections": "View collections of works from other users or your friends, find ones you like, create them yourself",
+    "list": {
+      "Title": "Fresh collections of works",
+      "By subject": "by {subject}",
+      "By object": "by {object}",
+      "filters": {
+        "user_id": "by author",
+        "title_id": "by title"
+      }
+    }
+  },
+  "shop": {
+    "metadata": {
+      "Магазин": "Customization shop",
+      "Добавить предмет кастомизации": "Add customization item",
+      "Изменить предмет кастомизации": "Edit предмет кастомизации"
+    },
+    "стоимость ну_типо_коины": "{count} {count, plural, one {plumbus} other {plumbuses}}"
+  },
+  "club": {
+    "metadata": {
+      "forms": {
+        "add": {
+          "Создать гильдию": "Создать гильдию"
+        }
+      }
+    },
+    "roles": {
+      "creator": "Creator",
+      "moder": "Moder",
+      "member": "Member"
+    },
+    "members": "Members",
+    "destroy": "Remove guild",
+    "about": "About",
+    "posts": "Posts",
+    "requests": "Claims"
+  },
+  "reusable": {
+    "sections": {
+      "show_all": "Показать все"
+    },
+    "json-ld": {
+      "language": "{lang, select, en {English} ru {Russian} other {}}"
+    },
+    "conjunctions": {
+      "or": "or",
+      "and": "and"
+    },
+    "actions": {
+      "get": "Get",
+      "buy": "Buy",
+      "open": "Open"
+    },
+    "routing": {
+      "back": "Back",
+      "go-back": "Go back"
+    },
+    "errors": {
+      "401": {
+        "heading": "Authorization required"
+      },
+      "404": {
+        "heading": "Page not found"
+      },
+      "429": {
+        "heading": "Too many requests"
+      },
+      "499": {
+        "heading": "An error occurred"
+      },
+      "500": {
+        "heading": "Internal server error",
+        "bug-report": {
+          "report-by-feedback": "Send details of the error to the development department",
+          "report-by-support": "Write to us yourself, attaching the information below",
+          "report-by-support-help": "Information for technical support"
+        }
+      }
+    }
+  },
+  "public_modals": {
+    "promo-codes": {
+      "words": {
+        "count": "Count",
+        "title": "Promo-code",
+        "date_expire": "Expire Date",
+        "gift_type": "Gift type",
+        "date": "Activate Date"
+      },
+      "one": {
+        "count": "{count} of {total}"
+      },
+      "types": {
+        "BY_MODER": "By Moder",
+        "BY_PUBLISHER": "By Publisher",
+        "BY_PROMO_CODE": "By Promo-code",
+        "BY_SOCIAL_LINKING": "By Social Linking",
+        "BY_CHAPTER_PAYMENT": "By chapter buy",
+        "BY_ADD_BALANCE": "By Balance",
+        "BY_BATTLE_PASS": "For Re:Pass",
+        "BY_UTM": "Under the partner program"
+      },
+      "list": {
+        "empty": "The list of activated tickets is still empty",
+        "title": "List of activated promo codes"
+      },
+      "actions": {
+        "create": {
+          "do": {
+            "submit": "Send",
+            "success": "Promo code successfully applied"
+          }
+        },
+        "form-fields": {
+          "name": {
+            "placeholder": "Enter promo code"
+          }
+        }
+      }
+    }
+  },
+  "deck-open": {
+    "buy-pack": "Buy pack",
+    "buy-pack-description": "Are you sure you want to buy a pack? {coinsPrice} {currency, select, coins {coins} tickets {tickets} other {}} will be debited from your account.",
+    "fast-open": "Fast mode",
+    "pack-items": "Pack content",
+    "choose-one-card": "You can choose one card",
+    "choose-one-of-three-cards": "Choose one of the three cards and click the “Get” button to add it to your inventory.",
+    "you-got-card": "You got a card {name}",
+    "you-got-collectible-card": "You got a collectible card"
+  }
+}
+

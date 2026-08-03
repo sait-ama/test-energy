@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- Disable scaling only on mobile app -->
+            <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2, user-scalable=yes">
+        <!-- CSRF Token -->
+    <meta name="csrf-token" content="b3mS7WYLGgS7esMXGH4DngLFSip0j6v9AHZLxr2l">
+
+                <title>Page not found</title>
+    <meta name="description" content="Page not found">
+    
+            <!-- Favicons -->
+        <link rel="shortcut icon" href="/favicon/favicon.ico?v=ySfy9KuTK1">
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png?v=ySfy9KuTK1">
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png?v=ySfy9KuTK1">
+        <link rel="icon" type="image/png" sizes="36x36" href="/favicon/android-chrome-36x36.png?v=ySfy9KuTK1">
+        <link rel="icon" type="image/png" sizes="48x48" href="/favicon/android-chrome-48x48.png?v=ySfy9KuTK1">
+        <link rel="icon" type="image/png" sizes="72x72" href="/favicon/android-chrome-72x72.png?v=ySfy9KuTK1">
+        <link rel="icon" type="image/png" sizes="96x96" href="/favicon/android-chrome-96x96.png?v=ySfy9KuTK1">
+        <link rel="icon" type="image/png" sizes="144x144" href="/favicon/android-chrome-144x144.png?v=ySfy9KuTK1">
+        <link rel="icon" type="image/png" sizes="192x192" href="/favicon/android-chrome-192x192.png?v=ySfy9KuTK1">
+        <link rel="icon" type="image/png" sizes="512x512" href="/favicon/android-chrome-512x512.png?v=ySfy9KuTK1">
+        <!-- <link rel="manifest" href="/favicon/site.webmanifest?v=ySfy9KuTK1"> Superceeded by individual board manifests -->
+        <link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png?v=ySfy9KuTK1">
+        <link rel="mask-icon" href="/favicon/safari-pinned-tab.svg?v=ySfy9KuTK1" color="#5bbad5">
+        <meta name="msapplication-TileColor" content="#00aba9">
+        <meta name="msapplication-TileImage" content="/favicon/mstile-144x144.png?v=ySfy9KuTK1">
+        <meta name="msapplication-config" content="/favicon/browserconfig.xml?v=ySfy9KuTK1">
+        <meta name="theme-color" content="#96bed3">
+    
+    <!-- Apple mobile app -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link href="/img/splashscreens/iphone5_splash.png?v=1"
+        media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)"
+        rel="apple-touch-startup-image" />
+    <link href="/img/splashscreens/iphone6_splash.png?v=1"
+        media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)"
+        rel="apple-touch-startup-image" />
+    <link href="/img/splashscreens/iphoneplus_splash.png?v=1"
+        media="(device-width: 621px) and (device-height: 1104px) and (-webkit-device-pixel-ratio: 3)"
+        rel="apple-touch-startup-image" />
+    <link href="/img/splashscreens/iphonex_splash.png?v=1"
+        media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)"
+        rel="apple-touch-startup-image" />
+    <link href="/img/splashscreens/iphonexr_splash.png?v=1"
+        media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2)"
+        rel="apple-touch-startup-image" />
+    <link href="/img/splashscreens/iphonexsmax_splash.png?v=1"
+        media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3)"
+        rel="apple-touch-startup-image" />
+    <link href="/img/splashscreens/ipad_splash.png?v=1"
+        media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)"
+        rel="apple-touch-startup-image" />
+    <link href="/img/splashscreens/ipadpro1_splash.png?v=1"
+        media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2)"
+        rel="apple-touch-startup-image" />
+    <link href="/img/splashscreens/ipadpro3_splash.png?v=1"
+        media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)"
+        rel="apple-touch-startup-image" />
+    <link href="/img/splashscreens/ipadpro2_splash.png?v=1"
+        media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)"
+        rel="apple-touch-startup-image" />
+
+    
+    <meta property="fb:pages" content="61552357920993" />
+    <meta property="og:site_name" content="101 Soundboards" />
+
+    <!-- Fonts Preload -->
+    <link rel="preload" href="https://www.101soundboards.com/fonts/dymo.woff2" as="font" type="font/woff2" crossOrigin>
+    <link rel="preload" href="https://www.101soundboards.com/fonts/dymofontinvers.woff2" as="font" type="font/woff2" crossOrigin>
+    <link rel="preload" href="https://www.101soundboards.com/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossOrigin>
+    <link rel="preload" href="https://www.101soundboards.com/fonts/barlow-v12-latin_latin-ext-regular.woff2" as="font" type="font/woff2" crossOrigin>
+    <link rel="preload" href="https://www.101soundboards.com/fonts/barlow-v12-latin_latin-ext-100.woff2" as="font" type="font/woff2" crossOrigin>
+    <link rel="preload" href="https://www.101soundboards.com/fonts/barlow-v12-latin_latin-ext-300.woff2" as="font" type="font/woff2" crossOrigin>
+    <link rel="preload" href="https://www.101soundboards.com/fonts/barlow-v12-latin_latin-ext-500.woff2" as="font" type="font/woff2" crossOrigin>
+    <link rel="preload" href="https://www.101soundboards.com/fonts/barlow-v12-latin_latin-ext-600.woff2" as="font" type="font/woff2" crossOrigin>
+    <link rel="preload" href="https://www.101soundboards.com/fonts/barlow-v12-latin_latin-ext-700.woff2" as="font" type="font/woff2" crossOrigin>
+
+    <!-- DNS Prefetch -->
+    <link rel="dns-prefetch" href="https://www.101soundboards.com">
+     
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="preconnect" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//cdn.fuseplatform.net/">
+    <link rel="preconnect" href="//cdn.fuseplatform.net/">
+    <link rel="dns-prefetch" href="//pagead2.googlesyndication.com">
+
+    
+    <!-- Common styles -->
+    <link href="https://www.101soundboards.com/css/app.css?id=339c7d40b7c5416924554cd4fa754362" rel="stylesheet">
+    <link href="https://www.101soundboards.com/css/animate.min.css?id=c0be8e53226ac34833fd9b5dbc01ebc5" rel="stylesheet">
+
+    <!-- Dark mode styles, toggle and loader -->
+    <noscript id="dark-mode-toggle-stylesheets">
+        <link rel="stylesheet" href="https://www.101soundboards.com/css/app-dark.css?id=966c11ff833edffa01fd5066cd4ded0b" media="(prefers-color-scheme: dark)">
+    </noscript>
+    <script src="/js/dark-mode-toggle/dark-mode-toggle-stylesheets-loader.js"></script>
+    <script type="module" src="/js/dark-mode-toggle/dark-mode-toggle.js" defer></script>
+
+    <!-- Loading progress indicator -->
+    
+    
+    <link rel="stylesheet" href="https://www.101soundboards.com/css/pace-theme-barber-shop.custom.min.css?id=d5fda485218b5a4d7959c6117e47ffc4">
+
+    
+    
+    
+
+    <!-- Analytics -->
+    <!-- Google tag (gtag.js) --><script async src="https://www.googletagmanager.com/gtag/js?id=G-0SSC533PFW"></script><script>  window.dataLayer = window.dataLayer || [];  function gtag(){dataLayer.push(arguments);}  gtag('js', new Date());  gtag('config', 'G-0SSC533PFW');</script>
+
+    
+    
+
+    
+
+    <!-- AdinPlay -->
+    <script async src="//api.adinplay.com/libs/aiptag/pub/OSO/101soundboards.com/tag.min.js"></script>
+
+    </head>
+
+<body>
+    <div class="background"></div>
+    <!-- Accessibility skip links -->
+    <ul id="skip">
+        <li><a href="#content-anchor" role="button">Skip to content</a></li>
+    </ul>
+
+                <button class="btn btn-sm btn-danger btn" role="button" id="install-app-btn">
+                <span class="fas fa-download"></span> Install App
+            </button>
+        
+    <div id="app">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <ul>
+    <li class="d-flex flex-row">
+        <a rel="search" href="/search"><button type="button" class="btn btn-outline-danger align-self-center"> <span
+                    class="fas fa-fw fa-search" aria-hidden="true"></span><br />
+                Search</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Find a sound</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a href="/?sort=funny#sort_filters"><button type="button" class="btn btn-outline-danger align-self-center"> <span
+                    class="fas fa-fw fa-laugh" aria-hidden="true"></span><br />
+                Funny</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Funny sounds</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a data-toggle="collapse" href="#collapseCategoriesSidebar" role="button" aria-expanded="false"
+            aria-controls="collapseCategoriesSidebar">
+            <button type="button" class="btn btn-outline-danger align-self-center"> <span class="fas fa-fw fa-list-alt"
+                    aria-hidden="true"></span><br />
+                Topics</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Topics</span>
+    </li>
+
+    <!-- Collapsed categories -->
+    <div class="collapse" id="collapseCategoriesSidebar">
+                            <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/anime-comics-cartoons"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Anime, Comics &amp; Cartoons</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/celebrities"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Celebrities</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/comedy"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Comedy</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/games"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Games</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/memes-funny"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Memes &amp; Funny</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/movies"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Movies</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/music-musicians"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Music &amp; Musicians</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/nature"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Nature</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/other"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Other</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/politics"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Politics</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/sound-fx"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Sound FX</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/sports"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Sports</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/streamers-twitch-podcasts"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Streamers, Twitch &amp; Podcasts</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/tv"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        TV</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/united-kingdom"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        United Kingdom</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/tags/united-states"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        United States</button></a>
+            </li>
+                    <li class="d-flex flex-row sidebar-sm">
+                <a href="/search/walkups"><button type="button"
+                        class="btn btn-sm btn-info align-self-center text-white">
+                        Walk-Ups</button></a>
+            </li>
+            </div>
+
+    <li class="d-flex flex-row">
+        <a href="https://www.101soundboards.com/tts"><button type="button" class="btn btn-outline-danger align-self-center"> <span
+                    class="fas fa-fw fa-comment" aria-hidden="true"></span><br />
+                AI Voices</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Text to Speech voices</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a href="/favorites/me"><button type="button" class="btn btn-outline-danger align-self-center"> <span
+                    class="fas fa-fw fa-heart" aria-hidden="true"></span><br />
+                Favorites</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Make your own Favorites board</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a rel="help" href="https://www.101soundboards.com/sounds/trending"><button type="button" class="btn btn-outline-danger align-self-center"> <span
+                    class="fas fa-fw fa-chart-line" aria-hidden="true"></span><br />
+                Trending</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Trending</span>
+    </li>
+
+    
+
+    <li class="d-flex flex-row">
+        <a href="https://www.101soundboards.com/tts#song_generators"><button type="button"
+                class="btn btn-outline-danger align-self-center lineheight_1-3"> <span class="fas fa-fw fa-commenting"
+                    aria-hidden="true"></span><br />
+                Song Makers</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Song Makers</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a href="/sounds/live"><button type="button" class="btn btn-outline-danger align-self-center"> <span
+                    class="fas fa-fw fa-satellite-dish" aria-hidden="true"></span><br /></span>
+                Live</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Real-time View of Sounds playing now</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a href="/sounds/latest"><button type="button" class="btn btn-outline-danger align-self-center"> <span
+                    class="fas fa-fw fa-satellite" aria-hidden="true"></span><br /></span>
+                Latest</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Real-time View of the Latest Sounds</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a href="/pages/app"><button type="button" class="btn btn-outline-danger align-self-center"> <span
+                    class="fas fa-fw fa-rocket" aria-hidden="true"></span><br />
+                Apps</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Mobile Apps</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a href="https://www.101soundboards.com/terminal"><button type="button"
+                class="btn btn-outline-danger align-self-center lineheight_1-3"> <span class="fas fa-fw fa-terminal menting"
+                    aria-hidden="true"></span><br />
+                AI Terminal</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">AI Sound Generator</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a href="/tts/72272-tiktok-tts-official-tiktok-lady-computer-voice"><button type="button"
+                class="btn btn-outline-danger align-self-center">
+                TikTok Voice</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">The Famous TikTok Voice</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a rel="help" href="/pages/about"><button type="button" class="btn btn-outline-danger align-self-center"> <span
+                    class="fas fa-fw fa-question-circle" aria-hidden="true"></span><br />
+                Help</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Help</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a href="/blog"><button type="button" class="btn btn-outline-danger align-self-center lineheight_1-3"> <span
+                    class="fas fa-fw fa-blog" aria-hidden="true"></span><br />
+                Blog</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Blog</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a href="/pages/support"><button type="button" class="btn btn-outline-danger align-self-center"> <span
+                    class="fas fa-fw fa-donate" aria-hidden="true"></span><br />
+                Donate</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Support the site</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a href="/pages/discordbot"><button type="button" class="btn btn-outline-danger align-self-center"></span>
+                Discord Bot</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Audio bot for Discord</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a href="/?sort=hits_recent#sort_filters"><button type="button"
+                class="btn btn-outline-danger align-self-center"> <span class="fas fa-fw fa-th"
+                    aria-hidden="true"></span><br />
+                Popular</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Most Popular boards</span>
+    </li>
+
+    <li class="d-flex flex-row">
+        <a href="/?sort=viral#sort_filters"><button type="button" class="btn btn-outline-danger align-self-center">
+                <span class="fas fa-fw fa-th" aria-hidden="true"></span><br />
+                Viral</button></a>
+        <span class="sidebar_fullwidth_display_only pl-2 align-self-center">Viral boards</span>
+    </li>
+</ul>
+
+<br />
+<br />
+
+<div class="sidebar_floater" id="sidebar_floater_open"></div>
+<div class="sidebar_floater" id="sidebar_floater_close"></div>
+        </nav>
+
+        <nav class="navbar navbar-expand-lg navbar-light bg-light bg-light-transparent shadow-sm animate__animated animate__bounce" id="nav_header">
+            <div class="container-fluid">
+
+                <!-- Sidebar Button -->
+                <button type="button" class="sidebar_button d-none d-md-block">
+                    <img src="/img/hamburger.svg" width="36" height="36"></span>
+                </button>
+
+                <!-- Branding Image -->
+                <a class="nav_header" href="https://www.101soundboards.com">
+                    
+                    <img src="https://www.101soundboards.com/img/101soundboards-logo.svg" width="303" height="50" 
+                        title="Click to return to homepage" alt="Logo with soundwave icon in orange and blue on the left, and bold text 101SOUNDBOARDS.COM on a light blue background to the right" />
+                    <!--101soundboards.com — Have Fun Playing Sound Clips-->
+                </a>
+                
+                <!-- Search on small screens -->
+                <div class="d-block d-none-520 d-lg-none d-xl-none mr-5">
+                    <a class="" role="menuitem" rel="search" href="/search">
+                        <li class="btn btn-danger mr-1"><i class="fas fa-fw fa-search mr-1"></i>Search</li>
+                    </a>
+                </div>
+
+                <!-- Tiny search on mobile -->
+                <div class="d-none d-block-520 mr-5">
+                    <a class="" role="menuitem" rel="search" href="/search">
+                        <li class="btn btn-danger mr-1"><i class="fas fa-fw fa-search mr-1"></i></li>
+                    </a>
+                </div>
+
+                <button class="navbar-toggler" type="button" data-toggle="collapse"
+                    data-target="#navbarMainSupportedContent" aria-label="Show navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarMainSupportedContent">
+                    <ul class="navbar-nav ml-auto">
+                        <a class="nav-item d-inline d-md-none d-xl-inline" role="menuitem" href="/">
+                            <li class="btn btn-danger btn-sm mr-1"><i class="fas fa-fw fa-house mr-2 d-inline-block d-md-none"></i>Home</li>
+                        </a>
+                        <a class="nav-item" role="menuitem" rel="search" href="/search">
+                            <li class="btn btn-danger btn-sm mr-1"><i class="fas fa-fw fa-search mr-2 d-inline-block"></i>Search</li>
+                        </a>
+                        <a class="nav-item" role="menuitem" href="https://www.101soundboards.com/featured/funny#sort_filters">
+                            <li class="btn btn-danger btn-sm mr-1"><i class="fas fa-fw fa-face-laugh mr-2 d-inline-block d-md-none"></i>Funny</li>
+                        </a>
+                        <a class="nav-item" role="menuitem" href="https://www.101soundboards.com/featured/hot#sort_filters">
+                            <li class="btn btn-danger btn-sm mr-1"><i class="fas fa-fw fa-fire mr-2 d-inline-block d-md-none"></i>Hot</li>
+                        </a>
+                        <a class="nav-item" role="menuitem" href="https://www.101soundboards.com/featured/popular#sort_filters">
+                            <li class="btn btn-danger btn-sm mr-1"><i class="fas fa-fw fa-fire-flame-curved mr-2 d-inline-block d-md-none"></i>Popular</li>
+                        </a>
+                        <a class="nav-item" role="menuitem" href="/tags">
+                            <li class="btn btn-danger btn-sm mr-1"><i class="fas fa-fw fa-th mr-2 d-inline-block d-md-none"></i>Categories</li>
+                        </a>
+                        
+                        <a class="nav-item" role="menuitem" href="https://www.101soundboards.com/tts">
+                            <li class="btn btn-danger btn-sm mr-1"><i class="fas fa-fw fa-comment mr-2 d-inline-block d-md-none"></i>✨️ AI TTS <span class="d-none d-xl-inline">&nbsp;Voices</span></li>
+                        </a>
+                        <a class="nav-item d-none d-xl-inline" role="menuitem" href="https://www.101soundboards.com/featured/created#sort_filters">
+                            <li class="btn btn-danger btn-sm mr-1">New</li>
+                        </a>
+                        <a class="nav-item" role="menuitem" rel="help" href="/pages/help">
+                            <li class="btn btn-danger btn-sm mr-1"><i class="fas fa-fw fa-info fa-fw mr-2 d-inline-block d-md-none"></i>Help</li>
+                        </a>
+                        <li class="nav-item dropdown" id="navbarMore">
+                            <span class="btn btn-danger btn-sm mr-1 dropdown-toggle" href="#"
+                                id="navbarMoreDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-fw fa-angles-down mr-2 d-inline-block d-md-none"></i>More
+                            </span>
+                            <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarMoreDropdown">
+                                <a class="dropdown-item" role="menuitem" href="https://www.101soundboards.com/tts">Text-to-Speech AI Voices</a>
+                                <a class="dropdown-item" role="menuitem" href="/tts/72272-tiktok-tts-official-tiktok-lady-computer-voice">TikTok TTS Voice</a>
+                                <a class="dropdown-item" role="menuitem" href="/tts/72298-ghostface-scream-tts-computer-ai-voice">Ghostface Voice </a>
+                                <a class="dropdown-item" role="menuitem" href="https://www.101soundboards.com/tts#song_generators">Song Generators</a>
+                                <a class="dropdown-item" role="menuitem" href="https://www.101soundboards.com/terminal">AI Sound FX Generator</a>
+                                <a class="dropdown-item" role="menuitem" href="https://www.101soundboards.com/tts/me">My TTS Phrases</a>
+                                
+                                <a class="dropdown-item" role="menuitem" href="/blog/how-to-hire-a-voiceover-artist">Hire a Voice Artist</a>
+                                <a class="dropdown-item" role="menuitem" href="/blog">Blog</a>
+
+                                <div class="dropdown-divider"></div>
+
+                                <a class="dropdown-item" role="menuitem"
+                                    href="/pages/app">iOS and Android Apps</a>
+                                <a class="dropdown-item" role="menuitem"
+                                    href="/pages/app">Alexa</a>
+                                
+                                <a class="dropdown-item" role="menuitem" href="/pages/discordbot">Discord Bot</a>
+                                <a class="dropdown-item" role="menuitem" href="/pages/editor">Free Audio Editor</a>
+                                <a class="dropdown-item" role="menuitem" href="/pages/terms_and_privacy#privacy">Privacy</a>
+                                                                    <a class="dropdown-item" role="menuitem" href="/pages/donate">Donate</a>
+                                                                
+                                
+
+                                <div class="dropdown-divider"></div>
+
+                                <a class="dropdown-item" role="menuitem" href="https://www.101soundboards.com/featured/updated#sort_filters"
+                                    data-toggle="tooltip" data-html="true" data-placement="left"
+                                    title="Most recently added and updated soundboards">Latest Boards</a>
+
+                                <a class="dropdown-item" role="menuitem" href="/sounds/latest"
+                                    data-toggle="tooltip" data-html="true" data-placement="left"
+                                    title="Live feed of new sounds">Latest Sounds</a>
+
+                                <a class="dropdown-item" role="menuitem" href="/sounds/live"
+                                    data-toggle="tooltip" data-html="true" data-placement="left"
+                                    title="Live feed sounds being played back right now by everyone">Live Sounds</a>
+
+                                <a class="dropdown-item" role="menuitem" href="https://www.101soundboards.com/sounds/trending">Trending Sounds</a>
+                                <a class="dropdown-item" role="menuitem" href="https://www.101soundboards.com/elites">Elites Leaderboard</a>
+
+                                
+
+                                <div class="dropdown-divider"></div>
+
+                                <a class="dropdown-item" role="menuitem" rel="help" href="/pages/help#feature-suggestions-and-bugs"
+                                    data-toggle="tooltip" data-html="true" data-placement="left"
+                                    title="Suggest a new feature or report a bug">Feature Suggestions & Bugs
+                                </a>
+                                <div class="dropdown-divider d-md-none block"></div>
+                                <div class="dropdown-item d-md-none block" role="menuitem" id="close-more-navbar-btn"><span class="fas fa-fw fa-left-long float-right pt-1"></span>Back</div>
+                            </div>
+                        </li>
+
+                        <!-- Authentication Links -->
+                        
+                                                    
+                            
+                            
+                            
+                            
+                            
+                            
+                            <!-- <li class="nav-item"><a class="nav-link" role="menuitem" href="https://www.amazon.com/dp/B084DMPBKF" aria-label="Amazon Alexa" target="_blank">Alexa</a></li>
+                                    <li class="nav-item"><a class="nav-link" role="menuitem" href="https://assistant.google.com/services/a/uid/0000002533f06e8d?source=web" aria-label="Opens in new tab" target="_blank">Google</a></li> -->
+
+                            
+                            
+
+                            
+                                                            
+                                <li class="nav-item"><button class="no_ads_button btn btn-danger btn-sm mr-1"
+                                        role="menuitem" rel="nofollow">Hide Ads</button></li>
+                            
+                            <li class="nav-item"><a class="btn btn-danger btn-sm" role="menuitem"
+                                    href="https://www.101soundboards.com/login" data-toggle="tooltip" title=""
+                                    data-original-title="Create an account and your own soundboards"><i class="fas fa-fw fa-user mr-2 d-inline-block d-md-none"></i>Login<span class="d-none d-xl-inline">/Register</span></a></li>
+
+                            
+                            
+                            
+                            
+                                                
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        
+        
+        
+        
+        <div class="flash-message animate__animated animate__infinite animate__pulse">
+                                                                                                                                    </div>
+
+        
+
+        <!-- Left & Right ads -->
+        
+                                    <!-- End of Left & Right ads -->
+
+        <span id="ads_top_anchor"></span>
+
+        
+        <!-- Top ads -->
+        
+                                                    <!-- End of top ads -->
+
+            <!-- Main content -->
+            <a name="content-anchor" class="accessibility">Main Content</a>
+
+            
+<title>Page Not Found — 101soundboards.com</title>
+<meta name="description" content="Page Not Found — 101soundboards.com">
+
+<!-- Open Graph data -->
+<meta property="og:title" content="Page Not Found — 101soundboards.com" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://www.101soundboards.com/sounds/1209508-fading-notification.mp3" />
+<meta property="og:image" content="https://www.101soundboards.com/favicon/mstile-150x150.png" />
+<meta property="og:description" content="Page Not Found — 101soundboards.com" />
+<meta property="og:site_name" content="101soundboards.com — Have Fun Playing Sound Clips" />
+
+<!-- Index page has no individual manifest, so use generic -->
+<link rel="manifest" href="/favicon/site.webmanifest?v=dLJQOqv3W6">
+
+
+
+
+<div class="container pt-3">
+
+    <div class="card notfound">
+        <div class="card-header text-white bg-danger mb-3">
+            <h1 class="text-white">😞 404 Page Not Found</h1>
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">The page you requested could not be found. Try searching the site:</h5>
+
+            <p class="notfound">
+                <form class="input-group input-group-lg mb-3 board_searchbar" action="/search/" method="GET"
+                    id="search_404">
+                    <input type="text" name="search" id="searchInput" class="form-control form-control-lg"
+                        placeholder="Search for sounds, boards, TTS Computer AI Voices…" aria-label="Search the site for boards and sounds"
+                        autocapitalize="off" />
+                    <input type="submit" name="submit" value="Search" class="" aria-label="Submit">
+                </form>
+            </p>
+
+                        <h5 class="card-title">Or, these may be relevant:</h5>
+            <ul class="two-columns-desktop">
+                                <li><a href="/sounds/403283-my-right-honourable-friend-is-facing-facing-intransigence-both-from-the-undemocratic-eu">My right honourable friend is facing facing intransigence both from the undemocratic EU and from MP&#039;s who voted for the Referendum Act, the Notification of Withdrawal Act and the Withdrawal Act its...</a> from <a href="/boards/27193-william-cash-brexit-soundboard">William Cash - Brexit Soundboard</a></li>
+                                <li><a href="/sounds/24065040-hk-hornet-fading">HK Hornet Fading</a> from <a href="/boards/141667-notification-soundboard">Notification Soundboard</a></li>
+                                <li><a href="/sounds/673116-fading">Fading</a> from <a href="/boards/35131-fnf">FNF</a></li>
+                                <li><a href="/sounds/10555694-fading">(fading):</a> from <a href="/boards/115101-the-tender-bar">The Tender Bar</a></li>
+                                <li><a href="/sounds/24235383-fading-darkness-fading">Fading Darkness - Fading</a> from <a href="/boards/552589-random-f-sounds">Random F Sounds</a></li>
+                                <li><a href="/sounds/1278642-fading-moan-ghost">Fading Moan Ghost</a> from <a href="/boards/38069-ghost-sounds-sounds">Ghost Sounds Sounds</a></li>
+                                <li><a href="/sounds/4032949-fading-power-dbs-anime-goku-ultra-instinct-kamehameha-subbed-jiren-scream">Fading Power #dbs #anime #goku #ultra instinct #kamehameha #subbed #jiren #scream</a> from <a href="/boards/84118-dragon-ball-super-soundboard">Dragon Ball Super Soundboard</a></li>
+                                <li><a href="/sounds/29347267-fading-train-engine-with-high-pass-filter-soundeffects-engine-field-recording-train">Fading Train Engine with High Pass Filter #soundeffects #engine #field recording #train #ambient #ambience #railway #granular #abstract #drone #gunshot #shot #series #stairway #finger snap #fingersnap #korg #z1 #sfx #home #bat #night #riding #taking #bus #clap #sample #scary #horror #nature #thunder #drums #beat #groove</a> from <a href="/boards/766465-acousticalchemyartisan5">Acousticalchemyartisan5</a></li>
+                                <li><a href="/sounds/29433407-fading-casio-soundeffects-dying-casio-casiotone-tonal-low-battery-glitch-weird">Fading Casio #soundeffects #dying casio #casiotone #tonal #low battery #glitch #weird #electronic #gibberish #zap #environmental #sounds #research #door #car #hyundai #shooting star #star #space #whoosh #zoom #whip #sound #designs #somar #dubstep #pluck #synth #chair #bench #seat #noise #tweakbench #field #dj drop #nebula #custom #quack #spring #ducks #impression #actor</a> from <a href="/boards/766458-echopulsemystic">Echopulsemystic</a></li>
+                                <li><a href="/sounds/29395891-fading-lawn-soundeffects-autumn-lawn-grass-dying-synth-sfx-modular-owl-call">Fading Lawn #soundeffects #autumn #lawn #grass #dying #synth #sfx #modular #owl #call #field recording #door #airy #squeaky #electric #effect #8bit #deltasona #serveicomunitari #audacity #nature #bird #instrumental #atmospheric #theme #city #may #thunder #denton #unt #water #toilet #bathroom #reverse #high #impact</a> from <a href="/boards/766510-waveformwanderer">Waveformwanderer</a></li>
+                                <li><a href="/sounds/29534858-fading-creepy-background-2-soundeffects-atmosphere-sinister-anxious-pulsing">Fading Creepy Background 2 #soundeffects #atmosphere #sinister #anxious #pulsing #ambient #background sound #announcement #de #facemask #wav #drum #builds #destroyed #beep #noise #typing #computerkeyboard #inside #recording #tremolo #accordion #foley #percussion #objects #dryer #fan #fast #bpm #loop #exotic #one shot #flstudio #balloon #escaping #deflating #firework #water #tower</a> from <a href="/boards/766456-hertzheirloomvoyager">Hertzheirloomvoyager</a></li>
+                                <li><a href="/sounds/16697147-fading-god-knows-where">(fading): God knows where....</a> from <a href="/boards/97653-the-simpsons-1989-season-30">The Simpsons (1989) - Season 30</a></li>
+                                <li><a href="/sounds/29266753-fading-sounds-of-footsteps-sprinting-away-2-soundeffects-foley-walking-run-shoes">&quot;Fading Sounds of Footsteps Sprinting Away 2&quot; #soundeffects #foley #walking #run #shoes #outside #footstep #running #walk #feet #step #medium #drum #floor #speech #radio #malespeech #wham #christmas #lastchristmas #noise #bleeps #mobile #shot #fire #weapon #reason #sincopa #city #construction #field recording #loop #breaks #beat #bpm #drumloop #ambiance #bass</a> from <a href="/boards/766466-auralspectrawizard">Auralspectrawizard</a></li>
+                                <li><a href="/sounds/17515536-fading-fading">Fading. Fading.</a> from <a href="/boards/97368-the-simpsons-season-5">The Simpsons - Season 5</a></li>
+                                <li><a href="/sounds/11441963-fading-gone">Fading. Gone.</a> from <a href="/boards/97368-the-simpsons-season-5">The Simpsons - Season 5</a></li>
+                                <li><a href="/sounds/5224988-fading-okay">(fading): Okay.</a> from <a href="/boards/100603-the-simpsons-1989-season-32">The Simpsons (1989) - Season 32</a></li>
+                                <li><a href="/sounds/26936806-fading-sound-videogame-sfx-fx-digital-at-brickdevelop">Fading #sound #videogame #sfx #fx #digital @BrickDevelop...</a> from <a href="/boards/698725-sound-sfx">Sound SFX</a></li>
+                                <li><a href="/sounds/26933249-fading-sound-sound-spooky-creepy-dramatic-weird-at-paraplex">Fading Sound #sound #spooky #creepy #dramatic #weird @Paraplex</a> from <a href="/boards/698725-sound-sfx">Sound SFX</a></li>
+                                <li><a href="/sounds/4751948-fading-the-surviving-father-makes-you-eat-your-heart">[fading]: ...the surviving father makes you eat your heart...</a> from <a href="/boards/97299-star-trek-lower-decks-2020-season-2">Star Trek: Lower Decks (2020) - Season 2</a></li>
+                                <li><a href="/sounds/4357541-fading-in-and-out-dispatcher-negative-aid-19">[ Fading in and out ] Dispatcher: Negative, Aid 19</a> from <a href="/boards/97251-station-19-season-2">Station 19 - Season 2</a></li>
+                                <li><a href="/sounds/4290658-fading-in-and-out-dispatcher-negative-aid-19">[ Fading in and out ] Dispatcher: Negative, Aid 19</a> from <a href="/boards/97251-station-19-season-2">Station 19 - Season 2</a></li>
+                                <li><a href="/sounds/13538127-fading-in-the-shadow-of-the-machine">Fading in the shadow of the machine,</a> from <a href="/boards/97871-star-trek-1966-season-1">Star Trek (1966) - Season 1</a></li>
+                                <li><a href="/sounds/5644785-fading-cobra-kai-cobra-kai-cobra-kai-cobra-kai-cobra-kai">[fading] Cobra Kai, Cobra Kai, Cobra Kai, Cobra Kai, Cobra Kai!</a> from <a href="/boards/100578-cobra-kai-2018-season-4">Cobra Kai (2018) - Season 4</a></li>
+                                <li><a href="/sounds/15060204-fading-away-in-that-creep-and-you-think-its-fun">Fading away in that creep, and you think it&#039;s fun?</a> from <a href="/boards/97752-buffy-the-vampire-slayer-season-7">Buffy the Vampire Slayer - Season 7</a></li>
+                                <li><a href="/sounds/26965628-fading-isolations-2-cin-mournful-longing-melo-sad-at-xcreenplay">Fading Isolations 2 #cin #mournful #longing #melo #sad @Xcreenplay</a> from <a href="/boards/719964-sfx-f">SFX - F</a></li>
+                                <li><a href="/sounds/12458081-fading-the-marbella-needs-cash-to-stay-afloat">(Fading): The Marbella needs cash to stay afloat,</a> from <a href="/boards/99735-jane-the-virgin-season-1">Jane the Virgin - Season 1</a></li>
+                                <li><a href="/sounds/12251076-fading-away-no">[fading away] No!</a> from <a href="/boards/100239-disenchantment-2018-season-1">Disenchantment (2018) - Season 1</a></li>
+                                <li><a href="/sounds/9317645-fading-echoing-mabel-mabel-are-you-okay">[fading, echoing] Mabel? Mabel? Are you okay?</a> from <a href="/boards/97283-only-murders-in-the-building-2021-season-2">Only Murders in the Building (2021) - Season 2</a></li>
+                                <li><a href="/sounds/11760969-fading-fading-again">Fading, fading again.</a> from <a href="/boards/97737-brooklyn-nine-nine-season-2">Brooklyn Nine-Nine - Season 2</a></li>
+                                <li><a href="/sounds/14924101-fading-away-i-know-i-can-fix-that">  Fading away. I know.   I can fix that.</a> from <a href="/boards/97750-buffy-the-vampire-slayer-season-6">Buffy the Vampire Slayer - Season 6</a></li>
+                                <li><a href="/sounds/15223332-fading-atma-and-unless-i-seek-my-atma">[fading] â™ª And unless I seek my... â™ª</a> from <a href="/boards/97153-transparent-season-2">Transparent - Season 2</a></li>
+                                <li><a href="/sounds/10375658-fading-america-will-be-american-once-again">(FADING) America will be American once again.</a> from <a href="/boards/114992-the-forever-purge">The Forever Purge</a></li>
+                                <li><a href="/sounds/8710078-fading-my-father-george-was-first-officer">[fading]: My father George was first officer</a> from <a href="/boards/104507-star-trek-strange-new-worlds-2022-season-1">Star Trek: Strange New Worlds (2022) - Season 1</a></li>
+                                <li><a href="/sounds/8641591-fading-i-had-this-crazy-idea">[fading]: I had this crazy idea.</a> from <a href="/boards/104507-star-trek-strange-new-worlds-2022-season-1">Star Trek: Strange New Worlds (2022) - Season 1</a></li>
+                                <li><a href="/sounds/10204988-fading-in-a-pear-tree">(FADING): ♪ In a pear tree... ♪</a> from <a href="/boards/114877-the-grinch">The Grinch</a></li>
+                                <li><a href="/sounds/11999551-fading-80s">  Fading.   &#039;80s.</a> from <a href="/boards/98327-30-rock-season-3">30 Rock - Season 3</a></li>
+                                <li><a href="/sounds/5569015-fading-the-child-is-dead-the-child-is-dead">[ Fading] The child is dead. The child is dead.</a> from <a href="/boards/98457-the-omen-1976-soundboard">The Omen (1976) Soundboard</a></li>
+                                <li><a href="/sounds/15124508-fading-hes-just-freaking-out">(fading): He&#039;s just freaking out.</a> from <a href="/boards/99841-crazy-ex-girlfriend-season-2">Crazy Ex-Girlfriend - Season 2</a></li>
+                                <li><a href="/sounds/15123430-fading-dont-forget">(fading): Don&#039;t forget...</a> from <a href="/boards/99841-crazy-ex-girlfriend-season-2">Crazy Ex-Girlfriend - Season 2</a></li>
+                                <li><a href="/sounds/7394146-fading-light">Fading light</a> from <a href="/boards/104582-greys-anatomy-2005-season-6">Grey&#039;s Anatomy (2005) - Season 6</a></li>
+                                <li><a href="/sounds/7904404-fading-anthony">[fading] Anthony.</a> from <a href="/boards/112420-bridgerton-2020-season-2">Bridgerton (2020) - Season 2</a></li>
+                                <li><a href="/sounds/7842957-fading-in-is-that-not-so-anthony-normal-absolutely"> [fading in] Is that not so, Anthony?  [normal] Absolutely.</a> from <a href="/boards/112420-bridgerton-2020-season-2">Bridgerton (2020) - Season 2</a></li>
+                                <li><a href="/sounds/7951078-fading-roar">[fading roar]</a> from <a href="/boards/112425-johnny-test-2021-season-2">Johnny Test (2021) - Season 2</a></li>
+                                <li><a href="/sounds/26937793-fading-signal-sci-fi-sfx-space-fx-odd-at-brickdevelop">Fading Signal #sci fi #sfx #space #fx #odd @BrickDevelop...</a> from <a href="/boards/698781-sci-fi-sfx">Sci-Fi SFX</a></li>
+                                <li><a href="/sounds/10392332-fading-in-distance-remember-last-time">(FADING IN DISTANCE): Remember last time!</a> from <a href="/boards/115007-the-boss-baby-family-business">The Boss Baby: Family Business</a></li>
+                                <li><a href="/sounds/10185111-fading-from-the-view-of-the-enemy">Fading from the view of the enemy,</a> from <a href="/boards/114858-zack-snyders-justice-league">Zack Snyder&#039;s Justice League</a></li>
+                                <li><a href="/sounds/10210335-fading-dobri-ljudi-sim-doali">(fading): ♪ Dobri ljudi sim doali... ♪</a> from <a href="/boards/114852-last-christmas">Last Christmas</a></li>
+                                <li><a href="/sounds/10171002-fading-and-heaven-and-heaven-and-nature-sing">(fading): ♪ And Heaven, and Heaven and nature sing... ♪</a> from <a href="/boards/114852-last-christmas">Last Christmas</a></li>
+                                <li><a href="/sounds/10724326-fading-henry-im-almost-out-of-air">(fading): Henry, I’m almost out of air!</a> from <a href="/boards/115098-annette">Annette</a></li>
+                                <li><a href="/sounds/10680892-fading-we-love-annette">(fading): We love Annette...</a> from <a href="/boards/115098-annette">Annette</a></li>
+                                <li><a href="/sounds/5567729-fading-away">Fading away</a> from <a href="/boards/101033-genesis-soundboard">GENESIS Soundboard</a></li>
+                                <li><a href="/sounds/23923527-fading-office">Fading Office</a> from <a href="/boards/181370-affronte-tes-peurs-fade-soundboard">Affronte Tes Peurs Fade Soundboard</a></li>
+                                <li><a href="/sounds/14048012-fading-out-what-we-have-to-do">[fading out] What we have to do...</a> from <a href="/boards/116569-cb4-1993">CB4 (1993)</a></li>
+                                <li><a href="/sounds/14048029-fading-out-what-we-have-to-do">[fading out] What we have to do...</a> from <a href="/boards/116569-cb4-1993">CB4 (1993)</a></li>
+                                <li><a href="/sounds/535727-fading-decyfer-down-ringtone">Fading - Decyfer Down Ringtone</a> from <a href="/boards/30500-crash-ringtones-soundboard">Crash Ringtones Soundboard</a></li>
+                                <li><a href="/sounds/27028891-fading-alien-signal-droid-signal-space-cyborg-alien-at-kodytron">Fading Alien Signal #droid #signal #space #cyborg #alien @KodyTron</a> from <a href="/boards/702015-droid-sfx">Droid SFX</a></li>
+                                <li><a href="/sounds/14231336-fading-we-absolutely-have-to-intervene">(fading) We absolutely have to intervene.</a> from <a href="/boards/101117-insecure-season-1">Insecure - Season 1</a></li>
+                                <li><a href="/sounds/11116196-fading-fading-its-a-foul-ball">Fading, fading, it&#039;s a foul ball!</a> from <a href="/boards/115489-the-natural-1984">The Natural (1984)</a></li>
+                                <li><a href="/sounds/4858517-at-at-fading-into-dreams-at-at">@@Fading into dreams @@</a> from <a href="/boards/98432-north-shore-1987-soundboard">North Shore (1987) Soundboard</a></li>
+                                <li><a href="/sounds/24258613-fading-instrumental">Fading Instrumental</a> from <a href="/boards/199875-garcello-soundboard">Garcello Soundboard</a></li>
+                                <li><a href="/sounds/24322801-fading-swishes">Fading Swishes</a> from <a href="/boards/144979-tech-soundboard">Tech Soundboard</a></li>
+                                <li><a href="/sounds/26982972-fading-but-its-edd-fnf-fnf-fridaynightfunkin-funkin-friday-night-at-aidanyoutube666">Fading But Its Edd Fnf #fnf #fridaynightfunkin #funkin #friday #night @AidanYoutube666</a> from <a href="/boards/705071-fnf-sfx">Fnf SFX</a></li>
+                                <li><a href="/sounds/26900274-fading-waves-on-beach-beach-fading-sounds-waves-at-pcsiszar">Fading Waves On Beach #beach #fading sounds #waves @pcsiszar</a> from <a href="/boards/698871-beach-sfx">Beach SFX</a></li>
+                                <li><a href="/sounds/17455977-fading-away">Fading away</a> from <a href="/boards/115862-staying-alive-1983">Staying Alive (1983)</a></li>
+                                <li><a href="/sounds/13458896-fading-away">Fading away</a> from <a href="/boards/115862-staying-alive-1983">Staying Alive (1983)</a></li>
+                                <li><a href="/sounds/13385573-fading-away">Fading away</a> from <a href="/boards/115862-staying-alive-1983">Staying Alive (1983)</a></li>
+                                <li><a href="/sounds/11227025-fading-away">Fading away</a> from <a href="/boards/115862-staying-alive-1983">Staying Alive (1983)</a></li>
+                                <li><a href="/sounds/24387569-fading-away">Fading Away</a> from <a href="/boards/143922-away-soundboard">Away Soundboard</a></li>
+                                <li><a href="/sounds/23941263-fading-away">Fading Away</a> from <a href="/boards/143922-away-soundboard">Away Soundboard</a></li>
+                                <li><a href="/sounds/534549-fading-decyfer-down-ringtone">Fading - Decyfer Down Ringtone</a> from <a href="/boards/29827-decyfer-down-ringtones-soundboard">Decyfer Down Ringtones Soundboard</a></li>
+                                <li><a href="/sounds/29225832-fading-light-music-classical-piano-keyboardmusical-oddtime-videogamemusic">Fading Light #music #classical #piano #keyboardmusical #oddtime #videogamemusic #thememusic #silence #musicalinstrument #newagemusic #ambientmusic #brassinstrument #clarinet #boomlove #mask #cristiano #pop #indiepop #electronic #tropicalhouse</a> from <a href="/boards/756793-drewracer">Drewracer</a></li>
+                                <li><a href="/sounds/26965682-fading-isolation-longing-mournful-melo-sad-at-xcreenplay">Fading Isolation #longing #mournful #melo #sad @Xcreenplay</a> from <a href="/boards/700299-longing-sfx">Longing SFX</a></li>
+                                <li><a href="/sounds/27016293-fading-away-away-pad-fade-at-xcreenplay">Fading Away #away #pad #fade @Xcreenplay</a> from <a href="/boards/701065-away-sfx">Away SFX</a></li>
+                                <li><a href="/sounds/27003874-fading-away-away-disappear-fade-fading-at-mabdog">Fading Away #away #disappear #fade #fading @mabdog</a> from <a href="/boards/701065-away-sfx">Away SFX</a></li>
+                                <li><a href="/sounds/17966458-hes-shy-he-doesnt-look-shy">He&#039;s shy? He doesn&#039;t look shy.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/17577537-yeah-yeah">Yeah, yeah.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/17559935-is-he-tall-yeah">  Is he tall?   Yeah.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/17551872-that-they-both-wanted-to-have-a-menage">That they both wanted to have a menage.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/17548486-lets-do-the-menage">Let&#039;s do the menage.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/17547472-she-tipped-you">She tipped you?!</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/17539732-they-need-love-they-need-affection">They need love, they need affection.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/17539514-you-are-flirting-with-me-no">  You are flirting with me.   No.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/17534813-is-he">  Is he *******?   *******...</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/17491009-maybe-i-should-try-your-guy-out-first-alone">Maybe I should try your guy out first, alone.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/17488978-i-mean-you-need-the-money-and-im-closing-shop">I mean, you need the money and I&#039;m closing shop.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12988093-this-came-out-of-nowhere-out-of-nowhere">  This came out of nowhere?   Out of nowhere!</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12986568-and-they-came-to-the-conclusion">And they came to the conclusion</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12983699-i-was-at-my-dermatologist-today-and-she-was-with-her-girlfriend">I was at my dermatologist today and she was with her girlfriend</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12980176-i-have-a-very-funny-story-to-tell-you">I have a very funny story to tell you.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12978089-nobody-could-see-anything-but-that-was-still-very-pleasant">Nobody could see anything, but that was still very pleasant.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12971887-i-am-not-a-beautiful-man">I am not a beautiful man.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12965218-have-you-ever-done-it-menage-a-trois">Have you ever done it, menage a trois?</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12964267-i-was-thinking-of-you-me">  I was thinking of you.   Me?</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12960615-i-said-yeah-but-itll-cost-you-a-thousand-bucks">I said: &quot;Yeah, but it&#039;ll cost you a thousand bucks.&quot;</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12957535-these-are-vulnerable-people-think-of-it-as-a-performance">  These are vulnerable people.   Think of it as a performance.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12953341-and-she-asked-me-do-i-know-anybody">And she asked me &quot;Do I know anybody?&quot;</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12917231-shes-so-soft-like-a-stuffed-animal">She&#039;s so soft, like a stuffed animal.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12907233-call-bungle-dan-bungle">  Call Bungle.   Dan Bungle.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12890904-they-want-you-to-play-act-anyhow">They want you to play act anyhow.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                                <li><a href="/sounds/12868396-so-this-is-what-you-do-you-bring-magic-to-the-lonely">So this is what you do. You bring magic to the lonely.</a> from <a href="/boards/118942-fading-gigolo-trailer">Fading Gigolo Trailer</a></li>
+                
+                                <li><a href="/boards/712788-movil-sfx">Movil SFX</a></li>
+                                <li><a href="/boards/185426-quas-soundboard">Quas Soundboard</a></li>
+                                <li><a href="/boards/194516-goes-soundboard">Goes Soundboard</a></li>
+                                <li><a href="/boards/219117-akrings-soundboard">Akrings Soundboard</a></li>
+                                <li><a href="/boards/745147-electronic-collection">Electronic Collection</a></li>
+                                <li><a href="/boards/868764-o-dinheiro-que-tem-na-corretora-soundboard">O dinheiro que tem na corretora Soundboard</a></li>
+                                <li><a href="/tts/1071501-jofra-archer-tts-computer-ai-voice">Jofra Archer TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1078632-sara-benincasa-tts-computer-ai-voice">Sara Benincasa TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1078027-yuriy-sardarov-tts-computer-ai-voice">Yuriy Sardarov TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1079326-haley-skarupa-tts-computer-ai-voice">Haley Skarupa TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1079806-kaitlyn-alexander-tts-computer-ai-voice">Kaitlyn Alexander TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1080004-noelle-lambert-tts-computer-ai-voice">Noelle Lambert TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1082275-josh-jacobs-tts-computer-ai-voice">Josh Jacobs TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1085154-emma-pollak-tts-computer-ai-voice">Emma Pollak TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1089115-fisher-perry-tts-computer-ai-voice">Fisher Perry TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1091345-chrisette-michele-tts-computer-ai-voice">Chrisette Michele TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1091497-alex-hobern-tts-computer-ai-voice">Alex Hobern TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1092429-werner-kok-tts-computer-ai-voice">Werner Kok TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1094077-tori-vidales-tts-computer-ai-voice">Tori Vidales TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1094405-sarah-bacon-tts-computer-ai-voice">Sarah Bacon TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1095782-matt-and-jason-tts-computer-ai-voice">Matt and Jason TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1097570-jayke-jadah-tts-computer-ai-voice">Jayke_Jadah TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1099695-justin-hinsley-tts-computer-ai-voice">Justin Hinsley TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1099754-chip-foose-tts-computer-ai-voice">Chip Foose TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1108993-finn-askew-tts-computer-ai-voice">Finn Askew TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1111336-coach-mccartan-tts-computer-ai-voice">Coach McCartan TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1116402-maggie-szabo-tts-computer-ai-voice">Maggie Szabo TTS Computer AI Voice</a></li>
+                                <li><a href="/tts/1117346-rae-c-taft-tts-computer-ai-voice">Rae C. Taft TTS Computer AI Voice</a></li>
+                            </ul>
+            
+            <h5 class="card-title">Here are some helpful links:</h5>
+            <ul>
+                <li><a href="https://www.101soundboards.com/home">Home</a></li>
+                <li><a href="https://www.101soundboards.com/search">Search</a></li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+<br /><br /><br />
+            <!-- End of main content -->
+
+            <!-- Sticky footer -->
+
+                <!-- Footer ads -->
+                                <!-- End of footer ads -->
+
+                
+
+                <br /><br /><br /><br /><br />
+
+                <nav id="nav_footer" class="navbar fixed-bottom navbar-light bg-light shadow">
+                    <div class="container">
+
+                        <a class="btn btn-outline-danger btn-sm font-weight-bold px-1 ml-0 mr-1" rel="search" href="/search">
+                            <span class="d-none d-sm-inline">Search</span>
+                            <span class="d-inline d-sm-none mx-1"><i class="fas fa-search"></i></span>
+                        </a>
+
+                        <a class="btn btn-outline-danger btn-sm font-weight-bold favorites_btn px-1 ml-0 mr-1" href="/favorites/me">
+                            <span class="d-none d-sm-inline">Favorites</span>
+                            <span class="d-inline d-sm-none mx-1"><i class="fas fa-heart"></i></span>
+                        </a>
+
+                        <a class="btn btn-outline-danger btn-sm font-weight-bold favorites_btn px-1 ml-0 mr-1" href="/tts/me" data-toggle="tooltip" data-position="top" title="Text to Speech">TTS</</a>
+                        
+                        <a class="btn btn-outline-danger btn-sm font-weight-bold px-1 ml-0 mr-1" href="https://www.101soundboards.com/terminal" data-toggle="tooltip" data-placement="top" title="AI Sound FX Generator CLI Terminal"><i class="fa fa-fw fa-terminal"></i></a>
+
+                                                <!-- Donate -->
+                        <a class="btn btn-outline-danger btn-sm font-weight-bold px-1 ml-0 mr-1 d-md-inline d-none animate__animated animate__slower animate__shakeY animate__infinite" href="/pages/donate" data-toggle="tooltip" data-placement="top" title="Donate"><i class="fa fa-fw fa-hand-holding-dollar mr-1"></i>Donate</i></a>
+                        
+                        <!-- Blog -->
+                        <a class="btn btn-outline-danger btn-sm font-weight-bold px-1 ml-0 mr-1 d-md-inline d-none" href="/blog" data-toggle="tooltip" data-placement="top" title="Blog"><i class="fa fa-fw fa-blog mr-1"></i>Blog</i></a>
+
+                        <!-- Trending -->
+                        <a class="btn btn-outline-danger btn-sm font-weight-bold px-1 ml-0 mr-1 d-md-inline d-none hidden" id="trending_footer_button" href="/sounds/trending" data-toggle="tooltip" data-placement="top" title="Trending sounds"><i class="fa fa-fw fa-chart-line mr-1"></i><span>Trending</span></i></a>
+
+                                                <div class="ml-auto btn btn-link live_list_footer">
+                            <!--<a href="/sounds/live" title="See a live list of sounds being played">
+                                <div id="play_stats">&nbsp;</div>
+                            </a>
+                            <a href="/sounds/live" title="See a live list of sounds being played">
+                                <div id="play_stats_countOnly">&nbsp;</div>
+                            </a>-->
+                        </div>
+
+                        
+                        
+                        
+
+                        
+
+                        <div id="continue_option_container" class="hidden" data-toggle="tooltip" data-placement="top" title="Switch 1-Shot/Multiplay">
+                            <input type="checkbox" id="continue_option" class="hidden">
+                            <label for="continue_option" class="fa"></label>
+                        </div>
+
+                        <button class="btn btn-link" id="dark-mode">Dark Mode</button>
+                        <button class="btn btn-link" id="light-mode">Light Mode</button>
+
+                        <aside class="dark-mode-toggle-1 pr-4" data-toggle="tooltip" title="Toggle dark mode">
+                            <dark-mode-toggle id="dark-mode-toggle-1" legend="" appearance="toggle" dark="Dark Mode"
+                                light="Light Mode" permanent="false" remember=""></dark-mode-toggle>
+                        </aside>
+
+                        <div id="volume_control_container">
+                            <button class="btn" id="volume_control_button" data-toggle="tooltip"
+                                title="Volume control"><i class="fa fa-volume-up"></i></button>
+
+                            <div id="volume_control">
+                                <input type="range" min="0" max="100" value="100" step="1"
+                                    orient="vertical">
+                            </div>
+                        </div>
+
+                                            </div>
+                </nav>
+
+            </div>
+
+            <!-- Back to top button -->
+            <a href="#" id="back-to-top" class="back-to-top btn btn-danger btn-sm d-none" title="Back to top" data-toggle="tooltip" data-placement="left" data-original-title="Back to top">
+                <i class="fas fa-arrow-up"></i>
+            </a>
+
+            <!-- Ad Debug -->
+            <!--
+                                PubLift adsIntensity normal NoDisplayAds
+            -->
+            <!-- End of Ad Debug -->
+
+            <!-- Scripts -->
+            <script src="https://www.101soundboards.com/js/manifest.js?id=0d3ac542e24ad7f2dd418d598ff65cd4"></script>
+            <script src="https://www.101soundboards.com/js/vendor-main.js?id=ad34116098213940b43397cc98efef8f"></script>
+            <script src="https://www.101soundboards.com/js/app.js?id=0df0a2e57fa9db1200842d9bd8f2e861"></script>
+
+            <!-- <script src="https://lzgjv4x369f0.statuspage.io/embed/script.js"></script> -->
+
+                <script src="https://www.101soundboards.com/js/index.js?id=26cb1512b0986adbea18db03cef55862"></script>
+    <script src="https://www.101soundboards.com/js/404.js?id=89c5dd2101e0906589ee35b0297e99de"></script>
+
+                </body>
+</html>

@@ -1,0 +1,27 @@
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+npx commitlint --edit "$COMMIT_MSG_FILE"
+
+if [ $? -eq 0 ]; then
+  EMOJI=""
+
+  case "$COMMIT_MSG" in
+    build* ) EMOJI="🔨";;
+    chore* ) EMOJI="♻️";;
+    ci* ) EMOJI="⚙️";;
+    docs* ) EMOJI="📚";;
+    feat* ) EMOJI="✨";;
+    fix* ) EMOJI="🩼️";;
+    perf* ) EMOJI="🚀";;
+    refactor* ) EMOJI="📦";;
+    revert* ) EMOJI="⏬";;
+    style* ) EMOJI="💎";;
+    test* ) EMOJI="🚨";;
+    merge* ) EMOJI="🎭";;
+  esac
+
+  if [ ! -z "$EMOJI" ]; then
+    echo -e "$EMOJI $COMMIT_MSG" > "$COMMIT_MSG_FILE"
+  fi
+fi

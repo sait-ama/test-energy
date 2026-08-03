@@ -1,0 +1,44 @@
+import { getTranslations } from 'next-intl/server';
+
+import { dehydrate, HydrationBoundary } from '@tanstack/react-query';
+
+import { getSuspenseUserQuery } from '~entities/user/model/queries';
+import { ConnectSocial } from '~features/connect-social/ui/connect-social';
+import { getQueryClient } from '~shared/api/react-query';
+import { getSiteConfig } from '~shared/config/site-config';
+import { fallbackDefaultMetadata } from '~shared/lib/next/fallback-default-metadata';
+import { withMetadataCache } from '~shared/lib/next/with-metadata-cache';
+import { getSession } from '~shared/lib/session/get-session';
+import { generateNextMetadata } from '~shared/seo/generate-next-metadata';
+
+export const generateMetadata = fallbackDefaultMetadata(
+  withMetadataCache(async () => {
+    const t = await getTranslations('pages.user-social-edit.meta');
+
+    const siteConfig = getSiteConfig()!;
+
+    return generateNextMetadata({
+      title: t('title'),
+      description: t('description', { siteName: siteConfig.site.name }),
+      follow: false,
+      index: false,
+    });
+  }, 'user-settings-social')
+);
+
+export default async function SocialPage() {
+  const queryClient = getQueryClient();
+  const session = (await getSession())!;
+
+  await queryClient.prefetchQuery(
+    getSuspenseUserQuery({ variables: { params: { userId: String(session.id) } } })
+  );
+
+  return (
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <ConnectSocial />
+    </HydrationBoundary>
+  );
+}
+
+export const dynamic = 'force-dynamic';

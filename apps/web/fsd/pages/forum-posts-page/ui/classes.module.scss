@@ -1,0 +1,22 @@
+.header {
+  @media (max-width: 694px) {
+    flex-direction: column;
+  }
+}
+
+.headerInner {
+  @media (max-width: 434px) {
+    flex-direction: column;
+  }
+}
+
+.tabs {
+  & > div > div {
+    @media (max-width: 600px) {
+      justify-content: space-between;
+    }
+    @media (max-width: 434px) {
+      justify-content: space-between;
+    }
+  }
+}

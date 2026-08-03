@@ -1,0 +1,220 @@
+@use 'common';
+
+//.fullsize {
+//  width: 100%;
+//  height: 100%;
+//}
+
+
+.container {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+  background-color: common.globalVar(container_background_color, common.$color-backdrop);
+  outline: none;
+  user-select: none;
+  touch-action: common.globalVar(controller_touch_action, none);
+  overscroll-behavior: common.globalVar(controller_overscroll_behavior, contain);
+}
+
+.carousel {
+  display: flex;
+  flex: 0 0 auto;
+  height: 100%;
+  align-content: center;
+  justify-content: center;
+  align-items: stretch;
+  width: calc(
+          100% + (var(--yarl__carousel_slides_count) - 1) *
+          (100% + var(--yarl__carousel_spacing_px, 0) * 1px +
+          var(--yarl__carousel_spacing_percent, 0) * 1%)
+  );
+  transform: translate(var(--yarl__swipe_offset, 0px), var(--yarl__pull_offset, 0px));
+  opacity: var(--yarl__pull_opacity, 1);
+
+  .withSlides {
+    column-gap: calc(
+            var(--yarl__carousel_spacing_px, 0) * 1px + 100 /
+            (100 * var(--yarl__carousel_slides_count) + (var(--yarl__carousel_slides_count) - 1) *
+            var(--yarl__carousel_spacing_percent, 0)) *
+            var(--yarl__carousel_spacing_percent, 0) * 1%
+    );
+  }
+}
+
+
+.slide {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+
+
+  padding: calc(
+          var(--yarl__carousel_padding_px, 0) * 1px + 100 /
+          (100 * var(--yarl__carousel_slides_count) + (var(--yarl__carousel_slides_count) - 1) *
+          var(--yarl__carousel_spacing_percent, 0)) *
+          var(--yarl__carousel_padding_percent, 0) * 1%
+  );
+  [dir='rtl'] & {
+    --yarl__direction: -1;
+  }
+  .image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    touch-action: common.globalVar(controller_touch_action, none);
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+
+    .cover {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .loading {
+      opacity: 0;
+    }
+  }
+
+  // workaround occasional image flickering in desktop Safari
+  @media screen and (min-width: 800px) {
+    .wrapper:not(.wrapper_interactive) .image {
+      // noinspection CssUnknownProperty
+      -webkit-transform: translateZ(0);
+      -webkit-backface-visibility: hidden;
+      -webkit-transform-style: preserve-3d;
+    }
+  }
+
+  .placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-50%);
+    line-height: 0;
+  }
+
+  .loading {
+    color: common.globalVar(slide_icon_loading_color, common.$color-button);
+    animation: yarl__delayed_fadein 1s linear;
+
+    & line {
+      animation: yarl__stroke_opacity 1s linear infinite;
+    }
+
+    @for $i from 1 through 8 {
+      & line:nth-of-type(#{$i}) {
+        animation-delay: #{$i * 0.125 - 2}s;
+      }
+    }
+  }
+
+  .error {
+    $icon-size: 48px;
+    width: common.globalVar(slide_icon_error_size, $icon-size);
+    height: common.globalVar(slide_icon_error_size, $icon-size);
+    color: common.globalVar(slide_icon_error_color, red);
+  }
+}
+
+@media (prefers-reduced-motion) {
+  .portal,
+  .slide {
+    transition: unset;
+  }
+
+  .slideLoading,
+  .slideLoading line {
+    animation: unset;
+  }
+}
+
+.toolbar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: auto;
+  left: auto;
+  display: flex;
+  justify-content: flex-end;
+  padding: common.globalVar(toolbar_padding, common.$toolbar-padding);
+
+  [dir='rtl'] & {
+    top: 0;
+    right: auto;
+    bottom: auto;
+    left: 0;
+  }
+}
+
+.icon {
+  width: common.globalVar(icon_size, common.$icon-size);
+  height: common.globalVar(icon_size, common.$icon-size);
+}
+
+.button {
+  cursor: pointer;
+  appearance: none;
+  background-color: common.globalVar(button_background_color, transparent);
+  border: common.globalVar(button_border, 0);
+  margin: common.globalVar(button_margin, 0);
+  outline: none;
+  line-height: 0;
+  padding: common.globalVar(button_padding, common.$icon-button-padding);
+  color: common.$color-button;
+  filter: common.globalVar(button_filter, common.$filter-drop-shadow);
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus {
+    color: common.$color-button-active;
+  }
+
+  &:focus:not(:focus-visible) {
+    color: common.$color-button;
+  }
+
+  &:focus-visible {
+    color: common.$color-button-active;
+  }
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus:hover,
+    &:focus-visible:hover {
+      color: common.$color-button-active;
+    }
+  }
+
+  &:disabled {
+    color: common.$color-button-disabled;
+    cursor: default;
+  }
+}
+
+
+@keyframes delayed_fadein {
+  0% {
+    opacity: 0;
+  }
+  80% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes stroke_opacity {
+  from {
+    stroke-opacity: 1;
+  }
+  to {
+    stroke-opacity: 0.125;
+  }
+}
+

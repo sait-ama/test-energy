@@ -1,0 +1,3 @@
+export const READER_PROMO_MODAL_COOKIE_NAME = 'reader-promo-modal';
+export const READER_PROMO_MODAL_COOKIE_VERSION = 1;
+export const READER_PROMO_MODAL_CHAPTERS_TO_NEXT_OPEN = 15;

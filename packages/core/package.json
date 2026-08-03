@@ -1,0 +1,55 @@
+{
+  "name": "@re/core",
+  "version": "0.0.1",
+  "license": "MIT",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./utils/*": {
+      "import": [
+        "./src/utils/*.tsx",
+        "./src/utils/*.ts"
+      ]
+    },
+    "./lib/*": {
+      "import": ["./src/lib/*.tsx","./src/lib/*.ts"]
+    },
+    "./lib/logger": {
+      "import": "./src/lib/logger/index.ts"
+    },
+    "./lib/query-params": {
+      "import": "./src/lib/query-params/index.tsx"
+    },
+    "./lib/page-visibility": {
+      "import": "./src/lib/page-visibility/use-page-visibility.ts"
+    },
+    "./types/*": {
+      "import": "./src/types/*.ts"
+    },
+    "./hooks/*": {
+      "import": "./src/hooks/*.ts"
+    }
+  },
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "pnpm dlx eslint"
+  },
+  "dependencies": {
+    "react": "catalog:react19",
+    "react-dom": "catalog:react19",
+    "scheduler": "^0.25.0",
+    "use-context-selector": "^2.0.0",
+    "vitest": "^3.0.5",
+    "zustand": "catalog:"
+  },
+  "devDependencies": {
+    "@re/eslint-config": "workspace:*",
+    "@re/prettier-config": "workspace:*",
+    "@re/typescript-config": "workspace:*",
+    "@testing-library/react": "^16.2.0",
+    "@types/react": "catalog:react19",
+    "@types/react-dom": "catalog:react19"
+  },
+  "prettier": "@re/prettier-config"
+}

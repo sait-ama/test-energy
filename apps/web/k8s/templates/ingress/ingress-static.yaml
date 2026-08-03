@@ -1,0 +1,57 @@
+{{- $cm := lookup "v1" "ConfigMap" .Release.Namespace .Values.envFrom.configMapName }}
+{{- if not $cm }}
+  {{- fail (printf "ConfigMap %s not found in namespace %s" .Values.envFrom.configMapName .Release.Namespace) }}
+{{- end }}
+{{- $apiUrl := index $cm.data "INGRESS_API_URL"}}
+{{- $mediaUrl := index $cm.data "INGRESS_MEDIA_URL"}}
+{{- $staticUrl := index $cm.data "INGRESS_STATIC_URL"}}
+{{- $storageUrl := index $cm.data "INGRESS_STORAGE_URL"}}
+{{- $INGRESS_DOMAIN := index $cm.data "INGRESS_DOMAIN"}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Release.Name }}-static
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "false"
+    nginx.ingress.kubernetes.io/upstream-vhost: {{ $mediaUrl }}
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ $INGRESS_DOMAIN }}
+      http:
+        paths:
+          - path: /kodik.txt
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "nextjs-monorepo.fullname" . }}-storage
+                port:
+                  number: {{ .Values.services.storage.port }}
+          - path: /receiver.html
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "nextjs-monorepo.fullname" . }}-storage
+                port:
+                  number: {{ .Values.services.storage.port }}
+          - path: /ads.txt
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "nextjs-monorepo.fullname" . }}-storage
+                port:
+                  number: {{ .Values.services.storage.port }}
+          - path: /602ba8f15f126c31257e413d.txt
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "nextjs-monorepo.fullname" . }}-storage
+                port:
+                  number: {{ .Values.services.storage.port }}
+          - path: /favicon.ico
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "nextjs-monorepo.fullname" . }}-storage
+                port:
+                  number: {{ .Values.services.storage.port }}

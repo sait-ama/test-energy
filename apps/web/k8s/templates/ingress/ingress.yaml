@@ -1,0 +1,31 @@
+{{- $cm := lookup "v1" "ConfigMap" .Release.Namespace .Values.envFrom.configMapName }}
+{{- if not $cm }}
+  {{- fail (printf "ConfigMap %s not found in namespace %s" .Values.envFrom.configMapName .Release.Namespace) }}
+{{- end }}
+{{- $apiUrl := index $cm.data "INGRESS_API_URL"}}
+{{- $mediaUrl := index $cm.data "INGRESS_MEDIA_URL"}}
+{{- $staticUrl := index $cm.data "INGRESS_STATIC_URL"}}
+{{- $storageUrl := index $cm.data "INGRESS_STORAGE_URL"}}
+{{- $INGRESS_DOMAIN := index $cm.data "INGRESS_DOMAIN"}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "nextjs-monorepo.fullname" . }}
+  annotations:
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "999999"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "999999"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "999999"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: {{ $INGRESS_DOMAIN }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "nextjs-monorepo.fullname" . }}
+                port:
+                  number: 80

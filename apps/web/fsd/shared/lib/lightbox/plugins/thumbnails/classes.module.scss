@@ -1,0 +1,176 @@
+@use '../../common';
+
+$vignette-size: 12%;
+$thumbnail-focus-box-shadow:
+  common.$color-black 0 0 0 2px,
+  common.$color-button 0 0 0 4px;
+
+@function localVar($key, $default) {
+  @return common.globalVar(thumbnails_ + $key, $default);
+}
+
+.thumbnails {
+  display: flex;
+  height: 100%;
+
+  &_top,
+  &_bottom {
+    flex-direction: column;
+  }
+
+  &_start,
+  &_end {
+    .track {
+      flex-direction: column;
+    }
+  }
+}
+
+.wrapper {
+  flex: 1;
+  flex-direction: column;
+}
+
+.container {
+  flex: 0 0 auto;
+  background-color: localVar(container_background_color, common.$color-backdrop);
+  padding: localVar(container_padding, 16px);
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.vignette {
+  position: absolute;
+  pointer-events: none;
+  --yarl__thumbnails_vignette_size: 12%;
+
+  @media (min-width: 1200px) {
+    --yarl__thumbnails_vignette_size: 8%;
+  }
+
+  @media (min-width: 2000px) {
+    --yarl__thumbnails_vignette_size: 5%;
+  }
+}
+
+.topVignette,
+.bottomVignette {
+  composes: vignette;
+  height: 100%;
+  left: 0;
+  right: 0;
+  background: linear-gradient(
+    to right,
+    common.$color-backdrop 0px,
+    transparent localVar(vignette_size, $vignette-size)
+      calc(100% - localVar(vignette_size, $vignette-size)),
+    common.$color-backdrop 100%
+  );
+}
+
+.startVignette,
+.endVignette {
+  composes: vignette;
+  width: 100%;
+  top: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to bottom,
+    common.$color-backdrop 0px,
+    transparent localVar(vignette_size, $vignette-size)
+      calc(100% - localVar(vignette_size, $vignette-size)),
+    common.$color-backdrop 100%
+  );
+}
+
+.track {
+  outline: none;
+  gap: localVar(thumbnail_gap, 16px);
+}
+
+.thumbnail {
+  flex: 0 0 auto;
+  cursor: pointer;
+  appearance: none;
+  background: localVar(thumbnail_background, common.$color-black);
+  border-width: localVar(thumbnail_border, 1px);
+  border-style: localVar(thumbnail_border_style, solid);
+  border-color: localVar(thumbnail_border_color, common.$color-button);
+  border-radius: localVar(thumbnail_border_radius, 4px);
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+  padding: localVar(thumbnail_padding, 4px);
+  outline: none;
+  width: localVar(thumbnail_width, 120px);
+  height: localVar(thumbnail_height, 80px);
+  box-sizing: content-box;
+
+  &_active {
+    border-color: localVar(thumbnail_active_border_color, common.$color-button-active);
+  }
+
+  &_fadein {
+    opacity: 0;
+    animation: yarl__thumbnails_thumbnail_fadein localVar(thumbnail_fadein_duration, 0.5s)
+      ease-in-out localVar(thumbnail_fadein_delay, 0s) forwards;
+  }
+
+  &_fadeout {
+    animation: yarl__thumbnails_thumbnail_fadeout localVar(thumbnail_fadeout_duration, 0.5s)
+      ease-in-out localVar(thumbnail_fadeout_delay, 0s) forwards;
+    cursor: unset;
+  }
+
+  &_placeholder {
+    visibility: hidden;
+    cursor: unset;
+  }
+
+  &:focus {
+    box-shadow: localVar(thumbnail_focus_box_shadow, $thumbnail-focus-box-shadow);
+  }
+
+  &:focus:not(:focus-visible) {
+    box-shadow: unset;
+  }
+
+  &:focus-visible {
+    box-shadow: localVar(thumbnail_focus_box_shadow, $thumbnail-focus-box-shadow);
+  }
+}
+
+.thumbnailIcon {
+  color: localVar(thumbnail_icon_color, common.$color-button);
+  filter: localVar(thumbnail_icon_filter, common.$filter-drop-shadow);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-50%);
+  width: localVar(thumbnail_icon_size, common.$icon-size);
+  height: localVar(thumbnail_icon_size, common.$icon-size);
+}
+
+// These animations need to be global as they're referenced by class names
+:global {
+  @keyframes yarl__thumbnails_thumbnail_fadein {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes yarl__thumbnails_thumbnail_fadeout {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+}
+

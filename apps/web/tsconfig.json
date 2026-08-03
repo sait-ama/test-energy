@@ -1,0 +1,26 @@
+{
+  "extends": "@re/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "~entities/*": ["./fsd/entities/*"],
+      "~shared/*": ["./fsd/shared/*"],
+      "~features/*": ["./fsd/features/*"],
+      "~widgets/*": ["./fsd/widgets/*"],
+      "~pages/*": ["./fsd/pages/*"],
+      "~app/*": ["./fsd/app/*"],
+      "~public/*": ["./public/*"]
+    },
+    "types": ["vitest/globals"],
+    "allowJs": true
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "vitest.config.mts",
+  ],
+  "exclude": ["node_modules", "**/*.stories.tsx"]
+}

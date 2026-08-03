@@ -1,0 +1,24 @@
+@media (max-width: 694px) {
+  .header {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 434px) {
+  .headerInner {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 600px) {
+  .tabs > div > div {
+    justify-content: space-between;
+  }
+}
+@media (max-width: 434px) {
+  .tabs > div > div {
+    justify-content: space-between;
+  }
+}
+
+/*# sourceMappingURL=classes.module.css.map */

@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body,
+html {
+    font-family:
+        'Exo\ 2',
+        Roboto,
+        -apple-system,
+        'Nunito Sans',
+        'SF Pro Text',
+        'SF Pro Icons',
+        'Segoe UI',
+        'Helvetica Neue',
+        Arial,
+        sans-serif,
+        'Apple Color Emoji',
+        'Segoe UI Emoji',
+        'Segoe UI Symbol' !important;
+}
+
+body {
+    background-color: #121212;
+}

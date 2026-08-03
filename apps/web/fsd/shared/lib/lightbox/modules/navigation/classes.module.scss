@@ -1,0 +1,34 @@
+@use "../../common";
+
+.navigation {
+  .prev,
+  .next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    padding: common.globalVar(
+                    navigation_button_padding,
+                    common.$toolbar-padding + 2 * common.$icon-button-padding common.$toolbar-padding + common.$icon-button-padding
+    );
+  }
+
+  .prev {
+    left: 0;
+  }
+
+  [dir="rtl"] .prev {
+    left: unset;
+    right: 0;
+    transform: translateY(-50%) rotate(180deg);
+  }
+
+  .next {
+    right: 0;
+  }
+
+  [dir="rtl"] .next {
+    left: 0;
+    right: unset;
+    transform: translateY(-50%) rotate(180deg);
+  }
+}

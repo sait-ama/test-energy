@@ -1,0 +1,17 @@
+# Dependency directories
+node_modules/
+
+# Build directories
+.next/
+apps/web/.next/
+apps/*/.next/
+out/
+dist/
+build/
+
+# Cache
+.turbo/
+.cache/
+
+# Generated files
+*.generated.* /apps/web/fsd/widgets/edit-title-form/ui/edit-title-form.tsx

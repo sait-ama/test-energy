@@ -1,0 +1,102 @@
+.head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    width: 100%;
+    padding: 20px;
+}
+
+.headContentId {
+    display: flex;
+
+    margin-left: 20px;
+
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.body {
+    display: flex;
+    flex-direction: column;
+
+    margin: 30px;
+}
+
+.row {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.rowContent {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.rowContentName {
+    display: flex;
+    flex-wrap: wrap;
+
+    width: 13vw;
+
+    text-transform: uppercase;
+
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.rowContentValue {
+    display: flex;
+    flex-wrap: wrap;
+
+    margin-right: 2vw;
+}
+
+.line {
+    width: 100%;
+
+    border-color: #b7b7ba;
+}
+
+.target {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.greenChip {
+    color: rgba(59, 130, 246, 1) !important;
+    background-color: transparent !important;
+
+    font-weight: 900 !important;
+}
+
+.redChip {
+    color: rgb(255, 152, 0) !important;
+    background-color: transparent !important;
+    font-weight: 900 !important;
+}
+
+.grayChip {
+    color: #6e6f74 !important;
+    background-color: transparent !important;
+
+    font-weight: 900 !important;
+}
+
+.divider {
+    background-color: white;
+}
+
+.toolbarButton {
+    padding: 5px 14px 5px 5px;
+}

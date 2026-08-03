@@ -1,0 +1,14 @@
+{
+  "extends": "@re/typescript-config/nextjs.json",
+  "compilerOptions": {
+    "incremental": true,
+    "baseUrl": ".",
+    "allowJs": true,
+    "paths": {
+      "@re/ui-kit/*": ["src/ui/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "**/*.stories.tsx"]
+}
+

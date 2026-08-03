@@ -1,0 +1,8 @@
+import { createSvgIcon } from '../utils/create-svg-icon';
+
+export const H1Icon = createSvgIcon(
+  'h1',
+  <path d="M6.6 6V17.04H5V6H6.6ZM11.64 10.48V11.808H6.472V10.48H11.64ZM13.08 6V17.04H11.464V6H13.08ZM19.142 6V17.04H17.542V8.464C17.542 8.29333 17.5473 8.128 17.558 7.968C17.5687 7.79733 17.59 7.62667 17.622 7.456L14.934 8.272L14.726 7.136L17.542 6H19.142Z" />
+);
+
+export default H1Icon;

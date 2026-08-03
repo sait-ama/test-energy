@@ -1,0 +1,21 @@
+services:
+  redis:
+    image: redis/redis-stack:latest
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    volumes:
+      - redis_data:/data
+    networks:
+      dev-network1:
+        aliases:
+          - redis
+volumes:
+  redis_data:
+
+networks:
+  dev-network1:
+    driver: bridge
+    driver_opts:
+      com.docker.network.enable_ipv6: "false"
+      com.docker.network.bridge.name: "dev-network1"

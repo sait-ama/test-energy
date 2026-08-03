@@ -1,0 +1,122 @@
+/*@import '../fsd/app/root-styles/base.css' layer(base);*/
+@import '@re/ui-kit/globals.css';
+
+@source '../node_modules/@re/ui-kit';
+/* @source '../../../packages/ui/src'; */
+
+@layer base {
+  .grecaptcha-badge {
+    visibility: hidden;
+  }
+
+  renode[nodetype='json'] {
+    display: none;
+  }
+}
+
+@layer utilities {
+  /* Viewport-safe utilities for iOS Safari and dynamic viewport */
+  .w-dvw {
+    width: 100dvw;
+  }
+  .h-dvh {
+    height: 100dvh;
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .hover-card {
+    position: relative;
+    border: 1px solid hsl(var(--r-border));
+    border-radius: var(--r-radius-md);
+    transition:
+      border ease,
+      transition-timing-function cubic-bezier(0.4, 0, 0.2, 1);
+    animation-duration: 200ms;
+  }
+
+  .hover-card:hover {
+    border-color: hsl(var(--r-primary));
+  }
+
+  .hover-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: hsl(var(--r-foreground));
+    opacity: 0;
+    transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-card:hover::after {
+    opacity: 0.03;
+  }
+
+  .collection-background:hover {
+    background: hsl(var(--r-card-foreground) / 3%);
+  }
+
+  .collection-background::after {
+    content: '';
+    position: absolute;
+  }
+
+  .collection-background::after {
+    background:
+      radial-gradient(
+        96.5% 97.84% at 5.53% 116.91%,
+        hsl(var(--r-color)) 5.44%,
+        hsl(var(--r-color)) 44.3%,
+        rgb(18 18 18 / 0%) 100%
+      ),
+      radial-gradient(
+        64.6% 60.63% at 107.79% 84.26%,
+        hsl(var(--r-color)) 39%,
+        rgb(18 18 18 / 0%) 100%
+      ),
+      radial-gradient(
+        57.86% 57.91% at 73.24% 89.12%,
+        hsl(var(--r-color)) 39%,
+        rgb(18 18 18 / 0%) 100%
+      );
+  }
+
+  .linear-gradient-container {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+
+  .linear-gradient-container::after {
+    --r-linear-gradient-color: '';
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(0deg, hsl(var(--r-linear-gradient-color)) 0%, transparent 35%);
+  }
+}
+
+/* Custom animations */
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  50% {
+    transform: rotate(180deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-pulse-spin {
+  animation: spin 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}

@@ -1,0 +1,13 @@
+import { RetrySendMessage, useChannelActionContext } from '../../../../context';
+
+export const useRetryHandler = (customRetrySendMessage?: RetrySendMessage): RetrySendMessage => {
+  const { retrySendMessage: contextRetrySendMessage } = useChannelActionContext('useRetryHandler');
+
+  const retrySendMessage = customRetrySendMessage || contextRetrySendMessage;
+
+  return async (message) => {
+    if (message) {
+      await retrySendMessage(message);
+    }
+  };
+};

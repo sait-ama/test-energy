@@ -1,0 +1,23 @@
+@use "../../common";
+
+.portal {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  opacity: 0;
+  overflow: hidden;
+  z-index: common.globalVar(portal_zindex, 9999);
+  transition: opacity common.globalVar(fade_animation_duration, 250ms) common.globalVar(fade_animation_timing_function, ease);
+}
+
+.open {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion) {
+  .portal {
+    transition: unset;
+  }
+}

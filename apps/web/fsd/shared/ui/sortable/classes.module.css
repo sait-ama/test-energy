@@ -1,0 +1,49 @@
+.even {
+  transition: all 0.2s ease-in-out;
+  transform-origin: 50% 10%;
+  animation-name: keyframes1;
+  animation-duration: 1.2s;
+  animation-iteration-count: infinite;
+}
+
+.odd {
+  transform-origin: 30% 5%;
+  animation-name: keyframes2;
+  animation-duration: 1.2s;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+}
+
+@keyframes keyframes1 {
+  0% {
+    transform: rotate(-0.4deg);
+    animation-timing-function: ease-in;
+  }
+
+  50% {
+    transform: rotate(0.6deg);
+    animation-timing-function: ease-out;
+  }
+
+  100% {
+    transform: rotate(-0.4deg);
+    animation-timing-function: ease-in;
+  }
+}
+
+@keyframes keyframes2 {
+  0% {
+    transform: rotate(0.4deg);
+    animation-timing-function: ease-in;
+  }
+
+  50% {
+    transform: rotate(-0.6deg);
+    animation-timing-function: ease-out;
+  }
+
+  100% {
+    transform: rotate(0.4deg);
+    animation-timing-function: ease-out;
+  }
+}

@@ -1,0 +1,3150 @@
+{
+  "pages": {
+    "not-found": {
+      "meta": {
+        "title": "Страница не найдена",
+        "description": "Извините, но запрошенная страница не найдена."
+      }
+    },
+    "home": {
+      "meta": {
+        "breadcrumbs-name": "Главная",
+        "series": {
+          "title": "Смотреть аниме онлайн на русском. Дуньхуа онлайн",
+          "keywords": "смотреть аниме, смотреть аниме онлайн, смотреть дуньхуа, смотреть дуньхуа онлайн, смотреть аниме на русском, смотреть дуньхуа на русском",
+          "description": "Смотреть на русском аниме и дуньхуа онлайн на {siteName}. Самый удобный сайт для просмотра аниме с огромным каталогом. Найдите топовые тайтлы, рекомендации, коллекции, популярные проекты и многое другое."
+        },
+        "manga": {
+          "title": "Читать мангу онлайн на русском. Манга онлайн. Манхва онлайн. Маньхуа онлайн.",
+          "keywords": "читать мангу, читать мангу онлайн на русском, читать манхву, читать манхву онлайн на русском, читать маньхуа, читать маньхуа онлайн на русском, читать комикс онлайн на русском",
+          "description": "Читать на русском мангу, маньхуа, манхву, комиксы онлайн на {siteName}. Самая удобная читалка, огромный каталог. Удобное чтение и регулярные обновления. Вы найдёте рейтинг лучших произведений, рекомендации, подборки, популярные проекты и многое другое."
+        },
+        "novel": {
+          "title": "Читать ранобэ онлайн на русском. Новеллы онлайн",
+          "keywords": "читать ранобэ, новеллы онлайн, читать новеллы на русском",
+          "description": "Читать ранобэ и новеллы онлайн на {siteName}. Самая удобная читалка, огромный каталог. Вы найдёте рейтинг лучших произведений, рекомендации, подборки, популярные проекты и многое другое."
+        }
+      },
+      "continue-reading": {
+        "title": "Продолжить",
+        "item": {
+          "reading-status": "Глава {index} из {total}"
+        }
+      },
+      "promotion-slider": {
+        "title": "Новости",
+        "item": {
+          "detailsButtonText": "Подробнее"
+        },
+        "dialog": {
+          "linkText": "Перейти на страницу"
+        }
+      },
+      "last-updates": {
+        "title": "Последние обновления"
+      },
+      "collections-slider": {
+        "title": "Подборки"
+      },
+      "home-banner": {
+        "title": "Горячие новинки"
+      },
+      "common": {
+        "more": "Больше"
+      }
+    },
+    "top": {
+      "meta": {
+        "breadcrumbs-name": "Топы",
+        "series": {
+          "title": "Топ 100 аниме и дуньхуа",
+          "keywords": "топ аниме, лучшее аниме, популярные дуньхуа, рейтинг аниме",
+          "description": "Топ 100 популярных аниме и дуньхуа на сайте! Лучшие тайтлы, выбранные пользователями со всей платформы, чтобы вы нашли что-то новое и интересное."
+        },
+        "manga": {
+          "title": "Топ 100 манги",
+          "keywords": "топ манга, лучшая манга, популярная манга, рейтинг манги",
+          "description": "Топ 100 популярных манг на сайте! Лучшие произведения, выбранные пользователями со всей платформы, чтобы вы нашли что-то новое и интересное."
+        },
+        "novel": {
+          "title": "Топ 100 ранобэ и веб-новелл",
+          "keywords": "топ ранобэ, лучшие ранобэ, популярные веб-новеллы, рейтинг новелл",
+          "description": "Топ 100 популярных ранобэ и веб-новелл на сайте! Лучшие произведения, выбранные пользователями со всей платформы, чтобы вы нашли что-то новое и интересное."
+        }
+      }
+    },
+    "catalog": {
+      "meta": {
+        "series": {
+          "title": "Каталог аниме и дуньхуа",
+          "keywords": "смотреть аниме онлайн, каталог аниме, дуньхуа, дуньхуа онлайн",
+          "description": "Каталог аниме и дуньхуа на {siteName}. Просматривайте и смотрите аниме по жанрам и категориям, наслаждаясь лучшими тайтлами в удобном формате.",
+          "detailed-description": "Лучшие в: {genres} аниме с рейтингом от 8 на {siteName}. Подборка произведений с {categories} для искушенных читателей. Новые главы каждый день, уведомления о выходе продолжений и удобная читалка."
+        },
+        "manga": {
+          "title": "Каталог манги",
+          "detailed-title": "Каталог {fields} манги и манхвы",
+          "keywords": "читать мангу, манга онлайн, каталог манги",
+          "description": "Каталог манги на {siteName}. Просматривайте и читайте мангу по жанрам и категориям, наслаждаясь лучшими произведениями в удобном формате.",
+          "detailed-description": "Лучшие в: {genres} манга / маньхуа / манхва с рейтингом от 8 на {siteName}. Подборка произведений с {categories} для искушенных читателей. Новые главы каждый день, уведомления о выходе продолжений и удобная читалка."
+        },
+        "novel": {
+          "title": "Каталог ранобэ и веб-новелл",
+          "keywords": "читать ранобэ, веб-новеллы онлайн, каталог новелл",
+          "description": "Каталог ранобэ и веб-новелл на {siteName}. Просматривайте и читайте новеллы по жанрам и категориям, наслаждаясь лучшими произведениями в удобном формате.",
+          "detailed-description": "Лучшие в: {genres} новеллы / ранобэ с рейтингом от 8 на {siteName}. Подборка произведений с {categories} для искушенных читателей. Новые главы каждый день, уведомления о выходе продолжений и удобная читалка."
+        }
+      }
+    },
+    "collections-cards-add-page": {
+      "meta": {
+        "title": "Создать коллекцию карточек из инвентаря",
+        "description": "Создать коллекцию карточек из инвентаря"
+      }
+    },
+    "collections-cards-edit-page": {
+      "meta": {
+        "title": "Изменить коллекцию карт {collection} в интентаре",
+        "description": "Изменение коллекции карт в интентаре"
+      }
+    },
+    "chat": {
+      "meta": {
+        "title": "Чат",
+        "keywords": "онлайн чат, мгновенные сообщения, веб-чат, быстрый чат, чат приложение, real-time chat, мессенджер, чат с поддержкой медиа",
+        "description": "Современный онлайн-чат с поддержкой мгновенных сообщений, медиа и реакций. Удобный, быстрый и безопасный способ общения."
+      }
+    },
+    "common": {
+      "meta": {
+        "series": {
+          "title": "Смотреть аниме и дуньхуа онлайн",
+          "keywords": "смотреть аниме, смотреть аниме онлайн, смотреть дуньхуа, смотреть дуньхуа онлайн",
+          "description": "Смотрите аниме и дуньхуа бесплатно на ReAnime. Огромный выбор аниме, топ рейтинги, коллекции и рекомендации на любой вкус!"
+        },
+        "manga": {
+          "title": "Читать мангу онлайн",
+          "keywords": "читать мангу, манга онлайн, манга на русском",
+          "description": "Читайте мангу бесплатно на ReAnime. Огромная коллекция манги, рейтинги и рекомендации!"
+        },
+        "novel": {
+          "title": "Читать ранобэ и веб-новеллы онлайн",
+          "keywords": "читать ранобэ, веб-новеллы онлайн, новеллы на русском",
+          "description": "Читайте ранобэ и веб-новеллы бесплатно на ReAnime. Большая коллекция произведений с регулярными обновлениями!"
+        }
+      }
+    },
+    "reader": {
+      "meta": {
+        "series": {
+          "keywords": "смотреть аниме онлайн, аниме ридер",
+          "title": "Смотреть бесплатно том {tome} серия {chapter} {type} {main_name}",
+          "description": "Смотреть бесплатно том {tome} серия {chapter}{description, select, empty {} other { с названием {description} }}{type} {main_name} / {secondary_name} / {another_name}",
+          "image-alt": ""
+        },
+        "manga": {
+          "keywords": "глава {chapter}, том {tome}, читать, читать мангу {main_name}, манга {main_name} онлайн, новая глава, {type}, {another_name}, {genres}, {categories}, читать {type} {main_name} {chapter}",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "title": "Читать {type} {main_name} {chapter} глава {tome} том бесплатно онлайн на русском языке",
+          "description": "Читать {type} {main_name} {chapter} глава {tome} том бесплатно онлайн на русском языке{description, select, empty {} other { с названием {description}}}. Это произведение также известно как {another_name}",
+          "image-alt": "{main_name} {chapter} глава том {tome} страница {page} онлайн на русском языке"
+        },
+        "novel": {
+          "keywords": "читать новеллы онлайн, новелла ридер",
+          "title": "Читать бесплатно том {tome} глава {chapter} {type} {main_name}",
+          "description": "Читать бесплатно том {tome} глава {chapter}{description, select, empty {} other { с названием {description} }}{type} {main_name} / {secondary_name} / {another_name}",
+          "image-alt": ""
+        }
+      },
+      "footer": {
+        "last-chapter-text": "Статус произведения: <emph>{status}</emph>, { chaptersReleaseStatus, select, ongoing {ждите выхода новых глав} hasNextDate {новая глава выйдет <emph>{nextChapterDate, date, short}</emph>} other {новых глав не будет} }"
+      }
+    },
+    "title": {
+      "common": {
+        "collections": {
+          "title": "Коллекции по произведению",
+          "empty": {
+            "title": "Коллекций ещё нет, но их можно создать <link>здесь</link>"
+          }
+        }
+      },
+      "json-ld": {
+        "language": "{lang, select, en {English} ru {Русский} other {}}"
+      },
+      "meta": {
+        "series": {
+          "title": "Смотреть {name} — {type}",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "keywords": "смотреть аниме {name}, аниме {name} онлайн, {genre} аниме",
+          "description": "{name} — смотреть аниме {name} онлайн. Узнайте все о персонажах, сюжете и мире этого тайтла."
+        },
+        "manga": {
+          "title": "Читать {name} — {type}",
+          "keywords": "читать, читать мангу {main_name}, манга {main_name} онлайн, новая глава, {type}, {another_name}, {genres}, {categories}, читать {type} {main_name} {last_chapter}",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{description}.{rating, select, empty {} other { {rating}.}} {genres}. {categories}. {name} — читать мангу онлайн."
+        },
+        "novel": {
+          "title": "Читать {name} — {type}",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "keywords": "читать новеллу {main_name}, новелла {main_name} онлайн, {type} новелла",
+          "description": "{name} — читать новеллу онлайн. Полный перевод глав с регулярными обновлениями."
+        }
+      }
+    },
+    "title-chapters": {
+      "meta": {
+        "series": {
+          "title": "{name} — {type}",
+          "keywords": "смотреть аниме {name}, аниме {name} онлайн, {genre} аниме",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{name} — смотреть аниме {name} онлайн. Узнайте все о персонажах, сюжете и мире этого тайтла."
+        },
+        "manga": {
+          "title": "{name} — главы ({count_chapters})",
+          "keywords": "читать, читать мангу {main_name}, манга {main_name} онлайн, новая глава, {type}, {another_name}, {genres}, {categories}, читать {type} {main_name} {last_chapter}",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "Читайте все {count_chapters} эпизодов {type} {main_name}. {description}."
+        },
+        "novel": {
+          "title": "{name} — {type}",
+          "keywords": "читать новеллу {name}, новелла {name} онлайн, {genre} новелла",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{name} — читать новеллу онлайн. Полный перевод глав с регулярными обновлениями."
+        }
+      }
+    },
+    "title-posts": {
+      "meta": {
+        "series": {
+          "title": "{name} — {type}",
+          "keywords": "смотреть аниме {name}, аниме {name} онлайн, {genre} аниме",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{name} — смотреть аниме {name} онлайн. Узнайте все о персонажах, сюжете и мире этого тайтла."
+        },
+        "manga": {
+          "title": "{name} — Обсуждения ({count_posts})",
+          "keywords": "читать, читать мангу {main_name}, манга {main_name} онлайн, новая глава, {type}, {another_name}, {genres}, {categories}, читать {type} {main_name} {last_chapter}",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "Комментарии и обсуждения {main_name}. {count_posts} тем от читателей. Присоединяйтесь к дискуссии о тайтле в жанрах: {genres}..."
+        },
+        "novel": {
+          "title": "{name} — {type}",
+          "keywords": "читать новеллу {name}, новелла {name} онлайн, {genre} новелла",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{name} — читать новеллу онлайн. Полный перевод глав с регулярными обновлениями."
+        }
+      }
+    },
+    "title-moments": {
+      "meta": {
+        "series": {
+          "title": "{name} — {type}",
+          "keywords": "смотреть аниме {name}, аниме {name} онлайн, {genre} аниме",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{name} — смотреть аниме {name} онлайн. Узнайте все о персонажах, сюжете и мире этого тайтла."
+        },
+        "manga": {
+          "title": "{name} — Ключевые моменты ({count_moments})",
+          "keywords": "читать, читать мангу {main_name}, манга {main_name} онлайн, новая глава, {type}, {another_name}, {genres}, {categories}, читать {type} {main_name} {last_chapter}",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{count_moments} важных сцен и поворотов сюжета в {type} {main_name}. Собрание запоминающихся моментов из истории о {description}."
+        },
+        "novel": {
+          "title": "{name} — {type}",
+          "keywords": "читать новеллу {name}, новелла {name} онлайн, {genre} новелла",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{name} — читать новеллу онлайн. Полный перевод глав с регулярными обновлениями."
+        }
+      }
+    },
+    "title-voiceover": {
+      "meta": {
+        "series": {
+          "title": "{name} — Озвучка",
+          "keywords": "смотреть аниме {name}, аниме {name} онлайн, {genre} аниме",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{name} — смотреть аниме {name} онлайн. Узнайте все о персонажах, сюжете и мире этого тайтла."
+        },
+        "manga": {
+          "title": "{name} — Озвучка",
+          "keywords": "читать, читать мангу {main_name}, манга {main_name} онлайн, новая глава, {type}, {another_name}, {genres}, {categories}, читать {type} {main_name} {last_chapter}",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "Озвучка глав {type} {main_name}. Слушай свои любимые произведения про {description}."
+        },
+        "novel": {
+          "title": "{name} — Озвучка",
+          "keywords": "читать новеллу {name}, новелла {name} онлайн, {genre} новелла",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{name} — читать новеллу онлайн. Полный перевод глав с регулярными обновлениями."
+        }
+      }
+    },
+    "title-cards": {
+      "meta": {
+        "series": {
+          "title": "{name} — {type}",
+          "keywords": "смотреть аниме {name}, аниме {name} онлайн, {genre} аниме",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{name} — смотреть аниме {name} онлайн. Узнайте все о персонажах, сюжете и мире этого тайтла."
+        },
+        "manga": {
+          "title": "{name} — Карты ({count_cards})",
+          "keywords": "читать, читать мангу {main_name}, манга {main_name} онлайн, новая глава, {type}, {another_name}, {genres}, {categories}, читать {type} {main_name} {last_chapter}",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{count_cards} карт по {type} {main_name}. Коллекционные карты с персонажами из произведения со средней оценкой {rating, select, empty {} other { rating.}} в жанрах: {genres}."
+        },
+        "novel": {
+          "title": "{name} — {type}",
+          "keywords": "читать новеллу {name}, новелла {name} онлайн, {genre} новелла",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{name} — читать новеллу онлайн. Полный перевод глав с регулярными обновлениями."
+        }
+      }
+    },
+    "title-characters": {
+      "meta": {
+        "series": {
+          "title": "{name} — {type}",
+          "keywords": "смотреть аниме {name}, аниме {name} онлайн, {genre} аниме",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{name} — смотреть аниме {name} онлайн. Узнайте все о персонажах, сюжете и мире этого тайтла."
+        },
+        "manga": {
+          "title": "{name} — Персонажи ({count_characters})",
+          "keywords": "читать, читать мангу {main_name}, манга {main_name} онлайн, новая глава, {type}, {another_name}, {genres}, {categories}, читать {type} {main_name} {last_chapter}",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "Все персонажи {type} {main_name}. Подробные описания героев, их роли в сюжете и взаимоотношения. {description}. "
+        },
+        "novel": {
+          "title": "{name} — {type}",
+          "keywords": "читать новеллу {name}, новелла {name} онлайн, {genre} новелла",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "{name} — читать новеллу онлайн. Полный перевод глав с регулярными обновлениями."
+        }
+      }
+    },
+    "title-comments": {
+      "meta": {
+        "series": {
+          "title": "{name} — {type}",
+          "keywords": "смотреть аниме {name}, аниме {name} онлайн, {genre} аниме",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "Отзывы читателей о {type} {main_name}. Впечатления, оценки и дискуссии поклонников жанров. Делитесь своим мнением."
+        },
+        "manga": {
+          "title": "{name} — Комментарии читателей ({count_comments})",
+          "keywords": "читать, читать мангу {main_name}, манга {main_name} онлайн, новая глава, {type}, {another_name}, {genres}, {categories}, читать {type} {main_name} {last_chapter}",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "Отзывы читателей о {type} {main_name}. Впечатления, оценки и дискуссии поклонников жанров. Делитесь своим мнением."
+        },
+        "novel": {
+          "title": "{name} — Комментарии читателей ({count_comments})",
+          "keywords": "читать новеллу {name}, новелла {name} онлайн, {genre} новелла",
+          "tag-keyword": "читать {type} в {tag_type, select, genre {жанре} other {категории}} {name}",
+          "description": "Отзывы читателей о {type} {main_name}. Впечатления, оценки и дискуссии поклонников жанров. Делитесь своим мнением."
+        }
+      }
+    },
+    "hotUpdates": {
+      "meta": {
+        "series": {
+          "title": "Горячие обновления",
+          "keywords": "горячие обновления, последние аниме, новые релизы",
+          "description": "Смотрите последние релизы аниме и горячие обновления онлайн бесплатно на ReAnime. Откройте для себя новые тайтлы и оставайтесь в курсе с новейшими эпизодами."
+        },
+        "manga": {
+          "title": "Горячие обновления манги",
+          "keywords": "горячие обновления манги, последняя манга, новые релизы манги",
+          "description": "Читайте последние релизы манги и горячие обновления онлайн бесплатно на ReAnime. Откройте для себя новые тайтлы манги и оставайтесь в курсе с новейшими главами."
+        },
+        "novel": {
+          "title": "Горячие обновления новелл",
+          "keywords": "горячие обновления новелл, последние новеллы, новые релизы новелл",
+          "description": "Читайте последние релизы новелл и горячие обновления онлайн бесплатно на ReAnime. Откройте для себя новые тайтлы новелл и оставайтесь в курсе с новейшими главами."
+        }
+      }
+    },
+    "title-similar": {
+      "meta": {
+        "series": {
+          "title": "Похожие произведения на {name}",
+          "keywords": "похожие произведения на {name}, похожие произведения на {name} онлайн, {genre} аниме",
+          "description": "{name} — смотреть аниме {name} онлайн. Похожие произведения: {similarTitles}"
+        },
+        "manga": {
+          "title": "Похожие манги на {name}",
+          "keywords": "похожие манги на {name}, похожие манги на {name} онлайн, {genre} манга",
+          "description": "{name} — читать мангу {name} онлайн. Похожие манги: {similarTitles}"
+        },
+        "novel": {
+          "title": "Похожие новеллы на {name}",
+          "keywords": "похожие новеллы на {name}, похожие новеллы на {name} онлайн, {genre} новелла",
+          "description": "{name} — читать новеллу {name} онлайн. Похожие новеллы: {similarTitles}"
+        }
+      }
+    },
+    "moment-shorts": {
+      "meta": {
+        "series": {
+          "title": "Лучшие моменты из тайтлов — Крутые шортсы и сцены",
+          "description": "Окунись в самые яркие сцены из любимых аниме! Смотри лучшие моменты, делись впечатлениями и открывай для себя крутые манги по шортсам на {siteName}"
+        },
+        "manga": {
+          "title": "Лучшие моменты из тайтлов — Крутые шортсы и сцены",
+          "description": "Окунись в самые яркие сцены из любимых манг! Смотри лучшие моменты, делись впечатлениями и открывай для себя крутые манги по шортсам на {siteName}"
+        },
+        "novel": {
+          "title": "Лучшие моменты из тайтлов — Крутые шортсы и сцены",
+          "description": "Окунись в самые яркие сцены из любимых новелл! Смотри лучшие моменты, делись впечатлениями и открывай для себя крутые манги по шортсам на {siteName}"
+        }
+      }
+    },
+    "moment-item": {
+      "meta": {
+        "series": {
+          "title": "{main_name} — Эпичный момент",
+          "description": "Смотри культовую сцену из тайтла {main_name} — {description}. Оцени, комментируй и узнай, откуда этот момент на {siteName}"
+        },
+        "manga": {
+          "title": "{main_name} — Эпичный момент",
+          "description": "Смотри культовую сцену из тайтла {main_name} — {description}. Оцени, комментируй и узнай, откуда этот момент на {siteName}"
+        },
+        "novel": {
+          "title": "{main_name} — Эпичный момент",
+          "description": "Смотри культовую сцену из тайтла {main_name} — {description}. Оцени, комментируй и узнай, откуда этот момент на {siteName}"
+        }
+      }
+    },
+    "edit": {
+      "meta": {
+        "series": {
+          "title": "Изменить серии",
+          "keywords": "Изменить серии, серии, серии аниме",
+          "description": "Изменить серии, серии, серии аниме"
+        },
+        "manga": {
+          "title": "Изменить главу",
+          "keywords": "Изменить главу, главу, главу манги",
+          "description": "Изменить главу, главу, главу манги"
+        },
+        "novel": {
+          "title": "Изменить главу",
+          "keywords": "Изменить главу, главу, главу манги",
+          "description": "Изменить главу, главу, главу манги"
+        }
+      }
+    },
+    "add-bundle-page": {
+      "meta": {
+        "series": {
+          "title": "Добавить серию в сезон",
+          "description": "Добавить серию в сезон на сайте {siteName}"
+        },
+        "novel": {
+          "title": "Добавить главу в том новеллы",
+          "description": "Добавить главу в том новеллы на сайте {siteName}"
+        },
+        "manga": {
+          "title": "Добавить главу в том комикса",
+          "description": "Добавить главу в том комикса на сайте {siteName}"
+        }
+      }
+    },
+    "edit-chapter-page": {
+      "meta": {
+        "series": {
+          "title": "Изменить серию",
+          "description": "Изменить серию на сайте {siteName}"
+        },
+        "novel": {
+          "title": "Изменить главу",
+          "description": "Изменить главу на сайте {siteName}"
+        },
+        "manga": {
+          "title": "Изменить главу",
+          "description": "Изменить главу на сайте {siteName}"
+        }
+      }
+    },
+    "edit-bundle-page": {
+      "meta": {
+        "series": {
+          "title": "Изменить серию в сезоне",
+          "description": "Изменить серию в сезоне на сайте {siteName}"
+        },
+        "novel": {
+          "title": "Изменить главу в томе новеллы",
+          "description": "Изменить главу в томе новеллы на сайте {siteName}"
+        },
+        "manga": {
+          "title": "Изменить главу в томе комикса",
+          "description": "Изменить главу в томе комикса на сайте {siteName}"
+        }
+      }
+    },
+    "title-list-page": {
+      "meta": {
+        "breadcrumbs-name": "Подборка тайтлов",
+        "series": {
+          "title": "{name} — подборка аниме и дунхуа",
+          "description": "Подборка {name} с аниме и дунхуа на сайте {siteName}. {description}. В подборке {titles}"
+        },
+        "manga": {
+          "title": "{name} — подборка манги, манхвы, маньхуа и комиксов",
+          "description": "Подборка {name} с мангой, манхвой, маньхуа и комиксами на сайте {siteName}. {description}. В подборке {titles}"
+        },
+        "novel": {
+          "title": "{name} — подборка новелл и ранобэ",
+          "description": "Подборка {name} с новеллами и ранобэ на сайте {siteName}. {description}. В подборке {titles}"
+        }
+      }
+    },
+    "edit-chapters-page": {
+      "meta": {
+        "series": {
+          "title": "Изменить серии аниме",
+          "description": "Изменить серии аниме на сайте {siteName}"
+        },
+        "novel": {
+          "title": "Изменить главы новеллы",
+          "description": "Изменить главы новеллы на сайте {siteName}"
+        },
+        "manga": {
+          "title": "Изменить главы комикса",
+          "description": "Изменить главы комикса на сайте {siteName}"
+        }
+      }
+    },
+    "edit-title-page": {
+      "meta": {
+        "series": {
+          "title": "Редактировать аниме {main_name}",
+          "description": "Редактировать аниме {main_name} на сайте {siteName}"
+        },
+        "novel": {
+          "title": "Редактировать новеллу {main_name}",
+          "description": "Редактировать новеллу {main_name} на сайте {siteName}"
+        },
+        "manga": {
+          "title": "Редактировать комикс {main_name}",
+          "description": "Редактировать комикс {main_name} на сайте {siteName}"
+        }
+      },
+      "content": {
+        "tabs": {
+          "base": "Основное",
+          "additional-links": "Ссылки",
+          "publishers": "Переводчики",
+          "relations": "Связанное",
+          "links": "Ссылки",
+          "creators": "Создатели"
+        }
+      }
+    },
+    "add-chapter": {
+      "meta": {
+        "series": {
+          "title": "Добавить главу в серию",
+          "description": "Добавить новую главу в серию"
+        },
+        "novel": {
+          "title": "Добавить главу в новеллу",
+          "description": "Добавить новую главу в новеллу"
+        },
+        "manga": {
+          "title": "Добавить главу в мангу",
+          "description": "Добавить новую главу в мангу"
+        }
+      }
+    },
+    "add-title-page": {
+      "meta": {
+        "series": {
+          "title": "Создание аниме",
+          "description": "Создание аниме на сайте {siteName}"
+        },
+        "manga": {
+          "title": "Создание новеллы",
+          "description": "Создание новеллы на сайте {siteName}"
+        },
+        "novel": {
+          "title": "Создание комикса",
+          "description": "Создание комикса на сайте {siteName}"
+        }
+      }
+    },
+    "hot-updates-page": {
+      "meta": {
+        "series": {
+          "title": "Горячие новинки — смотреть онлайн на русском свежие произведения",
+          "description": "Самые горячие новинки аниме и дунхуа на сайте {siteName}. Среди них: {titles}"
+        },
+        "manga": {
+          "title": "Горячие новинки — читать онлайн на русском свежие произведения",
+          "description": "Самые горячие новинки манги, маньхуа и манхвы на сайте {siteName}. Среди них: {titles}"
+        },
+        "novel": {
+          "title": "Горячие новинки — читать онлайн на русском свежие произведения",
+          "description": "Самые горячие новинки манги, манхвы, маньхуа и комиксов на сайте {siteName}. Среди них:{titles}"
+        }
+      }
+    },
+    "top-detailed-page": {
+      "meta": {
+        "series": {
+          "title": "Топ {name} - аниме и дунхуа",
+          "description": "Топ {name} с аниме и дунхуа на сайте {siteName}. Среди них: {titles}"
+        },
+        "novel": {
+          "title": "Топ {name} -  новелл и ранобэ",
+          "description": "Топ {name} с новеллами и ранобэ на сайте {siteName}. Среди них: {titles}"
+        },
+        "manga": {
+          "title": "Топ {name} - манги, манхвы, маньхуа и комиксов",
+          "description": "Топ {name} с мангой, манхвой, маньхуа и комиксами на сайте {siteName}. Среди них: {titles}"
+        }
+      }
+    },
+    "hero-card": {
+      "meta": {
+        "breadcrumbs-name": "Карточка",
+        "title": "Карточка {rank, select, RE {#{id} {description} ранга {rank} от автора {author}} other {#{id} по персонажу {character} ранга {rank}}} ",
+        "description": "Страница {rank, select, RE {коллекционной карточки #{id} ранга RE на сайте {siteName}. Автором карты является {author}. {description}} other {карточки #{id} персонажа {character} из тайтла {main_name}, также известным как {secondary_name}, {another_name} ранга {rank} на сайте {siteName}. Автором карты является {author}. {description}}}"
+      }
+    },
+    "hero-card-add": {
+      "meta": {
+        "title": "Добавление карточки персонажа произведения",
+        "description": "Форма добавления карточки по персонажу на одно из произведений на сайте {siteName}."
+      }
+    },
+    "hero-card-catalog": {
+      "meta": {
+        "breadcrumbs-name": "Каталог карт",
+        "breadcrumbs-name-rank": "Ранг {rank}",
+        "title": "Каталог карт по персонажам произведений",
+        "description": "Каталог карт с возможностью фильтрации по тайтлу, рангу, автору и другим параметрам. На сайте {siteName} можно получать и коллекционировать карты с уникальным дизайном по вашим любимым произведениям."
+      }
+    },
+    "entry": {
+      "meta": {
+        "title": "Статья {title}",
+        "description": "Статья {title} на сайте {siteName}. {description}"
+      }
+    },
+    "too-many-requests": {
+      "meta": {
+        "title": "Слишком много запросов. Пожалуйста, попробуйте позже.",
+        "description": "Слишком много запросов на сайте {siteName}. Пожалуйста, попробуйте позже."
+      }
+    },
+    "hero-card-edit": {
+      "meta": {
+        "title": "Редактирование карточки {character} из тайтла {title} ранга {rank}",
+        "description": "Изменение карточки {character} из тайтла {title} ранга {rank} на сайте {siteName}."
+      }
+    },
+    "forum": {
+      "fields": {
+        "header": "Заголовок",
+        "text": "Текст",
+        "tags": "Теги",
+        "author_id": "Автор",
+        "author": "Автор",
+        "relation": "Связанные",
+        "author_type": "Тип автора",
+        "relation_type": "Тип связи",
+        "relation_id": "Связанные",
+        "attachment": "Изображение",
+        "attachments": "Вложения"
+      },
+      "actions": {
+        "ban": {
+          "has_no_ability_2_interact": "Пост забанен администрацией",
+          "do": {
+            "submit": "Забанить пост",
+            "alert": "Нажав на продолжить, вы забаните пост",
+            "success": "Пост забанен"
+          },
+          "undo": {
+            "submit": "Разбанить пост",
+            "alert": "Нажав на продолжить, вы разбаните пост",
+            "success": "Пост разбанен"
+          }
+        },
+        "author-type": {
+          "user": "Пользователь",
+          "publisher": "Паблишеры",
+          "club": "Гильдии"
+        },
+        "pin": {
+          "do": {
+            "submit": "Закрепить",
+            "alert": "Пост будет закреплён в ленте",
+            "success": "Пост закреплён"
+          },
+          "undo": {
+            "submit": "Открепить",
+            "alert": "По нажатию продолжить, пост будет откреплён",
+            "success": "Пост откреплён"
+          }
+        },
+        "delete": {
+          "do": {
+            "submit": "Удалить",
+            "alert": "Пост будет удалён навсегда, вы уверены?",
+            "success": "Пост удалён"
+          },
+          "undo": {
+            "submit": "Показать всем",
+            "alert": "По нажатию продолжить, пост будет показан всем",
+            "success": "Пост больше не удалён"
+          }
+        }
+      },
+      "meta": {
+        "top-tags": {
+          "title": "Темы недели",
+          "description": "Подборка самых обсуждаемых тем"
+        },
+        "attachment-alt": "Изображение поста",
+        "feed": "Лента постов",
+        "manga": {
+          "title": "Форум",
+          "description": "Обсуждайте любимые произведения, делитесь впечатлениями, заводите друзей, читайте новости, обменивайте карточки на сайте {siteName}."
+        },
+        "novel": {
+          "title": "Форум",
+          "description": "Обсуждайте любимые произведения, делитесь впечатлениями, заводите друзей, читайте новости, обменивайте карточки на сайте {siteName}."
+        },
+        "series": {
+          "title": "Форум",
+          "description": "Обсуждайте любимые произведения, делитесь впечатлениями, заводите друзей, читайте новости, обменивайте карточки на сайте {siteName}."
+        }
+      }
+    },
+    "forum-post": {
+      "meta": {
+        "jsonld": {
+          "authors": {
+            "club": "Гильдия",
+            "user": "Пользователь",
+            "publisher": "Паблишер"
+          },
+          "potential-actions": {
+            "comment": "Оставить комментарий",
+            "post": "Создать пост"
+          }
+        },
+        "title": "{title}. Пост номер {id} от {authorType, select, publisher {переводчика} user {пользователя} guild {гильдии} other {автора}} {author}",
+        "description": "Пост на сайте {siteName} с тегами {tags} от {authorType, select, publisher {переводчика} user {пользователя} guild {гильдии} other {автора}} {author}, написан {date, date, long}. {text}"
+      },
+      "content": {}
+    },
+    "forum-post-edit": {
+      "meta": {
+        "title": "Редактирование поста {title}",
+        "description": "Изменение поста {title} на сайте {siteName}."
+      }
+    },
+    "forum-post-create": {
+      "meta": {
+        "title": "Создание поста",
+        "description": "Создание поста на сайте {siteName}."
+      }
+    },
+    "battlepass": {
+      "meta": {
+        "title": "Боевой пропуск",
+        "description": "Боевой пропуск — пропуск, дающий доступ к задачам и уникальным наградам. Выполняйте задания, повышайте уровень и получайте награды на сайте {siteName}."
+      }
+    },
+    "user": {
+      "meta": {
+        "breadcrumbs-name-tabs": "{tab, select, about {Профиль} bookmarks {Закладки} comments {Комментарии} exchanges {Обмены} inventory {Инвентарь} posts {Посты} other {Профиль}}"
+      }
+    },
+    "user-private-bookmarks": {
+      "meta": {
+        "title": "Мои закладки",
+        "description": "Страница моих закладок на сайте {siteName}. Здесь можно управлять текущими закладками и создавать новые."
+      }
+    },
+    "user-delete-account": {
+      "meta": {
+        "title": "Удаление аккаунта",
+        "description": "Страница для удаления аккаунта на сайте {siteName}."
+      }
+    },
+    "user-history": {
+      "meta": {
+        "title": "Моя история прочтения",
+        "description": "Страница для просмотра истории действий по произведениям на сайте {siteName}."
+      }
+    },
+    "user-notifications": {
+      "meta": {
+        "title": "Мои уведомления",
+        "description": "Страница для просмотра уведомлений на сайте {siteName}."
+      }
+    },
+    "user-recovery": {
+      "meta": {
+        "title": "Восстановление пароля",
+        "description": "Страница для восстановления пароля на сайте {siteName}."
+      }
+    },
+    "user-panel-requests": {
+      "meta": {
+        "title": "Мои заявки",
+        "description": "Страница для просмотра и управления заявками на сайте {siteName}."
+      }
+    },
+    "user-appereance-edit": {
+      "meta": {
+        "title": "Изменение внешнего вида",
+        "description": "Страница для изменения внешнего вида на сайте {siteName}."
+      }
+    },
+    "user-email-change": {
+      "meta": {
+        "title": "Изменение электронной почты",
+        "description": "Страница для изменения электронной почты на сайте {siteName}."
+      }
+    },
+    "user-external-edit": {
+      "meta": {
+        "title": "Изменение переноса закладок",
+        "description": "Страница для переноса закладок на сайт {siteName}."
+      }
+    },
+    "user-notifications-edit": {
+      "meta": {
+        "title": "Настройки уведомлений",
+        "description": "Страница для настройки политики уведомлений на сайте {siteName}."
+      }
+    },
+    "user-password-reset": {
+      "meta": {
+        "title": "Сброс пароля",
+        "description": "Страница для сброса пароля на сайте {siteName}."
+      }
+    },
+    "user-preference-edit": {
+      "meta": {
+        "title": "Изменение предпочтений",
+        "description": "Страница для изменения предпочтений на сайте {siteName}."
+      }
+    },
+    "user-profile-edit": {
+      "meta": {
+        "title": "Изменение профиля",
+        "description": "Страница для изменения профиля на сайте {siteName}."
+      }
+    },
+    "user-social-edit": {
+      "meta": {
+        "title": "Изменение социальных сетей",
+        "description": "Страница для изменения социальных сетей на сайте {siteName}."
+      }
+    },
+    "guild-tops": {
+      "meta": {
+        "title": "Топы гильдий",
+        "description": "На данной странице рейтинг гильдий сайта {siteName}. Узнайте, на каком месте Ваша гильдия, а, если у Вас нет гильдии, то выбирайте скорее себе подходящую!"
+      }
+    },
+    "user-tops": {
+      "meta": {
+        "breadcrumbs-name": "Топы пользователей",
+        "title": "Топы пользователей",
+        "description": "На данной странице есть ряд рейтингов пользователей сайта {siteName}: по чтению, по лайкам, по комментариям, по количеству написанных постов, по количеству друзей и по количеству подписчиков."
+      }
+    },
+    "user-top": {
+      "meta": {
+        "breadcrumbs-name": "Топ {type, select, votes {по лайкам} views {по чтению} comments {по комментариям} posts {по постам} friends {по друзьям}  subscribers {по подписчикам} other {по чему-то другому}}",
+        "title": "Топ {type, select, votes {по лайкам} views {по чтению} comments {по комментариям} posts {по постам} friends {по друзьям} subscribers {по подписчикам}  other {по чему-то другому}}",
+        "description": "Топ {type, select, votes {по лайкам} views {по чтению} comments {по комментариям} posts {по постам} friends {по друзьям} subscribers {по подписчикам}  other {по чему-то другому}} на сайте {siteName}. Участники: {users}",
+        "event": {
+          "breadcrumbs-name": "{type, select, newYear {❄️ Топ по новому году} loving {💘 Топ по дню влюбленных} halloween {🎃 Топ по тыквам} other {Топ по событию}}",
+          "title": "{type, select, newYear {❄️ Топ по новому году} loving {💘 Топ по дню влюбленных} halloween {🎃 Топ по тыквам} other {Топ по событию}}",
+          "description": "Топ {type, select, newYear {по новому году} loving {по дню влюбленных} halloween {по хеллоуину} other {по событию}} на сайте {siteName}. Участники: {users}"
+        }
+      },
+      "orderings": {
+        "views": "по чтению",
+        "votes": "по лайкам",
+        "subscribers": "по подписчикам",
+        "friends": "по друзьям",
+        "posts": "по постам",
+        "comments": "по комментариям",
+        "event": {
+          "halloween": "хеллоуин 🎃",
+          "new-year": "новый год ❄️",
+          "loving": "день влюбленных 💘"
+        }
+      }
+    },
+    "user-about": {
+      "meta": {
+        "json-ld": {
+          "title": "Профиль пользователя {username}",
+          "subscribers": "Подписчики",
+          "friends": "Друзья",
+          "user-stats": "Статистика пользователя",
+          "total-views": "Всего просмотрено",
+          "badges": "Бейджи",
+          "user-achievements": "Достижения пользователя",
+          "guild-member": "В составе гильдий",
+          "publisher-member": "в составе паблишеров",
+          "hero-cards": "Карточки"
+        },
+        "title": "Профиль {username} #{id}",
+        "description": "Страница пользователя {username}, {membershipText}. Создайте уникальный профиль на Remanga, чтобы делиться своими любимыми картами {favoriteCards} и произведениями. Отмечайте свои достижения {badges} и ачивки {achievements}. Присоединяйтесь к гильдиям и командам!",
+        "membership": {
+          "none": "не состоит ни в одной гильдии или команде",
+          "singlePublisher": "состоит в команде {publisher}",
+          "multiplePublishers": "состоит в командах {publishers}",
+          "singleClub": "состоит в гильдии {club}",
+          "multipleClubs": "состоит в гильдиях {clubs}",
+          "singlePublisherSingleClub": "состоит в команде {publisher} и гильдии {club}",
+          "singlePublisherMultipleClubs": "состоит в команде {publisher} и гильдиях {clubs}",
+          "multiplePublishersSingleClub": "состоит в командах {publishers} и гильдии {club}",
+          "multiplePublishersMultipleClubs": "состоит в командах {publishers} и гильдиях {clubs}"
+        }
+      }
+    },
+    "user-bookmarks": {
+      "meta": {
+        "title": "Закладки {username}. Тут собраны все любимые произведения по удобным вкладкам",
+        "description": "Пользователь{имя пользователя} собрал целую коллекцию самых любимых произведений по вкладкам. В читаю {bookmarks} собранные самые актуальные произведения, а буду читать, прочитано, брошено, отложено и не интересно, те проекты которые он оставил на потом."
+      }
+    },
+    "user-inventory": {
+      "meta": {
+        "title": "Инвентарь {username}, где собраны все его коллекционный карточки, аватары, фоны, рамки и любимые моменты из произведений.",
+        "description": "Инвентарь {username} с огромной коллекцией карт {cards} где собраны самые разные герои из всевозможных произведений."
+      }
+    },
+    "user-exchanges": {
+      "meta": {
+        "title": "Обмены {username} и их история",
+        "description": "Обмены {username}, тут можно увидеть обмены между людьми на самые разные коллекционные предметы и не только."
+      }
+    },
+    "user-comments": {
+      "meta": {
+        "title": "Комментарии {username} на самые разные темы. От поиска друзей до обсуждения того или иного произведения.",
+        "description": "Комментарии {username} — это пространство для обмена мнениями и обсуждения любимых произведений. Здесь вы можете делиться своими впечатлениями, задавать вопросы и взаимодействовать с другими пользователями. Участвуйте в обсуждениях, оставляйте отзывы на тайтлы и находите единомышленников, разделяющих ваши интересы. Ваши комментарии могут вдохновить других и создать увлекательные диалоги!"
+      }
+    },
+    "user-posts": {
+      "meta": {
+        "title": "Посты {username}",
+        "description": "Посты {username} — это место для поиска коллекционных карт и обсуждения любимых произведений. Здесь вы можете делиться своими запросами на интересующие проекты или карты, а также находить единомышленников и открывать для себя новые тайтлы. Присоединяйтесь к обсуждениям и расширяйте свои горизонты!"
+      }
+    },
+    "character-page": {
+      "meta": {
+        "title": "Персонаж {characterName} из тайтлов {titleName}",
+        "description": "Страница персонажа {characterName} из произведений {mainName}, {secondaryName}{anotherName, select, empty {} other {, {anotherName}}}. {altName, select, empty {} other {Персонаж также известен как {altName}. }}{description, select, empty {} other {О данном персонаже говорится следующее: {description}}}. Возраст {age, select, empty {не указан} other {{age}}}. Пол {sex, select, empty {не указан} other {{sex}}}. Классификация {classification, select, empty {не указана} other {{classification}}}. Умения {skills, select, empty {не указаны} other {{skills}}}. Сила {power, select, empty {не указана} other {{power}}}. Принадлежность {affiliation, select, empty {не указана} other {{affiliation}}}."
+      }
+    },
+    "character-edit-page": {
+      "meta": {
+        "title": "Редактирование персонажа {characterName} из произведения {titleName}",
+        "description": "Редактирование информации о персонаже {characterName} на сайте {siteName}."
+      }
+    },
+    "character-add-page": {
+      "meta": {
+        "title": "Добавление персонажа",
+        "description": "Добавление нового персонажа на произведение на сайте {siteName}."
+      }
+    },
+    "bookmarks": {
+      "bookmarks-add": {
+        "success-message": "Закладка успешно создана"
+      },
+      "bookmarks-edit": {
+        "success-message": "Закладка успешно изменена"
+      }
+    },
+    "collections": {
+      "actions": {
+        "form-fields": {
+          "name": {
+            "label": "Название коллекции"
+          },
+          "description": {
+            "label": "О коллекции",
+            "description": "Ссылки на сторонние источники запрещены."
+          },
+          "cover": {
+            "label": "Изображение (генерируется на основе первых трех тайтлов)"
+          },
+          "titles": {
+            "label": "Список элементов коллекции (минимум 3)",
+            "trigger": "Выбрать"
+          }
+        },
+        "remove": {
+          "do": {
+            "alert": "Коллекция будет снята с публикации, вы уверены?",
+            "submit": "Коллекция снята с публикации"
+          },
+          "undo": {
+            "alert": "Коллекция будет опубликована",
+            "submit": "Коллекция опубликована"
+          }
+        }
+      },
+      "collections-page": {
+        "sections": {
+          "header": {
+            "title": "Коллекции произведений"
+          },
+          "filters": {
+            "search-by": {
+              "label": "Поиск по:",
+              "options": {
+                "author": {
+                  "title": "По автору",
+                  "alt": "По пользователю"
+                },
+                "title": {
+                  "title": "По тайтлу",
+                  "alt": "По тайтлу"
+                }
+              }
+            }
+          }
+        },
+        "meta": {
+          "manga": {
+            "title": "Коллекции манг, маньхуа и манхв по жанрам, категориям и типам",
+            "description": "На данной странице вы можете ознакомиться с подборками манг, маньхуа, манхв и других комиксов на русском языке на сайте {siteName}. Смотрите подборки произведений от других пользователей или ваших друзей, находите понравившиеся, создавайте их сами."
+          },
+          "novel": {
+            "title": "Коллекции ранобе, новелл по жанрам, категориям и типам",
+            "description": "На данной странице вы можете ознакомиться с подборками новелл, ранобе и других произведений на русском языке на сайте {siteName}. Смотрите подборки произведений от других пользователей или ваших друзей, находите понравившиеся, создавайте их сами."
+          },
+          "series": {
+            "title": "Коллекции аниме, дуньхуа по жанрам, категориям и типам",
+            "description": "На данной странице вы можете ознакомиться с подборками аниме, дуньхуа и других произведений на русском языке на сайте {siteName}. Смотрите подборки произведений от других пользователей или ваших друзей, находите понравившиеся, создавайте их сами."
+          }
+        }
+      },
+      "collection-page": {
+        "meta": {
+          "manga": {
+            "title": "Коллекция {name} {userName, select, empty {от редакции сайта} other {#{id} от пользователя {userName}}}, состоящая из маньхуа, манхвы и манги",
+            "description": "Коллекция #{id} с названием {name} состоит из маньхуа, манхвы, манги и других комиксов на русском языке. В коллекцию входят следующие произведения: {titles}. Автором коллекции является {userName, select, empty {редакция сайта {siteName}} other {пользователь {userName}}}"
+          },
+          "novel": {
+            "title": "Коллекция {userName, select, empty {от редакции сайта} other {#{id} от пользователя {userName}}}, состоящая из ранобе и новелл",
+            "description": "Коллекция #{id} с названием {name} состоит из ранобе, новелл и других произведений на русском языке. В коллекцию входят следующие произведения: {titles}. Автором коллекции является {userName, select, empty {редакция сайта {siteName}} other {пользователь {userName}}}"
+          },
+          "series": {
+            "title": "Коллекция {userName, select, empty {от редакции сайта} other {#{id} от пользователя {userName}}}, состоящая из аниме и дуньхуа",
+            "description": "Коллекция #{id} с названием {name} состоит из аниме, дуньхуа и других произведений на русском языке. В коллекцию входят следующие произведения: {titles}. Автором коллекции является {userName, select, empty {редакция сайта {siteName}} other {пользователь {userName}}}"
+          }
+        }
+      },
+      "collections-edit": {
+        "trigger": "Изменить",
+        "submit": "Изменения коллекции успешно приняты",
+        "meta": {
+          "title": "Редактирование коллекции {name} с #{id}",
+          "description": "Редактирование коллекции {name} с #{id} на сайте {siteName}"
+        }
+      },
+      "collection-add": {
+        "trigger": "Создать",
+        "submit": "Коллекция успено создана",
+        "meta": {
+          "title": "Добавление коллекции произведений",
+          "description": "Добавление новой коллекции из произведений на сайте {siteName}."
+        }
+      }
+    },
+    "creator-page": {
+      "meta": {
+        "manga": {
+          "title": "{type} {name} родом из страны {country}",
+          "description": "{type} {name}{alt_name, select, empty {} other {, также известный как {alt_name}, }} из страны {country} выпустил следующие манги, манхвы и маньхуа: {titles}. {description, select, empty {} other {{description}}} на сайте {siteName}"
+        },
+        "novel": {
+          "manga": {
+            "title": "{type} {name} родом из страны {country}",
+            "description": "{type} {name}{alt_name, select, empty {} other {, также известный как {alt_name}, }} из страны {country} выпустил следующие новеллы и ранобе: {titles}. {description, select, empty {} other {{description}}} на сайте {siteName}"
+          }
+        },
+        "series": {
+          "manga": {
+            "title": "{type} {name} родом из страны {country}",
+            "description": "{type} {name}{alt_name, select, empty {} other {, также известный как {alt_name}, }} из страны {country} выпустил следующие аниме, дуньхуа и сериалы: {titles}. {description, select, empty {} other {{description}}} на сайте {siteName}"
+          }
+        }
+      }
+    },
+    "creator-edit-page": {
+      "meta": {
+        "title": "Редактирование создателя {name} из страны {country}",
+        "description": "Редактирование информации о создателе {name} из страны {country} на сайте {siteName}."
+      }
+    },
+    "creator-add-page": {
+      "meta": {
+        "title": "Создание создателя произведений",
+        "description": "Создание страницы создателя на сайте {siteName}."
+      }
+    },
+    "customization-edit-page": {
+      "meta": {
+        "title": "Редактирование кастомизации пользователя",
+        "description": "Редактирование информации о кастомизации на сайте {siteName}"
+      }
+    },
+    "customization-add-page": {
+      "meta": {
+        "title": "Добавление кастомизации пользователя",
+        "description": "Страница добавления кастомизации на сайте {siteName}."
+      }
+    },
+    "customization-items-page": {
+      "meta": {
+        "title": "Магазин {type, select, avatar {аватаров} wallpaper {обоев} frame {рамок для аватаров} pack {эмодзи-паков} deck {колод карт} theme {тем профиля} other {неизвестно чего}}",
+        "description": "На данной странице вы можете приобрести {type, select, avatar {аватары} wallpaper {обои} frame {рамки} pack {эмодзи-паки} deck {колоды карт} theme {тем профиля} other {неизвестно чего}}, которые смогут выделить вас среди других. Эти предметы созданы из ваших любимых произведений и игр специально от {siteName}."
+      },
+      "content": {
+        "times-types": {
+          "labels": {
+            "soon": "До старта продаж",
+            "yet": "До конца продаж"
+          }
+        },
+        "actions": {
+          "subject-in": "Предмет в <inventoryLink>инвентаре</inventoryLink>{type, select, empty {} other { во вкладке <typeLink>{type}</typeLink>}}"
+        },
+        "status": {
+          "unavailable": "Недоступно",
+          "owned": "Куплено",
+          "take-free": "Взять даром",
+          "purchase": "Приобрести",
+          "not-enough": "Не хватает",
+          "in-inventory": "Уже в инвентаре",
+          "unavailable-by-date": "Доступен{startDate, select, empty {} other { с {startDate}}}{endDate, select, empty {} other { по {endDate}}}",
+          "unavailable-by-date-short": "{startDate, select, empty {} other { с {startDate}}}{endDate, select, empty {} other { по {endDate}}}",
+          "not-available-in-shop": "Недоступно для покупки в магазине"
+        }
+      }
+    },
+    "open-deck-page": {
+      "meta": {
+        "title": "Открыть колоду {name}",
+        "description": "Колода {name} состоит из {cards} карт. Открывайте колоды карт сайте {siteName} и коллекционируйте карты с друзьями."
+      }
+    },
+    "feedback-page": {
+      "meta": {
+        "title": "Оставьте обратную связь",
+        "description": "Страница, на которой вы можете оставить обратную связь для администрации сайта {siteName}. Здесь вы можете связаться с администрацией сайта"
+      }
+    },
+    "guild": {
+      "errors": {
+        "404": {
+          "heading": "Гильдия не найдена"
+        }
+      },
+      "bonuses": {
+        "give_deck_once_week": {
+          "header": "{count} {count, plural, one {пак} two {пака} few {пака} many {паков} other {паков}}",
+          "footer": "В неделю"
+        },
+        "card_chance_multiplier": {
+          "header": "{percent}%",
+          "footer": "К выпадению карт"
+        },
+        "coins_chance_multiplier": {
+          "header": "{percent}%",
+          "footer": "К выпадению молний"
+        }
+      },
+      "members": {
+        "roles": {
+          "creator": "Создатель",
+          "member": "Участник",
+          "admin": "Админ"
+        }
+      },
+      "settings": {
+        "about": {
+          "label": "Основное",
+          "meta": {
+            "title": "Редактирование информации о гильдии {name} #{id}",
+            "description": "Редактирование информации о гильдии {name} с уровнем {level} и #{id} на сайте {siteName}."
+          }
+        },
+        "destroy": {
+          "label": "Удаление",
+          "meta": {
+            "title": "Удаление гильдии {name} #{id}",
+            "description": "Удаление гильдии {name} с уровнем {level} и #{id} на сайте {siteName}."
+          }
+        },
+        "donations": {
+          "label": "Пожертвования",
+          "meta": {
+            "title": "Пожертвования гильдии {name} #{id}",
+            "description": "Пожертвования гильдии {name} с уровнем {level} и #{id} на сайте {siteName}."
+          }
+        },
+        "members": {
+          "label": "Участники",
+          "meta": {
+            "title": "Изменение состава гильдии {name} #{id}",
+            "description": "Изменение состава гильдии {name} с уровнем {level} и # номером {id} на сайте {siteName}."
+          }
+        }
+      },
+      "top": {
+        "meta": {
+          "breadcrumbs-name": "Топы гильдий",
+          "series": {
+            "title": "Список топов аниме и дунхуа",
+            "description": "Здесь собраны рейтинги аниме и дунхуа на сайте {siteName}. На странице собраны следующие топы: {tops}"
+          },
+          "novel": {
+            "title": "Список топов новелл и ранобэ",
+            "description": "Здесь собраны рейтинги новелл и ранобэ на сайте {siteName}. На странице собраны следующие топы: {tops}"
+          },
+          "manga": {
+            "title": "Список топов манги, манхвы, маньхуа и комиксов",
+            "description": "Здесь собраны рейтинги манги, манхвы, маньхуа и комиксов на сайте {siteName}. На странице собраны следующие топы: {tops}"
+          }
+        }
+      },
+      "add": {
+        "meta": {
+          "title": "Добавление новой гильдии",
+          "description": "Страница добавления новой гильдии на сайте {siteName}. Гильдии позволяют объединяться в группы по интересам и проводить время увлекательно вместе."
+        }
+      },
+      "common": {
+        "meta": {
+          "breadcrumbs-name": "Гильдия {name}",
+          "description": "{name} с уровнем {level} и #{id} на сайте {siteName}. {is_public_info}. На данный момент в гильдии состоит {members} участников. Ранг гильдии #{rank}. {description}",
+          "is_public_info": "Гильдя является публичной — в нее может вступить любой пользователь сайта.",
+          "is_private_info": "Гильдия является приватной — в нее можно вступить только после приглашения от участника."
+        }
+      },
+      "profile": {
+        "header": {
+          "place-in-top-label": "место в топе",
+          "members-label": "Участников:",
+          "regression-label": "Регрессия:",
+          "regression-modal": {
+            "modal-label": "Регрессия уровня",
+            "reached-limit-label": "Вы достигли лимита регрессии",
+            "regression-label": "Вы можете активировать регрессию, чтобы сбросить уровень и получить постоянные бонусы",
+            "max-level-block": {
+              "label": "Для регрессии требуется <u>максимальный уровень гильдии</u>"
+            },
+            "after-regression-block": {
+              "label": "Что произойдёт после регрессии:",
+              "content": "🧨 Уровень гильдии сбросится до 0 <br></br>⚡ Молнии, накопленные сверх лимита, будут использованы сразу<br></br>🎖 Уровень регрессии повысится до {level}"
+            },
+            "appendix-block": {
+              "content": "<u>Важно: Максимальное количество регрессий — {max_regressions}.</u><br></br>Каждая регрессия усиливает гильдию и открывает новые возможности"
+            },
+            "bonuses-block": {
+              "label": "Вы получите:",
+              "additional_members_count": "+{amount} мест для участников",
+              "coins_boost": "+{amount}% к множителю молний",
+              "drop_card_chance": "+{amount}% к шансу выпадения карт",
+              "packs_per_week": "+{amount} к пакам в неделю",
+              "upgrade_points": "{amount} очков регрессии"
+            },
+            "button-text": {
+              "available": "Подтвердить регрессию",
+              "max-level-required": "Требуется максимальный уровень"
+            },
+            "messages": {
+              "success": "Гильдия успешно регрессировала",
+              "error": "Ошибка регрессии гильдии"
+            }
+          }
+        },
+        "main-guild": {
+          "make-main": "Сделать основной",
+          "is-main": "Основная гильдия",
+          "make-main-success-message": "Теперь [{name}] ваша основная гильдия",
+          "make-main-error-message": "Не удалось изменить основную гильдию"
+        },
+        "about": {
+          "label": "О нас",
+          "meta": {
+            "title": "Гильдия {name} #{id}",
+            "pre_description": "Страница гильдии",
+            "description": "Страница гильдии {name} с уровнем {level} и #{id} на сайте {siteName}. {is_public_info} На данный момент в гильдии состоит {members} участников. Ранг гильдии #{rank}. {description}"
+          }
+        },
+        "boost": {
+          "label": "Улучшения",
+          "meta": {
+            "title": "Улучшение гильдии {name} #{id}",
+            "pre_description": "Улучшения гильдии",
+            "description": "Улучшения гильдии {name} с уровнем {level} и #{id} на сайте {siteName}. {is_public_info} На данный момент в гильдии состоит {members} участников. Ранг гильдии #{rank}. {description}"
+          }
+        },
+        "posts": {
+          "label": "Обсуждения",
+          "meta": {
+            "pre_description": "Посты гильдии",
+            "title": "Посты гильдии {name} #{id}",
+            "description": "Страница списка постов от гильдии {name} с уровнем {level} и #{id} на сайте {siteName}. {is_public_info}. На данный момент в гильдии состоит {members} участников. Ранг гильдии #{rank}. {description}"
+          }
+        },
+        "requests": {
+          "label": "Заявки",
+          "meta": {
+            "pre_description": "Страница списка заявок на вступление в гильдию",
+            "title": "Заявки на вступление в гильдию {name} #{id}",
+            "description": "Страница списка заявок на вступление в гильдию {name} с уровнем {level} и #{id} на сайте {siteName}. {is_public_info}. На данный момент в гильдии состоит {members} участников. Ранг гильдии #{rank}. {description}"
+          },
+          "content": {
+            "items": {
+              "label": "Паки",
+              "create-modal": {
+                "label": "Создать пак гильдии",
+                "content": "По постижению <u>{level} уровня</u> регрессии вы можете создать пак гильдии. Администрация сайта создаст по вашему описанию пак, который смогут покупать только участники гильдии (это значит, что вы сами решаете, что будет внутри и как много карт будет на сайте). В поле для сообщения для модератора вы можете оставить свои контакты или пожелания по паку, после рассмотрения заявки с вами свяжется модератор",
+                "moderator-message": "Сообщение модератору",
+                "button-text": {
+                  "available": "Отправить",
+                  "level-required": "Требуется {level} уровень"
+                },
+                "messages": {
+                  "success": "Заявка на пак успешно отправлена"
+                }
+              },
+              "request-card": {
+                "label": "Заявка №{id}",
+                "moderator-label": "Модератор:",
+                "confirmation": {
+                  "label": "Отменить заявку",
+                  "content": "Вы действительно хотите отменить заявку на создание пака гильдий?"
+                },
+                "messages": {
+                  "success": "Заявка успешно отменена"
+                }
+              }
+            },
+            "members": {
+              "label": "Участники"
+            }
+          }
+        },
+        "upgrades": {
+          "label": "Улучшения",
+          "pre_description": "Страница улучшений гильдии",
+          "title": "Улучшения гильдии {name} #{id}",
+          "description": "Страница улучшений гильдии {name} с уровнем {level} и #{id} на сайте {siteName}. {is_public_info}. На данный момент в гильдии состоит {members} участников. Ранг гильдии #{rank}. {description}",
+          "content": {
+            "label": "Бонусы регрессии",
+            "n-regression-points": "{n}: очков регрессии",
+            "perk-card": {
+              "label": "Бонус {name}",
+              "bonuses": {
+                "additional_members_count": "к участникам",
+                "coins_boost": "к множителю",
+                "drop_card_chance": "к дропу карт",
+                "packs_per_week": "к пакам в неделю"
+              },
+              "card-button-text": {
+                "available": "Улучшить",
+                "level-required": "Требуется LV.{level}",
+                "points-required": "Не хватает очков"
+              },
+              "confirmation": {
+                "label": "Купить перк",
+                "content": "С гильдии спишется {points, plural, one {# очко регрессии} few {# очка регрессии} many {# очков регрессии} other {# очка регрессии}}"
+              },
+              "messages": {
+                "success": "Перк успешно прокачан"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "publisher-page": {
+    "meta": {
+      "breadcrumbs-name": "{tab, select, about {Паблишер {name}} titles {Тайтлы} feed {Лента} comments {Комментарии} posts {Посты} other {Паблишер {name}}}"
+    }
+  },
+  "publisher-about-page": {
+    "meta": {
+      "title": "{type} {name} #{id}",
+      "description": "{type} {name} на сайте {siteName}. Получил от читалей {likes} лайков и {titles} произведений. Выпускает {chapters} глав в месяц. {description}"
+    }
+  },
+  "publisher-ad-page": {
+    "meta": {
+      "title": "Рекламный кабинет {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name}",
+      "description": "Рекламный кабинет {name} на сайте {siteName}."
+    }
+  },
+  "publisher-ad-title-page": {
+    "meta": {
+      "title": "Рекламная кампания произведения",
+      "description": "Рекламная кампания произведения на сайте {siteName}."
+    },
+    "content": {
+      "charts": {
+        "labels": {
+          "clicks": "Клики",
+          "n-clicks": "{n} кликов",
+          "views": "Просмотры",
+          "n-views": "{n} просмотров"
+        },
+        "date-selection-labels": {
+          "all": "За все время",
+          "week": "За неделю",
+          "month": "За месяц",
+          "year": "За год"
+        }
+      },
+      "stats": {
+        "labels": {
+          "views-today": "Показов сегодня",
+          "views-overall": "Показов итого",
+          "clicks-today": "Кликов сегодня",
+          "clicks-overall": "Кликов итого",
+          "ctr-today": "CTR сегодня",
+          "ctr-overall": "CTR итого",
+          "day-spent": "Дней откручено",
+          "days-left": "Осталось открутить",
+          "status": "Статус",
+          "status-active": "Активно",
+          "status-inactive": "Выключено",
+          "date-start": "Дата начала",
+          "date-end": "Дата окончания"
+        }
+      },
+      "actions": {
+        "labels": {
+          "soft-stop": "Остановить",
+          "hard-stop": "Принудительный стоп"
+        },
+        "messages": {
+          "promo-stop-success": "Рекламная кампания успешно остановлена",
+          "promo-soft-stop-confirmation": "Вы уверены, что хотите остановить рекламу?",
+          "promo-hard-stop-confirmation": "Вы уверены, что хотите принудительно остановить рекламу?"
+        }
+      },
+      "tabs": {
+        "labels": {
+          "all": "Все кампании",
+          "promo-n": "Кампания {n}"
+        }
+      }
+    }
+  },
+  "publisher-comments-page": {
+    "meta": {
+      "title": "Комментарии {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id}",
+      "description": "Комментарии к произведениям {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id} на сайте {siteName}"
+    }
+  },
+  "publisher-contract-page": {
+    "meta": {
+      "title": "Подписание агенсткого договора для {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name}",
+      "description": "Форма для подписания агенсткого договора для {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} на сайте {siteName}"
+    }
+  },
+  "publisher-feed-page": {
+    "meta": {
+      "title": "Лента обновлений {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name}",
+      "description": "Лента обновлений {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} на сайте {siteName}"
+    }
+  },
+  "publisher-posts-page": {
+    "meta": {
+      "title": "Посты {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id}",
+      "description": "Посты {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id} на сайте {siteName}"
+    }
+  },
+  "publisher-statistic-page": {
+    "meta": {
+      "title": "Статистика {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name}",
+      "description": "Статистика {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} на сайте {siteName}"
+    }
+  },
+  "publisher-strikes-page": {
+    "meta": {
+      "title": "Нарушения {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name}",
+      "description": "Нарушения {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} на сайте {siteName}"
+    }
+  },
+  "publisher-titles-page": {
+    "meta": {
+      "title": "Произведения {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id}",
+      "description": "Произведения {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id} на сайте {siteName}. На данный момент ведет работу над {titles} произведением"
+    }
+  },
+  "publisher-documents-page": {
+    "meta": {
+      "title": "Документы {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id}",
+      "description": "Документы {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id} на сайте {siteName}."
+    }
+  },
+  "publisher-members-edit-page": {
+    "meta": {
+      "title": "Редактирование участников {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id}",
+      "description": "Редактирование участников {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id} на сайте {siteName}."
+    }
+  },
+  "publisher-monetization-edit-page": {
+    "meta": {
+      "title": "Настройка монетизации {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id}",
+      "description": "Настройка монетизации {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id} на сайте {siteName}."
+    }
+  },
+  "publisher-about-edit-page": {
+    "meta": {
+      "title": "Настройка профиля {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id}",
+      "description": "Настройка профиля {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id} на сайте {siteName}."
+    }
+  },
+  "publisher-social-edit-page": {
+    "meta": {
+      "title": "Настройка привязанных социальных сетей {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id}",
+      "description": "Настройка привязанных социальных сетей {typeId, select, 1 {переводчика} 2 {издателя} 3 {автора} other {неизвестного}} {name} #{id} на сайте {siteName}."
+    }
+  },
+  "publisher-add-page": {
+    "meta": {
+      "title": "Создание переводчика/автора/издателя",
+      "description": "Страница создания переводчика/автора/издателя на сайте {siteName}."
+    }
+  },
+  "search-page": {
+    "meta": {
+      "manga": {
+        "title": "Поиск по сайту",
+        "description": "Поиск по сайту манги, маньхуа, манхвы и других комиксов на сайте {siteName}. Здесь вы можете найти персонажей, студии, авторов, пользователей и издателей."
+      },
+      "novel": {
+        "title": "Поиск по сайту",
+        "description": "Поиск по сайту новелл, ранобе и других произведений на сайте {siteName}. Здесь вы можете найти персонажей, авторов, пользователей и издателей."
+      },
+      "series": {
+        "title": "Поиск по сайту",
+        "description": "Поиск по сайту аниме, дуньхуа и других сериалов на сайте {siteName}. Здесь вы можете найти персонажей, авторов, студии, пользователей и издателей."
+      }
+    }
+  },
+  "site-badges": {
+    "meta": {
+      "title": "Страница бейджей",
+      "description": "На данной странице Вы можете увидеть все бейджи на сайте {siteName}."
+    }
+  },
+  "site-badge": {
+    "meta": {
+      "title": "Страница бейджа {name}",
+      "description": "На данной странице Вы можете увидеть владельцев бейджа {name} на сайте {siteName}."
+    }
+  },
+  "exchange-create": {
+    "meta": {
+      "title": "Обмен с {username}",
+      "description": "Обменяться предметами с пользователем {username}"
+    }
+  },
+  "quiz-detail": {
+    "meta": {
+      "title": "Пройти квиз",
+      "description": "Пройти квиз"
+    }
+  },
+  "quiz-create": {
+    "meta": {
+      "title": "Создать квиз",
+      "description": "Создать квиз"
+    },
+    "content": {
+      "title": "Создать квиз"
+    }
+  },
+  "quiz-edit": {
+    "meta": {
+      "title": "Редактировать квиз",
+      "description": "Редактировать квиз"
+    },
+    "content": {
+      "title": "Редактировать квиз"
+    }
+  },
+  "navigation": {
+    "footer": {
+      "have-questions": "Если у Вас есть вопросы, {supportUrl, select, empty {} other {обратитесь в <supportLink>техподдержку</supportLink>}}{hasBoth, select, true { или} other {}} {email, select, empty {} other {напишите нам на почту <emailLink>{email}</emailLink>.}}",
+      "all-rights-reserved": "Все права защищены",
+      "app": {
+        "google-play": "Google Play",
+        "rustore": "RuStore",
+        "app-store": "App Store"
+      },
+      "app-banner": {
+        "heading": "Наше мобильное приложение!"
+      },
+      "about": {
+        "heading": "О нас",
+        "aboutUs": "Кто мы?",
+        "vacancy": "Вакансии",
+        "advertisers": "Рекламодателям"
+      },
+      "common": {
+        "heading": "Общее",
+        "dmca": "DMCA",
+        "copyright": "Правообладателям",
+        "siteRules": "Правила сайта",
+        "faq": "F.A.Q."
+      },
+      "translators": {
+        "heading": "Переводчикам",
+        "agencyContract": "Агентский договор",
+        "confidentialityAgreement": "Соглашение о конфиденциальности"
+      },
+      "users": {
+        "heading": "Пользователям",
+        "terms": "Пользовательское соглашение",
+        "mobileApp": "Мобильное приложение",
+        "cookiePolicy": "Политика использования файлов cookie",
+        "personalDataProcessing": "Согласие на обработку персональных данных"
+      }
+    },
+    "header": {
+      "menu": "Меню",
+      "notifications": "Уведы",
+      "catalog": "Каталог",
+      "catalog-tabs": {
+        "main": {
+          "manga": {
+            "title": "Комиксов",
+            "description": "Список всех комиксов нашего сайта из Кореи, Китая и Японии"
+          },
+          "novel": {
+            "title": "Новелл",
+            "description": "из Кореи, Китая, России и других стран"
+          },
+          "series": {
+            "title": "Аниме",
+            "description": "из Японии и Китая"
+          }
+        },
+        "card": {
+          "title": "Каталог карт",
+          "description": "Все карты нашего сайта"
+        }
+      },
+      "tops": "Топы",
+      "tops-tabs": {
+        "main": {
+          "manga": {
+            "title": "Комиксов",
+            "description": "Не знаешь, что почитать? Здесь самый актуальный рейтинг!"
+          },
+          "novel": {
+            "title": "Новелл",
+            "description": "из Кореи, Китая, России и других стран"
+          },
+          "series": {
+            "title": "Аниме",
+            "description": "из Японии и Китая"
+          }
+        },
+        "users": {
+          "title": "Топы пользователей",
+          "description": "Посмотри, какое место у тебя"
+        },
+        "guild": {
+          "title": "Топы гильдий",
+          "description": "Узнай, какая гильдия достигла вершины"
+        },
+        "shorts": {
+          "title": "Шортсы",
+          "description": "Лучшие из лучших моментов"
+        }
+      },
+      "bookmarks": "Закладки",
+      "forum": "Форум",
+      "logotype": "Логотип сайта"
+    },
+    "search": {
+      "placeholder": "Что ищем, семпай?"
+    }
+  },
+  "exchanges": {
+    "create": {
+      "success-message": "Обмен успешно создан",
+      "action-title": "Предложить обмен",
+      "creator": {
+        "title": "Ваши карточки ({count}/{countMax})",
+        "label": "Их вы утратите",
+        "tab-label": "Ваш инвентарь"
+      },
+      "partner": {
+        "title": "Карточки",
+        "label": "Их вы получите",
+        "tab-label": "Инвентарь {username}"
+      },
+      "types": {
+        "card": "Карточки",
+        "avatar": "Аватары",
+        "wallpaper": "Обои",
+        "frame": "Рамки"
+      }
+    }
+  },
+  "battlepass": {
+    "tabs": {
+      "info": "Инфо",
+      "tasks": "Задачи",
+      "rewards": "Награды"
+    },
+    "match3-game": {
+      "meta": {
+        "title": "Три в ряд",
+        "description": "Игра, в которой вам нужно собрать три фигуры в ряд и собрать максимальное количество очков."
+      }
+    },
+    "quiz-game": {
+      "meta": {
+        "title": "Квиз",
+        "description": "Игра, в которой нужно ответить на вопросы по тайтлам правильно."
+      }
+    },
+    "puzzle-game": {
+      "meta": {
+        "title": "Пазл",
+        "description": "Игра, в которой нужно собрать пазл в виде анимешной картинки."
+      }
+    },
+    "difference-game": {
+      "meta": {
+        "title": "Найди отличия",
+        "description": "Найдите все отличия между двумя изображениями."
+      }
+    },
+    "find-items-game": {
+      "meta": {
+        "title": "Найди предметы",
+        "description": "Найдите все предметы."
+      }
+    },
+    "memory-game": {
+      "meta": {
+        "title": "Память",
+        "description": "Переворачивайте карточки и находите пары, чтобы победить."
+      }
+    },
+    "wordle-game": {
+      "meta": {
+        "title": "Слово",
+        "description": "Отгадайте скрытое слово за ограниченное число попыток."
+      }
+    },
+    "cookies-game": {
+      "meta": {
+        "title": "Собери печеньки",
+        "description": "Игра, в которой вам нужно собрать как можно больше печенек."
+      }
+    },
+    "tasks": {
+      "empty-list": "Здесь нет ни одной задачи. Такое возможно, если вы только вступили: создание задач требует времени, обновите страницу через пару минут.",
+      "refresh-by": "Обновится через <span>{interval, select, monthly {месяц} weekly {неделю} daily {день} other {}}</span>",
+      "minigame-link": "Игру можно пройти <link>здесь</link>",
+      "complete-button": "Получить",
+      "complete-button-custom": "{event, select, 40 {Проверить выполнение} other {}}",
+      "completed-successfully": "Опыт получен",
+      "completed-successfully-custom": "{event, select, 40 {Проверка начата. Это может занять некоторое время, проверьте выполнение задания через пару минут...} other {}}",
+      "completed-button": "Выполнено",
+      "exp-amount": "EXP: <span>{exp}</span>",
+      "swap-tasks-button": "Заменить задания",
+      "swap-tasks-cancel": "Отменить",
+      "swap-tasks-counter": "Доступно замен: {remaining}/{total}",
+      "swap-tasks-success": "Задания обновлены"
+    },
+    "rewards": {
+      "access-granted": "Доступ разблокирован",
+      "check-access": "Проверить доступ",
+      "cannot-claim": "Нет доступа",
+      "clamped-successfully": "Награда успешно получена",
+      "versions-type": "{type, select, free {Бесплатная версия} paid {Premium версия} other {}}",
+      "reward-image": "Изображение награды",
+      "unavailable-free": "Доступно, привязав ВК или ТГ",
+      "unavailable-paid": "Доступно с <premium>Premium</premium>",
+      "reward-amount": "x {amount, number}",
+      "claim-reward": "Получить",
+      "reward-claimed": "Получено",
+      "not-enough-exp": "Недостаточно опыта",
+      "need-exp": "Еще {exp} EXP"
+    },
+    "info": {
+      "faq": {
+        "what-is-it": {
+          "heading": "Что такое Re:Pass?",
+          "description": "Re:Pass — наш боевой двухуровневый пропуск, созданный для азарта и драйва. Хочешь максимум? Бери премиум с усиленным опытом и крутыми наградами. Не хочешь платить? Бесплатная версия тоже даст шанс проявить себя. Всего месяц — и ты на вершине!"
+        },
+        "why-i-have-to-do-it": {
+          "heading": "Зачем он нужен?",
+          "description": "Re:Pass превратит твой серфинг по сайту в квест. Это не скучная копия старого функционала — здесь прокачанный опыт, драйв и новый взгляд на привычные действия. Готов бросить себе вызов?"
+        },
+        "what-are-the-rewards-types": {
+          "heading": "Какие награды есть?",
+          "description": "За уровни получишь:\nАчивки — хвастайся своими достижениями!\nБейджи — эксклюзивные значки, доступные только избранным. А для самых упорных — карты Re-ранга и открытия тематических колод."
+        },
+        "what-are-the-tasks-types": {
+          "heading": "Какие задания ждут?",
+          "description": "Ты будешь делать то, что любишь: читать тайтлы, комментировать, быть активным. Но мы добавили изюминку — задания с азартом, чтобы ты не заскучал ни на секунду."
+        },
+        "how-to-join": {
+          "heading": "Как вступить?",
+          "description": "Следи за датой старта, жми «вступить», выполняй задания и лови кайф. Это твой шанс превратить рутину в приключение. Ты с нами? Тогда вперёд!"
+        }
+      },
+      "join": {
+        "action-available": "Вступить",
+        "action-unavailable": "Старт {date_start, date, short}",
+        "on-success": "Вы успешно вступили в Re:Pass!"
+      }
+    }
+  },
+  "user-billing-page": {
+    "meta": {
+      "title": "История транзакций",
+      "description": "Личная история расходов и пополнений баланса тикетов, молний и монет на {siteName}"
+    },
+    "title": "История транзакций",
+    "segments": {
+      "money": {
+        "title": "Монеты"
+      },
+      "tickets": {
+        "title": "Тикеты"
+      },
+      "coins": {
+        "error": "Ошибка при получении подарка, попробуйте позже",
+        "title": "Молнии",
+        "earn-more": {
+          "can-not-get-gift": "На данный момент нет возможности получить подарок",
+          "non-gifts": "Нет доступных подарков",
+          "title": "Получить больше молний",
+          "description": "Получи подарок, перейдя по ссылке",
+          "do": "Получить"
+        }
+      }
+    }
+  },
+  "user-promo-code-page": {
+    "meta": {
+      "title": "История промокодов",
+      "description": "Личная история пополнения тикетов через промокоды {siteName}"
+    }
+  },
+  "publisher": {
+    "segments": {
+      "profile-layout": {
+        "strikes": {
+          "title": "Нарушения",
+          "sections": {
+            "strikes-table": {
+              "keys": {
+                "number": {
+                  "title": "number"
+                },
+                "restrictions": {
+                  "title": "Ограничения",
+                  "options": {
+                    "disable_edit_title": "Отключено редактирование тайтлов",
+                    "disable_monetization": "Отключение монетизации",
+                    "disable_add_title": "Отключение создания тайтла",
+                    "disable_edit_publisher": "Отключение перехвата/передачи тайтла"
+                  }
+                },
+                "date": {
+                  "title": "Дата выдачи"
+                },
+                "end-date": {
+                  "title": "Дата сгорания"
+                },
+                "reason": {
+                  "title": "Причина"
+                }
+              }
+            }
+          }
+        },
+        "about": {
+          "title": "Профиль",
+          "sections": {
+            "stats": {
+              "count_votes": "Лайков: {count}",
+              "count_titles": "Тайтлов: {count}",
+              "count_period_chapters": "Глав/мес: {count}"
+            },
+            "contacts": {
+              "title": "Контакты"
+            },
+            "description": {
+              "title": "О команде"
+            }
+          }
+        },
+        "titles": {
+          "title": "Тайтлы"
+        },
+        "feed": {
+          "title": "Лента"
+        },
+        "statistic": {
+          "title": "Статистика",
+          "filter": {
+            "title-filter": "Фильтр по тайтлам",
+            "date-interval": "Интервал",
+            "date-placeholder": "ДД.ММ.ГГГГ"
+          },
+          "stats": {
+            "per-day": "{avg} в день",
+            "views": "Взглядов",
+            "referrals": "Рефералов",
+            "bookmarks": "Закладок",
+            "votes": "Лукасов",
+            "donates": "Донатов",
+            "payments": "Монет",
+            "days": "Дней"
+          },
+          "charts": {
+            "payments": {
+              "label": "Чеканных монет",
+              "partials": {
+                "payments-total": "Покупки",
+                "donates-total": "Донаты",
+                "referral-total": "Рефералы"
+              }
+            },
+            "views": {
+              "label": "Просмотры",
+              "partials": {
+                "views-total": "Просмотры",
+                "votes-total": "Голоса"
+              }
+            },
+            "bookmarks": {
+              "label": "Закладки",
+              "partials": {
+                "bookmarks-total": "Закладки"
+              }
+            }
+          }
+        },
+        "advertisement": {
+          "title": "Продвижение",
+          "sections": {
+            "tabs": {
+              "label": "{tab, select, list {Кампании} billing {Биллинг} other {Другое}}"
+            },
+            "balance": "Баланс: {balance} {balance, plural, one {день} few {дня} many {дней} other {дней}}",
+            "ad-table-detail": {
+              "cover-alt": "Обложка тайтла",
+              "status-label": "Статус:",
+              "start-date": "Дата начала:",
+              "end-date": "Дата окончания:",
+              "total-views": "Просмотров всего",
+              "today-views": "Просмотров сегодня",
+              "total-clicks": "Кликов всего",
+              "today-clicks": "Кликов сегодня",
+              "days-spent": "Дней откручено",
+              "days-left": "Осталось открутить",
+              "total-ctr": "CTR всего",
+              "today-ctr": "CTR сегодня",
+              "schedule-button": "Запланировать запуск рекламы",
+              "schedule-dialog-title": "Форма запуска рекламы",
+              "active-status": "Активна",
+              "inactive-status": "Неактивна",
+              "no-date": "---"
+            },
+            "ad-table": {
+              "keys": {
+                "name": "Все кампании",
+                "status": "Статус",
+                "count_clicks": "Клики",
+                "count_views": "Показы",
+                "ctr": "CTR",
+                "dates": "Дата",
+                "days_spent": "Длительность"
+              },
+              "labels": {
+                "n-today": "{n} сегодня",
+                "sub-item-label": "Кампания {n}"
+              }
+            },
+            "billing-table": {
+              "keys": {
+                "id": "ID",
+                "name": "Тайтл",
+                "sum": "Сумма",
+                "action_type": "Клики",
+                "created_at": "Дата"
+              },
+              "labels": {
+                "action_type": {
+                  "staff_give": "Выдача стаффом",
+                  "buy_promo": "Покупка дней",
+                  "activate_promo": "Активация промо",
+                  "stop_refund": "Остановка",
+                  "compensation'": "Компенсация"
+                }
+              }
+            }
+          }
+        },
+        "comments": {
+          "title": "Комментарии"
+        },
+        "posts": {
+          "title": "Посты"
+        }
+      },
+      "settings-layout": {
+        "members": {
+          "title": "Участники"
+        },
+        "profile": {
+          "title": "Общее"
+        },
+        "posts": {
+          "title": "Посты"
+        },
+        "monetization": {
+          "title": "Монетизация"
+        },
+        "documents": {
+          "title": "Акты"
+        },
+        "social": {
+          "title": "Привязанные соц. сети"
+        }
+      }
+    },
+    "common": {
+      "sections": {
+        "publishers": {
+          "title": "Состав"
+        },
+        "latest-chapters": {
+          "filters": {
+            "title": "Фильтры",
+            "options": {
+              "only": "Только закладки",
+              "exclude": "Исключить закладки",
+              "all": "Все тайтлы"
+            }
+          }
+        }
+      }
+    },
+    "actions": {
+      "subscribe": {
+        "posts": {
+          "do": {
+            "trigger": "Отслеживать посты",
+            "success": "Вы подписались на посты"
+          },
+          "undo": {
+            "trigger": "Отписаться от постов",
+            "success": "Вы отписались от постов"
+          }
+        },
+        "titles": {
+          "do": {
+            "trigger": "Отслеживать тайтлы",
+            "success": "Вы подписались на тайтлы"
+          },
+          "undo": {
+            "trigger": "Отписаться от тайтлов",
+            "success": "Вы отписались от тайтлов"
+          }
+        }
+      },
+      "report": {
+        "title": "Пожаловаться"
+      },
+      "request-monetization": {
+        "do": {
+          "trigger": "Включить монезизацию"
+        }
+      },
+      "manually-withdraw": {
+        "do": {
+          "trigger": "Подтвердить",
+          "title": "Ручной вывод",
+          "submit": "Средства списаны успешно",
+          "form-fields": {
+            "sum": {
+              "placeholder": "Сумма"
+            }
+          }
+        }
+      },
+      "add-days": {
+        "do": {
+          "linking": "Получить рекламу"
+        }
+      },
+      "buy-days": {
+        "do": {
+          "title": "Купить дни",
+          "trigger": "Купить",
+          "form-fields": {
+            "days": {
+              "label": "Выберите тариф",
+              "placeholder": "Выберите количество дней",
+              "values": "{days} {days, plural, one {день} few {дня} many {дней} other {дней}} - {price} {price, plural, one {монета} few {монеты} many {монет} other {монет}}"
+            }
+          }
+        }
+      },
+      "add-ad-title": {
+        "do": {
+          "title": "Добавить тайтл",
+          "description": "Форма добавления рекламного тайтла",
+          "trigger": "Добавить",
+          "submit": "Тайтл добавлен",
+          "form-fields": {
+            "branch_id": {
+              "label": "Выберите ветку",
+              "placeholder": "Выберите ветку..."
+            },
+            "title_dir": {
+              "selected": "ID: {id}",
+              "label": "Выберите тайтл",
+              "placeholder": "Выберите тайтл..."
+            },
+            "dates": {
+              "label": "Даты",
+              "placeholder": "Выберите даты кампании"
+            }
+          }
+        }
+      },
+      "exit": {
+        "do": {
+          "alert": "Вы точно хотите покинуть команду? Нажмите продолжить, если да, и отмена - если нет",
+          "submit": "Вы больше не состоите в этой команде",
+          "trigger": "Покинуть команду"
+        }
+      }
+    }
+  },
+  "user": {
+    "tabs": {
+      "profile": "Профиль",
+      "bookmarks": "Закладки",
+      "subscription": "Подписка",
+      "inventory": "Инвентарь",
+      "exchanges": "Обмены",
+      "social": "Социальное",
+      "posts": "Посты",
+      "comments": "Комментарии",
+      "following": "Отслеживаемое",
+      "friends-requests": "Заявки в друзья"
+    },
+    "show-more": {
+      "badges": {
+        "meta": {
+          "title": "Бейджи пользователя {username}",
+          "description": "На данном странице Вы можете увидеть все бейджи {username}"
+        }
+      }
+    },
+    "stats": {
+      "id": "ID: {value}",
+      "sex": "Пол",
+      "sex-resolved": "{value, select, 1 {мужской} 2 {женский} other {неизвестен}}"
+    },
+    "level": {
+      "prefix": "Ур. {id}",
+      "name": ":<br></br>{name}",
+      "progress": "{current} / {goal} очков"
+    },
+    "private-profile": {
+      "heading": "Это закрытый аккаунт",
+      "caption": "Только владелец может просматривать его содержимое."
+    },
+    "pages": {
+      "about": {
+        "description": "О себе",
+        "stats": {
+          "views": "Просмотры",
+          "likes": "Лайки",
+          "comments": "Комменты",
+          "posts": "Посты",
+          "cards": "Карты",
+          "date-joined": "Зарегистрирован{sex, select, 2 {а} other {}}",
+          "friends": "Друзья",
+          "subscribers": "Подписчики",
+          "sex": "Пол",
+          "sex-resolved": "{value, select, 1 {мужской} 2 {женский} other {неизвестен}}"
+        }
+      },
+      "inventory": {
+        "tabs": {
+          "cards": "Карточки",
+          "decks": "Колоды",
+          "customization": "Кастомизация",
+          "promocodes": "Промокоды",
+          "read_titles": "Тайтлы",
+          "avatars": "Аватары",
+          "frames": "Рамки",
+          "wallpapers": "Обои",
+          "emoji": "Эмодзи",
+          "moments": "Моменты",
+          "theme": "Темы",
+          "collections": "Коллекции"
+        },
+        "selection": {
+          "favorite-edit-text": "Изменить ({count}/{max})",
+          "exchangeable-edit-text": "Изменить ({count}/{max})"
+        },
+        "no-exchange-tooltip": "Не обмениваю",
+        "tab-content": {
+          "hero-card": {
+            "actions": {
+              "block-title": "Действия",
+              "change-favorite": "Изменить избранные",
+              "change-exchangeable": "Изменить обмениваемость",
+              "upgrade": "Апгрейд"
+            },
+            "filters": {
+              "block-title": "Фильтры",
+              "search-by": "Поиск по",
+              "search-by-name": "{name, select, title {Тайтлу} card {Карте} character {Персонажу} other {???}}",
+              "wish-type": "Тип желаний пользователя",
+              "marked": "Отмеченные",
+              "favorite": "Избранные",
+              "exchangeable": "Обмениваемые",
+              "rank": "Ранг",
+              "wants": "Хочет",
+              "will-change": "Обменяет",
+              "sorting": "Сортировка"
+            }
+          }
+        }
+      },
+      "subscription": {
+        "opportunities": "Твой путь к эксклюзивным возможностям",
+        "details": "Подписка включает в себя ряд преимуществ, которые улучшают опыт пользования сайтом.",
+        "renew-subscribe": "автопродление",
+        "renew-form": "Форма возобновления подписки",
+        "sub-info": "Информация о подписке Уровень: {tier}",
+        "active": "Активна",
+        "auto-renewal-active": "Активно",
+        "auto-renewal-inactive": "Неактивно",
+        "inactive": "Неактивна",
+        "status-label": "Статус:",
+        "auto-renewal": "Автопродление",
+        "active-period": "Активно с {start, date, short} по {end, date, short}",
+        "active-period-empty": "Активно на бессрочный период",
+        "description": "Подписка включает в себя дополнительный функционал, связанный с чтением и персонализацией.",
+        "subscribe-title": "Оформление подписки",
+        "subscribe-description": "Подписка включает в себя ряд фич и позволяет выделиться среди остальных",
+        "subscribe-button": "Оформить подписку",
+        "unsubscribe-button": "Отменить подписку",
+        "balance-label": "Баланс: {balance}",
+        "payment-methods": "Другие системы",
+        "subscription-success": "Подписка успешно оформлена",
+        "renew-subscription-success": "Подписка успешно продлена",
+        "un-renew-subscription-success": "Автопродление подписки выключено",
+        "subscription-error": "Ошибка при оформлении подписки",
+        "agree-with-terms": "Я согласен с <serviceAgree>договором абонентского обслуживания</serviceAgree> и <offerAgree>офертой</offerAgree>.",
+        "agree-with-personal-data": "Я соглашаюсь с <dataAgree>условиями обработки персональных данных</dataAgree> и <subscAgree>соглашением об условиях подписки</subscAgree>.",
+        "unsubscribe-confirm-title": "Вы точно хотите отменить подписку?",
+        "unsubscribe-confirm-description": "По окончании действия подписки вы потеряете все преимущества и дополнительные возможности",
+        "unsubscribe-success": "Продление подписки успешно отменено",
+        "unsubscribe-error": "Произошла непредвиденная ошибка",
+        "accept-agreement-error": "Необходимо принять договор",
+        "accept-offer-error": "Необходимо принять оферту"
+      },
+      "achievements": {
+        "meta": {
+          "title": "Достижения пользователя {username}",
+          "description": "Страница с достижениями пользователя {username}"
+        }
+      },
+      "upgrade-cards": {
+        "meta": {
+          "title": "Апгрейд карточек",
+          "description": "Произвести апрегрейд и слияние карт"
+        },
+        "history-button-text": "История апгрейдов",
+        "history-modal-sr-only": "История апгрейдов",
+        "history-default-label": "Апгрейд обычных карт",
+        "history-exclusive-label": "Апгрейд эксклюзивных карт",
+        "history-old-cards-label": "Выбранные для апгрейда карты",
+        "history-new-card-label": "Полученная после апгрейда"
+      },
+      "followers": {
+        "meta": {
+          "title": "Достижения пользователя {username}",
+          "description": "Страница с достижениями пользователя {username}"
+        }
+      },
+      "friends": {
+        "meta": {
+          "title": "Друзья пользователя {username}",
+          "description": "Страница друзей пользователя {username}"
+        }
+      },
+      "publishers": {
+        "meta": {
+          "title": "Команды перевода пользователя {username}",
+          "description": "Команды перевода в состове которых - {username}"
+        }
+      }
+    }
+  },
+  "reusable": {
+    "timer": {
+      "seconds": "{count, plural, one {с} few {с} many {с} other {с}}",
+      "minutes": "{count, plural, one {м} few {м} many {м} other {м}}",
+      "hours": "{count, plural, one {ч} few {ч} many {ч} other {ч}}",
+      "days": "{count, plural, one {д} few {д} many {д} other {д}}",
+      "months": "{count, plural, one {мес} few {мес} many {мес} other {мес}}",
+      "years": "{count, plural, one {год} few {года} many {лет} other {года}}"
+    },
+    "timer-extends": {
+      "seconds": "{count, plural, one {сек} few {сек} many {сек} other {сек}}",
+      "minutes": "{count, plural, one {мин} few {мин} many {мин} other {мин}}",
+      "hours": "{count, plural, one {час} few {часа} many {часов} other {часа}}",
+      "days": "{count, plural, one {день} few {дня} many {дней} other {дня}}",
+      "months": "{count, plural, one {месяц} few {месяца} many {месяцев} other {месяца}}",
+      "years": "{count, plural, one {год} few {года} many {лет} other {года}}"
+    },
+    "sections": {
+      "common": {
+        "title-collections": "Коллекции тайтлов",
+        "show-all": "Показать все"
+      },
+      "members": "Участники",
+      "publishers": "В составе команд",
+      "followers": "Подписчики"
+    },
+    "conjunctions": {
+      "or": "или",
+      "and": "и",
+      "to": "до"
+    },
+    "json-ld": {
+      "language": "{lang, select, en {English} ru {Русский} other {}}"
+    },
+    "actions": {
+      "get": "Получить",
+      "buy": "Купить",
+      "open": "Открыть",
+      "save": "Сохранить",
+      "delete": "Удалить",
+      "cancel": "Отмена",
+      "go_back": "Вернуться назад",
+      "back": "Назад",
+      "copy-link": "Скопировать ссылку",
+      "copy-link-success": "Ссылка скопирована",
+      "copy-link-error": "Не удалось скопировать ссылку",
+      "edit-reduction": "Редактировать",
+      "submit": "Отправить",
+      "update": "Обновить",
+      "edit": "Изменить",
+      "select": "Выбрать",
+      "show_all": "Показать все",
+      "add": "Добавить",
+      "reset": "Сбросить",
+      "visit": "Перейти",
+      "insert": "Вставить",
+      "report": "Пожаловаться"
+    },
+    "empty_states": {
+      "empty": "Пусто",
+      "no_content": "Пока пусто",
+      "no-results": "Нет результатов :(",
+      "empty_message": "Пустое сообщение...",
+      "empty-easter-egg": "'Ты, конечно, молодец, но тут ничего нет :)'"
+    },
+    "confirmations": {
+      "delete_title": "Подтверждение удаления",
+      "delete_description": "Вы уверены, что хотите удалить?",
+      "delete_history_selected": "Вы уверены, что хотите удалить выбранные прочтения?",
+      "delete_history_all": "Вы уверены, что хотите удалить всю историю прочтения?",
+      "delete_bookmark": "Вы действительно хотите удалить закладку \"{name}\"?"
+    },
+    "messages": {
+      "success": "Успешно"
+    },
+    "entities": {
+      "transactions": {
+        "title": "Транзакции"
+      },
+      "inventory-items": {
+        "avatars": "Аватары",
+        "cards": "Карточки",
+        "frames": "Рамки",
+        "promo-codes": "Промокоды",
+        "moments": "Моменты",
+        "titles": "Тайтлы",
+        "collections": "Коллекции карт",
+        "customization": "Кастомизация",
+        "theme": "Темы",
+        "emoji": "Эмодзи",
+        "decks": "Колоды",
+        "themes": "Тема профиля",
+        "wallpapers": "Обои"
+      },
+      "shop-customization-items": {
+        "avatar": "Аватар",
+        "frame": "Рамка",
+        "pack": "Пак с эмодзи",
+        "stickersPack": "Пак со стикерами",
+        "deck": "Пак карт",
+        "theme": "Тема профиля",
+        "wallpaper": "Обложка"
+      },
+      "attachments": {
+        "user": "Пользователь",
+        "club": "Гильдия",
+        "publisher": "Паблишер",
+        "title": "Тайтл",
+        "quiz": "Квиз"
+      },
+      "manga": "Манга",
+      "manhwa": "Манхва",
+      "collectible-cards": "Коллекционные карточки",
+      "author": "Автор"
+    },
+    "you": "Вы",
+    "routing": {
+      "back": "Назад",
+      "go_back": "Вернуться назад"
+    },
+    "errors": {
+      "default": {
+        "heading": "У-упс! Произошла ошибка",
+        "linking": "На главную"
+      },
+      "401": {
+        "heading": "Требуется авторизация"
+      },
+      "404": {
+        "heading": "Страница не найдена"
+      },
+      "429": {
+        "heading": "Слишком много запросов"
+      },
+      "499": {
+        "heading": "Произошла ошибка"
+      },
+      "500": {
+        "heading": "Внутренняя ошибка сервера",
+        "bug-report": {
+          "report-by-feedback": "Отправьте детали произошедшей ошибки отделу разработки",
+          "report-by-support": "Напишите нам самостоятельно, прикрепив информацию ниже",
+          "report-by-support-help": "Информация для технической поддержки"
+        }
+      }
+    },
+    "unknown": "неизвестно",
+    "all": "все"
+  },
+  "character": {
+    "form": {
+      "labels": {
+        "character_name": "Имя персонажа",
+        "alt_name": "Альтернативное имя/название",
+        "title": "Тайтл",
+        "description": "Описание",
+        "power": "Сила",
+        "sex": "Пол",
+        "classification": "Классификация",
+        "affiliation": "Принадлежность",
+        "age": "Возраст",
+        "skills": "Навыки",
+        "mod_message": "Сообщение модератору",
+        "details": "Детали"
+      },
+      "placeholders": {
+        "select_title": "Выбрать тайтл"
+      },
+      "image": {
+        "alt": "Изображение персонажа"
+      },
+      "submit": "Отправить на модерацию",
+      "success_messages": {
+        "changes_sent_moderation": "Изменения отправлены на модерацию",
+        "request_sent_moderation": "Заявка успешно отправлена на модерацию"
+      }
+    },
+    "character_details": {
+      "unknown": "неизвестно"
+    },
+    "sections": {
+      "cards": "Карточки",
+      "badges": "Бейджи",
+      "achievements": "Ачивки"
+    }
+  },
+  "common": {
+    "currencies": {
+      "lightning": "Молнии"
+    }
+  },
+  "notifications": {
+    "tabs": {
+      "social": "Социальные {count, number}",
+      "updates": "Обновление {count, number}",
+      "important": "Важное {count, number}"
+    },
+    "statuses": {
+      "new": "Новое",
+      "read": "Прочитанные"
+    }
+  },
+  "promo-codes": {
+    "filters": {
+      "status": {
+        "1": "Активный",
+        "2": "Сгоревший",
+        "3": "Возвращен",
+        "all": "Все"
+      },
+      "action-type": {
+        "placeholder": "Тип действия",
+        "all": "Все типы получения"
+      }
+    },
+    "orderings": {
+      "placeholder": "Сортировать по",
+      "date": "По дате получения",
+      "date_expire": "По дате истечения",
+      "sum": "По сумме пополнения",
+      "sum_left": "По остатку"
+    },
+    "title": "Активация промокодов",
+    "words": {
+      "count": "Количество",
+      "title": "Промокод",
+      "date_expire": "Дата сгорания",
+      "gift_type": "Тип получения",
+      "date": "Дата активации"
+    },
+    "one": {
+      "title": "Промокод",
+      "count": "{count} из {total} осталось"
+    },
+    "types": {
+      "BY_MODER": "Модератором",
+      "BY_PUBLISHER": "Переводчиком",
+      "BY_PROMO_CODE": "Промокодом",
+      "BY_SOCIAL_LINKING": "За привязку соц.сетей",
+      "BY_CHAPTER_PAYMENT": "За покупку главы",
+      "BY_ADD_BALANCE": "За пополнение баланса",
+      "BY_BATTLE_PASS": "За Re:Pass",
+      "BY_UTM": "По партнерской программе"
+    },
+    "list": {
+      "empty": "Ни одного активированного промокода не найдено",
+      "title": "Список активированных промокодов"
+    },
+    "actions": {
+      "create": {
+        "do": {
+          "title": "Использовать промокод",
+          "submit": "Применить",
+          "success": "Промокод успешно применён"
+        }
+      }
+    },
+    "fields": {
+      "promo-code": {
+        "title": "Введите промокод для получения бонусов и тикетов",
+        "placeholder": "Введите промокод"
+      }
+    }
+  },
+  "user-coins-history": {
+    "filters": {
+      "status": {
+        "0": "Отменено",
+        "1": "Выполнено",
+        "2": "Ожидание",
+        "all": "Все статусы"
+      },
+      "type": {
+        "placeholder": "Тип действия",
+        "all": "Все типы получения"
+      }
+    },
+    "orderings": {
+      "placeholder": "Сортировать по",
+      "date": "По дате получения",
+      "id": "По дате истечения",
+      "status": "По сумме пополнения"
+    },
+    "title": "Пополнение монет",
+    "words": {
+      "comment-title": "Комментарий к платежу",
+      "amount": "Количество",
+      "sum": "Сумма",
+      "date": "Дата",
+      "title": "Заголовок",
+      "comment": "Коммент",
+      "type": "Тип",
+      "status": "Статус"
+    },
+    "one": {
+      "title": "Монета",
+      "count": "{count} из {total} осталось"
+    },
+    "types": {
+      "BY_MODER": "Модератором",
+      "BY_PUBLISHER": "Переводчиком",
+      "BY_PROMO_CODE": "Промокодом",
+      "BY_SOCIAL_LINKING": "За привязку соц.сетей",
+      "BY_CHAPTER_PAYMENT": "За покупку главы",
+      "BY_ADD_BALANCE": "За пополнение баланса",
+      "BY_BATTLE_PASS": "За Re:Pass",
+      "BY_UTM": "По партнерской программе"
+    },
+    "list": {
+      "empty": "Ни одного активированного промокода не найдено",
+      "title": "Список активированных промокодов"
+    },
+    "actions": {
+      "create": {
+        "do": {
+          "title": "Использовать промокод",
+          "submit": "Отправить",
+          "success": "Промокод успешно применён"
+        }
+      }
+    }
+  },
+  "zod": {
+    "errors": {
+      "invalid_type": "Ожидалось {expected}, получено {received}",
+      "invalid_type_received_undefined": "Обязательное поле",
+      "invalid_literal": "Недопустимое значение литерала, ожидалось {expected}",
+      "unrecognized_keys": "Неопознанные ключи в объекте: {keys}",
+      "invalid_union": "Недопустимый ввод",
+      "invalid_union_discriminator": "Недопустимое значение дискриминатора. Ожидались {options}",
+      "invalid_enum_value": "Недопустимое значение перечисления. Ожидались {options}, получено {received}",
+      "invalid_arguments": "Недопустимые аргументы функции",
+      "invalid_return_type": "Недопустимый тип возвращаемого значения функции",
+      "invalid_date": "Недопустимая дата",
+      "custom": "Недопустимый ввод",
+      "invalid_intersection_types": "Результаты пересечения не могут быть объединены",
+      "not_multiple_of": "Число должно быть кратно {multipleOf}",
+      "not_finite": "Число должно быть конечным",
+      "invalid_string": {
+        "email": "Недопустимый {validation}",
+        "emoji": "Недопустимый {validation}",
+        "name": "Недопустимый {validation}",
+        "position": "Недопустимый {validation}",
+        "url": "Недопустимый {validation}",
+        "uuid": "Недопустимый {validation}",
+        "ulid": "Недопустимый {validation}",
+        "ip": "Недопустимый {validation}",
+        "cuid": "Недопустимый {validation}",
+        "cuid2": "Недопустимый {validation}",
+        "regex": "Недопустимый",
+        "datetime": "Недопустимый {validation}",
+        "startsWith": "Недопустимый ввод: должен начинаться с \"{startsWith}\"",
+        "endsWith": "Недопустимый ввод: должен заканчиваться на \"{endsWith}\""
+      },
+      "too_small": {
+        "array": {
+          "exact": "{path, select, missingTranslation {Array} other {{path}}} должно содержать ровно {minimum} элемент(ов)",
+          "inclusive": "{path, select, missingTranslation {Array} other {{path}}} должно содержать как минимум {minimum} элемент(ов)",
+          "not_inclusive": "{path, select, missingTranslation {Array} other {{path}}} должно содержать больше {minimum} элемент(ов)"
+        },
+        "string": {
+          "exact": "{path, select, missingTranslation {String} other {{path}}} должно содержать ровно {minimum} символ(ов)",
+          "inclusive": "{path, select, missingTranslation {String} other {{path}}} должно содержать как минимум {minimum} символ(ов)",
+          "not_inclusive": "{path, select, missingTranslation {String} other {{path}}} должно содержать больше {minimum} символ(ов)"
+        },
+        "number": {
+          "exact": "{path, select, missingTranslation {Number} other {{path}}} должно быть ровно {minimum}",
+          "inclusive": "{path, select, missingTranslation {Number} other {{path}}} должно быть больше или равно {minimum}",
+          "not_inclusive": "{path, select, missingTranslation {Number} other {{path}}} должно быть больше {minimum}"
+        },
+        "bigint": {
+          "exact": "{path, select, missingTranslation {Number} other {{path}}} должно быть ровно {minimum}",
+          "inclusive": "{path, select, missingTranslation {Number} other {{path}}} должно быть больше или равно {minimum}",
+          "not_inclusive": "{path, select, missingTranslation {Number} other {{path}}} должно быть больше {minimum}"
+        },
+        "set": {
+          "exact": "Недопустимый ввод",
+          "inclusive": "Недопустимый ввод",
+          "not_inclusive": "Недопустимый ввод"
+        },
+        "date": {
+          "exact": "Дата должна быть ровно {minimum, date, short}",
+          "inclusive": "Дата должна быть больше или равна {minimum, date, short}",
+          "not_inclusive": "Дата должна быть больше {minimum, date, short}"
+        }
+      },
+      "too_big": {
+        "array": {
+          "exact": "{path, select, missingTranslation {Array} other {{path}}} должно содержать ровно {maximum} элемент(ов)",
+          "inclusive": "{path, select, missingTranslation {Array} other {{path}}} должно содержать максимум {maximum} элемент(ов)",
+          "not_inclusive": "{path, select, missingTranslation {Array} other {{path}}} должно содержать меньше {maximum} элемент(ов)"
+        },
+        "string": {
+          "exact": "{path, select, missingTranslation {String} other {{path}}} должно содержать ровно {maximum} символ(ов)",
+          "inclusive": "{path, select, missingTranslation {String} other {{path}}} должно содержать максимум {maximum} символ(ов)",
+          "not_inclusive": "{path, select, missingTranslation {String} other {{path}}} должно содержать меньше {maximum} символ(ов)"
+        },
+        "number": {
+          "exact": "{path, select, missingTranslation {Number} other {{path}}} должно быть ровно {maximum}",
+          "inclusive": "{path, select, missingTranslation {Number} other {{path}}} должно быть меньше или равно {maximum}",
+          "not_inclusive": "{path, select, missingTranslation {Number} other {{path}}} должно быть меньше {maximum}"
+        },
+        "bigint": {
+          "exact": "{path, select, missingTranslation {Number} other {{path}}} должно быть ровно {maximum}",
+          "inclusive": "{path, select, missingTranslation {Number} other {{path}}} должно быть меньше или равно {maximum}",
+          "not_inclusive": "{path, select, missingTranslation {Number} other {{path}}} должно быть меньше {maximum}"
+        },
+        "set": {
+          "exact": "Недопустимый ввод",
+          "inclusive": "Недопустимый ввод",
+          "not_inclusive": "Недопустимый ввод"
+        },
+        "date": {
+          "exact": "Дата должна быть ровно {maximum, date, short}",
+          "inclusive": "Дата должна быть меньше или равна {maximum, date, short}",
+          "not_inclusive": "Дата должна быть меньше {maximum, date, short}"
+        }
+      }
+    },
+    "validations": {
+      "emoji": "emoji",
+      "ip": "ip",
+      "cuid2": "cuid2",
+      "email": "Email",
+      "url": "URL",
+      "uuid": "UUID",
+      "cuid": "CUID",
+      "regex": "регулярное выражение",
+      "datetime": "дата и время"
+    },
+    "types": {
+      "function": "функция",
+      "number": "число",
+      "string": "строка",
+      "nan": "NaN",
+      "integer": "целое число",
+      "float": "число с плавающей точкой",
+      "boolean": "булево значение",
+      "date": "дата",
+      "bigint": "bigint",
+      "undefined": "undefined",
+      "symbol": "символ",
+      "null": "null",
+      "array": "массив",
+      "object": "объект",
+      "unknown": "unknown",
+      "promise": "promise",
+      "void": "void",
+      "never": "never",
+      "map": "хеш-таблица",
+      "set": "множество"
+    }
+  },
+  "form": {
+    "placeholders": {
+      "search": "Поиск",
+      "message": "Сообщение...",
+      "chat_name": "Введите название беседы",
+      "search_users": "Поиск пользователей",
+      "select_value": "Выберите значение",
+      "select_values": "Выберите значения",
+      "choose": "Выбрать",
+      "season": "Сезон",
+      "episode": "Серия",
+      "chapters": "Главы",
+      "voiceover": "Озвучка",
+      "title": "Заголовок",
+      "image": "Изображение",
+      "topics": "Темы",
+      "author": "Автор",
+      "start_typing": "Начните писать, а мы подскажем!",
+      "enter_amount": "Введите количество",
+      "mod_message": "Сообщение модератору",
+      "heres_content": "А здесь содержимое..."
+    },
+    "labels": {
+      "back_on_button": "Возвращать по кнопке назад",
+      "date-end": "Дата окончания",
+      "no-third-party-sources-label": "Ссылки на сторонние источники запрещены"
+    }
+  },
+  "customErrors": {
+    "general": {
+      "unexpected": "Произошла непредвиденная ошибка",
+      "error_occurred": "Произошла ошибка",
+      "try_again": "Попробуйте снова"
+    },
+    "auth": {
+      "need_login": "Чтобы продолжить, нужно войти",
+      "unauthorized": "Неавторизован",
+      "account_deactivation_error": "Ошибка деактивации аккаунта"
+    },
+    "server": {
+      "internal_error": "Внутренняя ошибка сервера",
+      "server_error": "Ошибка сервера",
+      "no_data": "Ошибка не содержит данных"
+    },
+    "chat": {
+      "delete_message_error": "Ошибка при удалении сообщения",
+      "message_not_sent": "Ошибка · сообщение не отправлено",
+      "try_again": "Ошибка · Попробуйте снова",
+      "loading_channels_error": "Ошибка при загрузке каналов",
+      "loading_chat_error": "Ошибка загрузки чата",
+      "search_error": "Произошла ошибка при поиске"
+    },
+    "history": {
+      "delete_error": "Произошла ошибка при удалении истории"
+    },
+    "subscription": {
+      "error": "Ошибка при оформлении подписки"
+    },
+    "payment": {
+      "processing_error": "Произошла ошибка при обработке платежа",
+      "cancel_error": "Произошла ошибка при отмене платежа"
+    },
+    "reader": {
+      "image_merge_error": "Ошибка объединения изображений. Попробуйте позже или листните вверх/вниз",
+      "image_load_error": "Ошибка загрузки"
+    },
+    "favorites": {
+      "add_error": "Ошибка добавления избранных карточек"
+    }
+  },
+  "yearSummary": {
+    "n глав": "{count} {count, plural, one {глава} two {главы} few {главы} many {глав} other {глав}}",
+    "из n поставленных оценок": "из {count} {count, plural, one {поставленной} two {поставленных} few {поставленных} many {поставленных} other {поставленных}}",
+    "n комментариев": "{count} {count, plural, one {комментарий} two {комментария} few {комментария} many {комментариев} other {комментариев}}",
+    "n лайков": "{count} {count, plural, one {лайк} two {лайка} few {лайка} many {лайков} other {лайков}}",
+    "n тайтлов": "{count} {count, plural, one {тайтл} two {тайтла} few {тайтла} many {тайтлов} other {тайтлов}}",
+    "meta": {
+      "заголовок": "Итоги года {username}"
+    }
+  },
+  "deck-open": {
+    "buy-pack": "Купить пак",
+    "buy-pack-description": "Вы уверены, что хотите купить пак? Со счета будет списано {coinsPrice} {currency, select, coins {молний} tickets {тикетов} other {}}.",
+    "fast-open": "Быстрое открытие",
+    "pack-items": "Содержимое пака",
+    "choose-one-card": "Вы можете выбрать одну карту",
+    "choose-one-of-three-cards": "Выберете одну из трех карт и нажмите на кнопку “Получить”, чтобы добавить ее в инвентарь.",
+    "you-got-card": "Вы получили карточку {name}",
+    "you-got-collectible-card": "Вы получили коллекционную карточку",
+    "guarantee-title": "Пак {name}",
+    "guarantee-items-count": "Содержит <accent>{count}</accent> {count, plural, one {карту} few {карты} many {карт} other {карты}}",
+    "guarantee-description": "Для <accent>гарантированного</accent> получения карты опредленного ранга необходимо открыть определенное число колод.",
+    "guarantee-item-label": "<accent>{rank}</accent> ранг - <accent>{count}</accent> {count, plural, one {колоду} few {колоды} many {колод} other {колоды}}",
+    "guarantee-button-text-remaining": "До карты <accent>{rank}</accent> ранга — <accent>{count}</accent> {count, plural, one {открытие} few {открытия} many {открытий} other {открытия}}",
+    "guarantee-button-text-guaranteed": "Следующая карта — {rank} ранг"
+  },
+  "inventory": {
+    "exchanges": {
+      "title": "Обмен #{id}",
+      "receive-label": "Получатель",
+      "give-label": "Отправитель",
+      "deny-button": "Отклонить",
+      "accept-button": "Принять",
+      "deny-confirmation": {
+        "title": "Отклонить обмен",
+        "description": "Вы уверены что хотите отклонить обмен?",
+        "confirm": "Отклонить",
+        "cancel": "Отмена"
+      },
+      "accept-confirmation": {
+        "title": "Принять обмен",
+        "description": "Вы уверены что хотите принять обмен?",
+        "confirm": "Принять",
+        "cancel": "Отмена"
+      }
+    },
+    "pack-items": "Содержимое пака",
+    "choose-one-card": "Вы можете выбрать одну карту",
+    "choose-one-of-three-cards": "Выберете одну из трех карт и нажмите на кнопку 'Получить', чтобы добавить ее в инвентарь.",
+    "you-got-card": "Вы получили карточку {name}",
+    "you-got-collectible-card": "Вы получили коллекционную карточку"
+  },
+  "request": {
+    "status": {
+      "moderation": "На модерации",
+      "accepted": "Принято",
+      "rejected": "Отклонено",
+      "undefined": "Тип не определен"
+    },
+    "autosave": "Авто"
+  },
+  "collection-item": {
+    "name": "Коллекция {name}",
+    "img-alt": "Персонаж коллекции {name}"
+  },
+  "activities": {
+    "faq": {
+      "title": "Как получить очки активности",
+      "get_button": "Как получить молнии?",
+      "description": "Молнии — это показатель вашей активности. Заходите на сайт, читайте главы, оставляйте комментарии, любите котеек 🐱",
+      "daily_rewards_title": "Каждый день можно получить:",
+      "daily_rewards": {
+        "login": "⚡20 молний — за вход на сайт",
+        "comment": "⚡6 молний (но не более 60 в день) — за комментарий",
+        "chapters": "⚡3 молнии (но не более 60 в день) — за 10 прочитанных глав"
+      },
+      "multipliers_title": "Множители:",
+      "multipliers": {
+        "subscription": "x2 — за подписку",
+        "guild": "до x1.5 — за уровень гильдии"
+      },
+      "multipliers_note": "Помните, множители перемножаются, т.е. вы можете получать в 3 раза больше молний! Больше молний — больше веселья!"
+    }
+  },
+  "subscription": {
+    "faq": {
+      "heading": "Остались вопросы?",
+      "questions": {
+        "how_to_cancel": {
+          "title": "Как отменить подписку?",
+          "description": "Подписку можно выключить на странице подписки, нажав на соответствующую кнопку по отключению подписки."
+        },
+        "feature_not_working": {
+          "title": "У меня не работает одна из функций, куда мне писать?",
+          "description": "Если у вас не работает какая-то из функций на сайте, вы можете связаться с технической поддержкой сайта через паблик вконтакте."
+        },
+        "what_gives": {
+          "title": "Что дает подписка?",
+          "description": "Подписка позволяет читать все главы бесплатно, кроме лицензионных."
+        },
+        "paid_chapters": {
+          "title": "Можно ли по ней читать платные главы?",
+          "description": "Подписка НЕ дает доступ к платным главам, ее основные преимущества заключаются в расширенной кастомизации и дополнительных молниях."
+        }
+      }
+    },
+    "benefits": {
+      "bookmarks": {
+        "title": "Больше собственных закладок",
+        "description": "Создавай до 5 собственных типов закладок и устанавливай, будут ли их видеть"
+      },
+      "customization": {
+        "title": "Кастомизация профиля",
+        "description": "Устанавливай анимированные аватары, а также собственные обои"
+      },
+      "no_ads": {
+        "title": "Отсутствие рекламы",
+        "description": "В читалке — и везде, где возможно, тоже"
+      },
+      "battlepass": {
+        "title": "BattlePass",
+        "description": "Получай больше наград за выполнение заданий"
+      },
+      "cards": {
+        "title": "Карточки",
+        "description": "За оформление и последующее продление — выдаем крутые карточки"
+      },
+      "lightning_multiplier": {
+        "title": "Множитель молний Х2",
+        "description": "За каждое действие — в два раза больше молний. Дневной лимит в два раза больше обычного."
+      },
+      "free_chapters": {
+        "title": "Читай все главы бесплатно",
+        "description": "Открывай любую главу и читай ее абсолютно БЕСПЛАТНО (кроме лицензионных произведений)"
+      },
+      "lightnings": {
+        "title": "Бонус 2000 молний",
+        "description": "При оформлении и продлении подписки вы мгновенно получаете 2000 молний — внутренней валюты платформы."
+      },
+      "deck": {
+        "title": "Случайная колода",
+        "description": "Получай раз в месяц колоду \"случайных карт\" и пополняй свою коллекцию."
+      }
+    }
+  },
+  "transactions-history": {
+    "menu": {
+      "title": "Платежи"
+    }
+  },
+  "halloween": {
+    "menu": {
+      "title": "Хеллоуин 🎃",
+      "subheader": "Уже есть рейтинг!"
+    },
+    "modal": {
+      "dialog-title": "Празднуйте Хеллоуин на {siteName}",
+      "title": "Празднуйте Хеллоуин на {siteName}",
+      "description": "Празднуем Хеллоуин вместе! На сайте прячутся озорные тыковки 🎃 — лови их, пока не исчезли! Чем больше соберёшь, тем круче призы: Топ-10 участников получат набор коллекционных карт; Все игроки — праздничные рамки; А поймавшие 10+ тыковок — эксклюзивный стикерпак!",
+      "hurry-with-link": "Так что не теряйте времени — тыквы не будут ждать! Кто из вас окажется самым ловким и попадёт в наш <link>список лидеров?</link> Давайте выясним! 🏆",
+      "continue": "Давайте выясним! 🏆",
+      "button": "Конфеты или жизнь?"
+    },
+    "meta": {
+      "title": "Хеллоуин",
+      "description": "Открой магию ночи и собери все призы на Хеллоуинском ивенте."
+    },
+    "topSection": {
+      "music-trigger": "КОНФЕТЫ ИЛИ ЖИЗНЬ?",
+      "halloween": "Хеллоуин!",
+      "halloweenEvent": "Хеллоуинский тыквопад!",
+      "openMagic": "Открой магию ночи и собери все призы",
+      "eventDates": "Сроки проведения: до {dates} включительно"
+    },
+    "benefits": {
+      "title": "КАКИЕ НАГРАДЫ ВАС ЖДУТ",
+      "cards": "Получите редкие Хеллоуинские карты и соберите полную коллекцию ивента",
+      "avatars": "Получите редкие Хеллоуинские рамки и соберите полную коллекцию ивента"
+    },
+    "faq": {
+      "title": "Хеллоунский тыквопад!",
+      "description": "По всему сайту спрятаны Хеллоуинские бонусы — ищите их, кликайте и забирайте. Каждый подарок даёт дополнительный шанс на редкие призы."
+    },
+    "decoration": {
+      "halloween": "ХЕЛЛОУИН",
+      "halloween-repeat": "ХЕЛЛОУИН ХЕЛЛОУИН"
+    }
+  },
+  "user-delete-account": {
+    "title": "Удалить аккаунт?",
+    "description": "Это действие затронет ваш аккаунт на сайте и в приложении ",
+    "app-name": "ReManga - читай мангу!",
+    "description-continued": ". Все ваши данные будут безвозвратно удалены.",
+    "premium-warning": "При удалении аккаунта подписка будет автоматически деактивирована.",
+    "delete-button": "Удалить аккаунт",
+    "dialog-title": "Удалить аккаунт? 😔",
+    "dialog-warning": "В дальнейшем восстановление аккаунта будет возможно только через модерацию.",
+    "confirmation-label": "Введите \"{submitWord}\" для подтверждения",
+    "fields": {
+      "name": {
+        "placeholder": "Напишите \"{submitWord}\""
+      }
+    },
+    "validation-error": "Не соответствует требуемой фразе",
+    "submit": "Подтвердить удаление",
+    "cancel": "Назад",
+    "success-message": "Аккаунт успешно деактивирован 🤕",
+    "error-message": "Ошибка деактивации аккаунта",
+    "submit-word": "удалить аккаунт"
+  },
+  "quiz": {
+    "results": {
+      "success": "Вы прошли задание!",
+      "unluck": "Попробуйте еще раз, чтобы получить награду."
+    },
+    "finish-sr-only": "Квиз завершён!",
+    "completed-percentage": "<percentage>{percent}</percentage> <phrase>Правильных ответов;</phrase>",
+    "finish-trigger": "Завершить",
+    "next-trigger": "Следующий вопрос",
+    "author": {
+      "detail": "Автор вопроса",
+      "title": "Автор"
+    },
+    "current-score": "Балл: {score}",
+    "question-number": "Вопрос {start} из {end}",
+    "title": "Квиз, плиииииз!",
+    "type": "{type, select, single {Один} multi {Несколько} text {Текст} score {Оценка (1-10)} other {??}}",
+    "time-is-up": "Время вышло",
+    "add-question": "Добавить вопрос",
+    "messages": {
+      "create-success": "Квиз успешно создан",
+      "edit-success": "Квиз успешно изменен",
+      "answer-success": "Ответы на квиз отправлены"
+    },
+    "create-label": "Создать квиз"
+  },
+  "collections": {
+    "reward-item": {
+      "you-can-gen": {
+        "title": "Вы можете получить уникальную карту",
+        "description": "Соберите все <highlight>{count} карт</highlight> коллекции для обмена ее на карту. При обмене Вы утратите все карты коллекции и получите уникальную карту.  Чтобы быстрее собрать коллекцию, Вы можете открывать <deckLink>колоды</deckLink> или производить <exchangeLink>обмены</exchangeLink>."
+      }
+    },
+    "empty": "Коллекция пуста",
+    "list": {
+      "empty": "Список коллекций пуст"
+    },
+    "exchangeable-item": {
+      "actions": {
+        "exchange-progress": {
+          "idle": "Обменять",
+          "pending": "Подождите",
+          "success": "Открываем..."
+        },
+        "exchange": "Обменять"
+      }
+    },
+    "exchangeable": {
+      "exchangeable": "Карт с обменом",
+      "user": "Карт",
+      "title": "Тайтлов"
+    }
+  },
+  "lexical-editor": {
+    "toolbar-link": {
+      "domain-error-message": "Ссылка содержит запрещенные домены!"
+    }
+  },
+  "mention-popover": {
+    "indefinite": {
+      "label": "Кого упомянуть",
+      "tabs": {
+        "user": "Пользователь",
+        "publisher": "Паблишер",
+        "club": "Гильдия"
+      }
+    },
+    "guild": {
+      "label": "Упомянуть гильдию"
+    },
+    "user": {
+      "label": "Упомянуть пользователя",
+      "hint-text": "Поиск по id ведется через редактор, например {example}",
+      "hint-active-text": "Найти пользователя {text}",
+      "hint-error-message": "Пользователь id:{id} не найден",
+      "tabs": {
+        "friends": "Друзья",
+        "guild-members": "Согильдийцы"
+      }
+    },
+    "publisher": {
+      "label": "Упомянуть паблишера",
+      "hint-text": "Поиск по dir ведется через редактор, например {example}",
+      "hint-active-text": "Найти паблишера {text}",
+      "hint-error-message": "Паблишер dir:{dir} не найден",
+      "tabs": {
+        "user-publishers": "Паблишеры пользователя"
+      }
+    }
+  },
+  "halloween-gifts": {
+    "collect-message": "Ты нашел котика, получи +1 очко ивента"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "incremental": true
+  },
+  "include": ["src", ".eslintrc.cjs", ".vite.config.ts"]
+}

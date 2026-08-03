@@ -1,0 +1,25 @@
+image: gitlab/dind
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - deploy
+
+variables:
+  IMAGE_TAG: "latest"
+
+docker-build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - export VERSION=$(node -p "require('./package.json').version")
+    - export IMAGE_TAG=moderka:$IMAGE_TAG
+  script:
+    - docker login cr.selcloud.ru -u token -p $SELECTEL_PASSWORD
+    - docker build --push -t cr.selcloud.ru/moderka/$IMAGE_TAG -t cr.selcloud.ru/moderka/$IMAGE_TAG . --no-cache
+  only:
+    - main
