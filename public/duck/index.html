@@ -900,6 +900,22 @@
             </div>
         `).join('');
 
+        let targetDetailsHtml = (p.target_post_details || []).map(d => `
+            <div class="detail-item" style="border-left: 3px solid ${d.earned_point ? 'var(--green-success)' : 'var(--text-muted)'};">
+                <div style="font-weight: 600; color: var(--duck-yellow);">
+                    <a href="${d.post_url || '#'}" target="_blank" style="color: inherit;">📌 ${d.post_header || 'Целевой пост'}</a>
+                </div>
+                <div style="font-size: 13px; margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap;">
+                    <span>Лайк на пост: ${d.has_like ? '✅ Да' : '❌ Нет'}</span>
+                    <span>Коммент на пост: ${d.has_comment ? '✅ Да' : '❌ Нет'}</span>
+                    <span>Подписка на автора: ${d.has_sub ? '✅ Да' : '❌ Нет'}</span>
+                </div>
+                <div style="font-size: 12px; margin-top: 4px; font-weight: 600; color: ${d.earned_point ? 'var(--green-success)' : '#ef4444'};">
+                    ${d.earned_point ? '🎉 +1 балл зачислен' : '❌ 0 баллов (нужна Подписка на автора + Лайк/Коммент)'}
+                </div>
+            </div>
+        `).join('');
+
         content.innerHTML = `
             <div style="margin-bottom: 16px;">
                 <h4 style="margin-bottom: 8px;">Формула очков:</h4>
@@ -911,8 +927,11 @@
                     Итого: <strong style="color: var(--duck-yellow); font-size: 16px;">${p.points} очков</strong>
                 </div>
             </div>
+
+            <h4 style="margin-bottom: 8px;">Проверка целевых постов (${(p.target_post_details || []).length}):</h4>
+            ${targetDetailsHtml || '<div style="color: var(--text-muted); font-size: 13px;">Целевых постов нет</div>'}
             
-            <h4 style="margin-bottom: 8px;">Найденные утиные посты (${(p.duck_posts || []).length}):</h4>
+            <h4 style="margin-top: 16px; margin-bottom: 8px;">Найденные утиные посты (${(p.duck_posts || []).length}):</h4>
             ${postsHtml || '<div style="color: var(--text-muted); font-size: 13px;">Утиных постов пока нет</div>'}
 
             <h4 style="margin-top: 16px; margin-bottom: 8px;">Написанные «кря»-комментарии (${(p.duck_comments || []).length}):</h4>
