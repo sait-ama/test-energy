@@ -92,8 +92,9 @@ export default async function handler(req, res) {
   const isDuckRoute = url.startsWith('/api/state') || url.startsWith('/api/scan_now') || url.startsWith('/api/toggle_avatar') || url.startsWith('/api/toggle_prize_sent') || url.startsWith('/api/target_posts') || url.startsWith('/api/reset_participant_posts');
 
   if (isDuckRoute) {
-    if (cachedDuckBackendUrl) {
-      return proxyToDuckBackend(req, res, cachedDuckBackendUrl);
+    const duckUrl = cachedDuckBackendUrl || cachedBackendUrl;
+    if (duckUrl) {
+      return proxyToDuckBackend(req, res, duckUrl);
     }
     return res.status(503).json({ error: 'Duck backend URL not configured yet' });
   }
