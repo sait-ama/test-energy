@@ -9,7 +9,7 @@ let cachedDuckBackendUrl = 'https://shiny-oranges-strive.loca.lt';
 let lastFetchTime = 0;
 
 async function refreshBackendUrls(now) {
-  if (now - lastFetchTime < 15000) return;
+  if (now - lastFetchTime < 2000) return;
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 2000);
