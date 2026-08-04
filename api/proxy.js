@@ -8,22 +8,17 @@ let cachedBackendUrl = '';
 let cachedDuckBackendUrl = '';
 let lastFetchTime = 0;
 
-async function refreshBackendUrls(now) {
-  if (cachedDuckBackendUrl && now - lastFetchTime < 5000) return;
+async function refreshBackendUrls() {
   try {
-    const binRes = await fetch('https://extendsclass.com/api/json-storage/bin/ffaabaf?nocache=' + now, {
+    const binRes = await fetch('https://extendsclass.com/api/json-storage/bin/ffaabaf?nocache=' + Date.now(), {
       cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
     });
     if (binRes.ok) {
       const data = await binRes.json();
-      if (data && data.backendUrl) {
-        cachedBackendUrl = data.backendUrl.trim();
-      }
       if (data && data.duckBackendUrl) {
         cachedDuckBackendUrl = data.duckBackendUrl.trim();
       }
-      lastFetchTime = now;
     }
   } catch (err) {}
 }
@@ -84,7 +79,7 @@ export default async function handler(req, res) {
   const now = Date.now();
   const url = req.url || '';
 
-  await refreshBackendUrls(now);
+  await refreshBackendUrls();
 
   const isDuckRoute = url.startsWith('/api/state') || url.startsWith('/api/scan_now') || url.startsWith('/api/toggle_avatar') || url.startsWith('/api/toggle_prize_sent') || url.startsWith('/api/target_posts') || url.startsWith('/api/reset_participant_posts');
 
