@@ -32,43 +32,55 @@ async function refreshBackendUrls(now) {
   } catch (err) {}
 }
 
-async function proxyToDuckBackend(req, res, duckUrl) {
-  const targetUrl = duckUrl.replace(/\/$/, '') + req.url;
-  try {
-    const headers = {
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-      'Accept': 'application/json, text/plain, */*',
-      'bypass-tunnel-reminder': 'true',
-      'Bypass-Tunnel-Reminder': 'true'
-    };
+import https from 'https';
+import http from 'http';
 
-    const fetchOptions = {
+async function proxyToDuckBackend(req, res, duckUrl) {
+  try {
+    const targetUrlStr = duckUrl.replace(/\/$/, '') + req.url;
+    const urlObj = new URL(targetUrlStr);
+    const client = urlObj.protocol === 'https:' ? https : http;
+
+    const options = {
+      hostname: urlObj.hostname,
+      port: urlObj.port || (urlObj.protocol === 'https:' ? 443 : 80),
+      path: urlObj.pathname + urlObj.search,
       method: req.method,
-      headers: headers,
+      rejectUnauthorized: false,
+      headers: {
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'accept': 'application/json, text/plain, */*',
+        'bypass-tunnel-reminder': 'true',
+        'Bypass-Tunnel-Reminder': 'true'
+      }
     };
 
     if (req.method !== 'GET' && req.method !== 'HEAD') {
-      const chunks = [];
-      for await (const chunk of req) {
-        chunks.push(chunk);
-      }
-      fetchOptions.body = Buffer.concat(chunks);
-      headers['Content-Type'] = req.headers['content-type'] || 'application/json';
+      options.headers['content-type'] = req.headers['content-type'] || 'application/json';
     }
 
-    const targetRes = await fetch(targetUrl, fetchOptions);
+    const proxyReq = client.request(options, (proxyRes) => {
+      res.status(proxyRes.statusCode);
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      for (const [key, value] of Object.entries(proxyRes.headers)) {
+        if (key.toLowerCase() !== 'content-encoding' && key.toLowerCase() !== 'transfer-encoding') {
+          res.setHeader(key, value);
+        }
+      }
+      proxyRes.pipe(res);
+    });
 
-    res.status(targetRes.status);
-    const contentType = targetRes.headers.get('content-type') || '';
-    if (contentType.includes('application/json')) {
-      const json = await targetRes.json();
-      res.json(json);
+    proxyReq.on('error', (err) => {
+      res.status(500).json({ error: 'Duck proxy error: ' + err.message + ' (url: ' + targetUrlStr + ')' });
+    });
+
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      req.pipe(proxyReq);
     } else {
-      const buffer = await targetRes.arrayBuffer();
-      res.send(Buffer.from(buffer));
+      proxyReq.end();
     }
   } catch (err) {
-    res.status(500).json({ error: 'Duck backend proxy error: ' + err.message });
+    res.status(500).json({ error: 'Duck proxy setup error: ' + err.message });
   }
 }
 
