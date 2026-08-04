@@ -35,11 +35,12 @@ async function refreshBackendUrls(now) {
 async function proxyToDuckBackend(req, res, duckUrl) {
   const targetUrl = duckUrl.replace(/\/$/, '') + req.url;
   try {
+    const urlObj = new URL(targetUrl);
     const headers = {
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
       'Accept': 'application/json, text/plain, */*',
-      'bypass-tunnel-reminder': 'true',
-      'Bypass-Tunnel-Reminder': 'true'
+      'Host': urlObj.host,
+      'bypass-tunnel-reminder': 'true'
     };
 
     const fetchOptions = {
