@@ -858,35 +858,43 @@
     }
 
     async function toggleAvatar(userId, hasDuck) {
-        const p = appState.participants.find(x => x.id === userId);
+        const p = appState.participants.find(x => String(x.id) === String(userId));
         if (p) {
             p.has_duck_avatar = hasDuck;
             p.points = (p.target_post_points || 0) + ((p.duck_posts || []).length * 5) + ((p.duck_comments || []).length * 2) + (hasDuck ? 10 : 0);
             renderTable();
         }
         try {
-            await fetch('/api/toggle_avatar', {
+            const res = await fetch('/api/toggle_avatar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: userId, has_duck_avatar: hasDuck })
+                body: JSON.stringify({ user_id: String(userId), has_duck_avatar: hasDuck })
             });
-            loadData();
+            const data = await res.json();
+            if (data && data.success && p) {
+                p.points = data.points;
+                renderTable();
+            }
         } catch (e) {}
     }
 
     async function togglePrizeSent(userId, isSent) {
-        const p = appState.participants.find(x => x.id === userId);
+        const p = appState.participants.find(x => String(x.id) === String(userId));
         if (p) {
             p.prize_sent = isSent;
             renderTable();
         }
         try {
-            await fetch('/api/toggle_prize_sent', {
+            const res = await fetch('/api/toggle_prize_sent', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ user_id: userId, prize_sent: isSent })
+                body: JSON.stringify({ user_id: String(userId), prize_sent: isSent })
             });
-            loadData();
+            const data = await res.json();
+            if (data && data.success && p) {
+                p.prize_sent = data.prize_sent;
+                renderTable();
+            }
         } catch (e) {}
     }
 

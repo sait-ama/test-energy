@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from 'next/server';
 let cachedDuckBackendUrl = '';
 let lastFetchTime = 0;
 
-async function getDuckBackendUrl() {
+async function getDuckBackendUrl(forceRefresh = false) {
   const now = Date.now();
-  if (cachedDuckBackendUrl && now - lastFetchTime < 5000) {
+  if (!forceRefresh && cachedDuckBackendUrl && now - lastFetchTime < 5000) {
     return cachedDuckBackendUrl;
   }
   try {
@@ -23,8 +23,8 @@ async function getDuckBackendUrl() {
 
 export async function proxyToDuck(req: NextRequest, endpoint: string) {
   try {
-    const backendUrl = await getDuckBackendUrl();
-    const targetUrl = backendUrl.replace(/\/$/, '') + endpoint;
+    let backendUrl = await getDuckBackendUrl();
+    let targetUrl = backendUrl.replace(/\/$/, '') + endpoint;
     
     const headers: Record<string, string> = {
       'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
@@ -39,12 +39,27 @@ export async function proxyToDuck(req: NextRequest, endpoint: string) {
       headers['content-type'] = req.headers.get('content-type') || 'application/json';
     }
 
-    const targetRes = await fetch(targetUrl, {
-      method,
-      headers,
-      body,
-      cache: 'no-store'
-    });
+    let targetRes: Response;
+    try {
+      targetRes = await fetch(targetUrl, {
+        method,
+        headers,
+        body,
+        cache: 'no-store'
+      });
+      if (!targetRes.ok && targetRes.status === 502) {
+        throw new Error('502 Bad Gateway');
+      }
+    } catch (fetchErr) {
+      backendUrl = await getDuckBackendUrl(true);
+      targetUrl = backendUrl.replace(/\/$/, '') + endpoint;
+      targetRes = await fetch(targetUrl, {
+        method,
+        headers,
+        body,
+        cache: 'no-store'
+      });
+    }
 
     const resData = await targetRes.arrayBuffer();
     return new NextResponse(resData, {
