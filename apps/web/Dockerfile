@@ -79,9 +79,9 @@ RUN aws --version
 
 USER root
 
-RUN aws configure set aws_access_key_id $S3_ACCESS_KEY
-RUN aws configure set aws_secret_access_key $S3_SECRET_KEY
+RUN aws configure set aws_access_key_id ${S3_ACCESS_KEY:-dummy}
+RUN aws configure set aws_secret_access_key ${S3_SECRET_KEY:-dummy}
 RUN aws configure set endpoint_url https://storage.yandexcloud.net/
-RUN aws s3 cp /app/apps/web/.next/static s3://$S3_BUCKET/_static/$GIT_HASH/_next/static --recursive --endpoint-url https://storage.yandexcloud.net --quiet
-RUN aws s3 cp /app/apps/web/public s3://$S3_BUCKET/_static/$GIT_HASH/_next/public --recursive --endpoint-url https://storage.yandexcloud.net --quiet
+RUN if [ -n "$S3_ACCESS_KEY" ] && [ "$S3_ACCESS_KEY" != "dummy" ]; then aws s3 cp /app/apps/web/.next/static s3://$S3_BUCKET/_static/$GIT_HASH/_next/static --recursive --endpoint-url https://storage.yandexcloud.net --quiet || true; fi
+RUN if [ -n "$S3_ACCESS_KEY" ] && [ "$S3_ACCESS_KEY" != "dummy" ]; then aws s3 cp /app/apps/web/public s3://$S3_BUCKET/_static/$GIT_HASH/_next/public --recursive --endpoint-url https://storage.yandexcloud.net --quiet || true; fi
 USER nextjs
