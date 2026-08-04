@@ -714,18 +714,30 @@
         });
     }
 
-    function getInitialAvatarSVG(username) {
-        const name = (username || 'U').trim();
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function getInitialAvatarSVG(username, userId) {
+        const name = String(username || 'U').trim();
         const initial = (name.charAt(0) || 'U').toUpperCase();
+        const safeInitial = escapeHtml(initial);
+        const gradId = 'grad_' + (userId || Math.floor(Math.random() * 1000000));
         const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
             <defs>
-                <linearGradient id="grad_${initial}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" stop-color="#1e293b"/>
                     <stop offset="100%" stop-color="#0f172a"/>
                 </linearGradient>
             </defs>
-            <circle cx="50" cy="50" r="48" fill="url(#grad_${initial})" stroke="#f59e0b" stroke-width="4"/>
-            <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#fbbf24" font-family="Outfit, sans-serif" font-size="44" font-weight="800">${initial}</text>
+            <circle cx="50" cy="50" r="48" fill="url(#${gradId})" stroke="#f59e0b" stroke-width="4"/>
+            <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#fbbf24" font-family="Outfit, sans-serif" font-size="44" font-weight="800">${safeInitial}</text>
         </svg>`;
         return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
     }
@@ -741,72 +753,75 @@
 
         if (searchQuery) {
             list = list.filter(p => 
-                p.username.toLowerCase().includes(searchQuery) || 
+                (p.username || '').toLowerCase().includes(searchQuery) || 
                 String(p.id).includes(searchQuery)
             );
         }
 
         if (sortFilter === 'points') {
-            list.sort((a, b) => b.points - a.points);
+            list.sort((a, b) => (b.points || 0) - (a.points || 0));
         } else if (sortFilter === 'posts') {
             list.sort((a, b) => (b.duck_posts || []).length - (a.duck_posts || []).length);
         } else if (sortFilter === 'comments') {
             list.sort((a, b) => (b.duck_comments || []).length - (a.duck_comments || []).length);
         } else if (sortFilter === 'qualified') {
-            list = list.filter(p => p.points >= 100);
-            list.sort((a, b) => b.points - a.points);
+            list = list.filter(p => (p.points || 0) >= 100);
+            list.sort((a, b) => (b.points || 0) - (a.points || 0));
         } else if (sortFilter === 'unclaimed') {
             list = list.filter(p => !p.prize_sent);
-            list.sort((a, b) => b.points - a.points);
+            list.sort((a, b) => (b.points || 0) - (a.points || 0));
         } else if (sortFilter === 'claimed') {
             list = list.filter(p => p.prize_sent);
-            list.sort((a, b) => b.points - a.points);
+            list.sort((a, b) => (b.points || 0) - (a.points || 0));
         }
 
         list.forEach((p, idx) => {
-            const tr = document.createElement('tr');
-            
-            let rankClass = '';
-            if (idx === 0) rankClass = 'rank-1';
-            else if (idx === 1) rankClass = 'rank-2';
-            else if (idx === 2) rankClass = 'rank-3';
+            try {
+                const tr = document.createElement('tr');
+                
+                let rankClass = '';
+                if (idx === 0) rankClass = 'rank-1';
+                else if (idx === 1) rankClass = 'rank-2';
+                else if (idx === 2) rankClass = 'rank-3';
 
-            const fallbackSvg = getInitialAvatarSVG(p.username);
-            let avatarUrl = fallbackSvg;
-            if (p.avatar && typeof p.avatar === 'string' && !p.avatar.endsWith('.webm') && !p.avatar.endsWith('.mp4')) {
-                avatarUrl = p.avatar.startsWith('http') ? p.avatar : `https://remanga.org${p.avatar}`;
-            }
+                const fallbackSvg = getInitialAvatarSVG(p.username, p.id);
+                let avatarUrl = fallbackSvg;
+                if (p.avatar && typeof p.avatar === 'string' && !p.avatar.endsWith('.webm') && !p.avatar.endsWith('.mp4')) {
+                    avatarUrl = p.avatar.startsWith('http') ? p.avatar : `https://remanga.org${p.avatar}`;
+                }
 
-            const isQualified = p.points >= 100;
-            const pointsClass = isQualified ? 'points-badge points-qualified' : 'points-badge';
+                const isQualified = (p.points || 0) >= 100;
+                const pointsClass = isQualified ? 'points-badge points-qualified' : 'points-badge';
+                const safeUsername = escapeHtml(p.username);
 
-            tr.innerHTML = `
-                <td><div class="rank-badge ${rankClass}">${idx + 1}</div></td>
-                <td>
-                    <div class="user-info">
-                        <img src="${avatarUrl}" class="user-avatar" onerror="this.onerror=null; this.src='${fallbackSvg}';">
-                        <a href="https://remanga.org/user/${p.id}/about" target="_blank" class="user-name">${p.username}</a>
-                    </div>
-                </td>
-                <td><span class="${pointsClass}">${p.points} ${isQualified ? '🎉' : ''}</span></td>
-                <td>
-                    <button class="toggle-btn ${p.has_duck_avatar ? 'active' : ''}" onclick="toggleAvatar(${p.id}, ${!p.has_duck_avatar})">
-                        ${p.has_duck_avatar ? '🦆 Утка (+10)' : '❌ Нет (0)'}
-                    </button>
-                </td>
-                <td><strong>${p.target_post_points || 0}</strong> (${p.target_post_points || 0} очков)</td>
-                <td><strong>${(p.duck_posts || []).length}</strong> (${(p.duck_posts || []).length * 5} очков)</td>
-                <td><strong>${(p.duck_comments || []).length}</strong> (${(p.duck_comments || []).length * 2} очков)</td>
-                <td>
-                    <button class="toggle-btn ${p.prize_sent ? 'prize-sent-active' : ''}" onclick="togglePrizeSent(${p.id}, ${!p.prize_sent})">
-                        ${p.prize_sent ? '🎁 Приз выдан' : '⏳ Не выдан'}
-                    </button>
-                </td>
-                <td>
-                    <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="openModal(${p.id})">Подробнее</button>
-                </td>
-            `;
-            body.appendChild(tr);
+                tr.innerHTML = `
+                    <td><div class="rank-badge ${rankClass}">${idx + 1}</div></td>
+                    <td>
+                        <div class="user-info">
+                            <img src="${avatarUrl}" class="user-avatar" onerror="this.onerror=null; this.src='${fallbackSvg}';">
+                            <a href="https://remanga.org/user/${p.id}/about" target="_blank" class="user-name">${safeUsername}</a>
+                        </div>
+                    </td>
+                    <td><span class="${pointsClass}">${p.points || 0} ${isQualified ? '🎉' : ''}</span></td>
+                    <td>
+                        <button class="toggle-btn ${p.has_duck_avatar ? 'active' : ''}" onclick="toggleAvatar(${p.id}, ${!p.has_duck_avatar})">
+                            ${p.has_duck_avatar ? '🦆 Утка (+10)' : '❌ Нет (0)'}
+                        </button>
+                    </td>
+                    <td><strong>${p.target_post_points || 0}</strong> (${p.target_post_points || 0} очков)</td>
+                    <td><strong>${(p.duck_posts || []).length}</strong> (${(p.duck_posts || []).length * 5} очков)</td>
+                    <td><strong>${(p.duck_comments || []).length}</strong> (${(p.duck_comments || []).length * 2} очков)</td>
+                    <td>
+                        <button class="toggle-btn ${p.prize_sent ? 'prize-sent-active' : ''}" onclick="togglePrizeSent(${p.id}, ${!p.prize_sent})">
+                            ${p.prize_sent ? '🎁 Приз выдан' : '⏳ Не выдан'}
+                        </button>
+                    </td>
+                    <td>
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="openModal(${p.id})">Подробнее</button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            } catch (e) {}
         });
     }
 
