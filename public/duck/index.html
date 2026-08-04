@@ -665,19 +665,12 @@
         last_scan_time: null
     };
 
-    let lastStateStr = '';
-
     async function loadData() {
         try {
             const res = await fetch('/api/state?t=' + Date.now(), { cache: 'no-store' });
             if (res.ok) {
-                const data = await res.json();
-                const freshStr = JSON.stringify(data);
-                if (freshStr !== lastStateStr) {
-                    appState = data;
-                    lastStateStr = freshStr;
-                    renderUI();
-                }
+                appState = await res.json();
+                renderUI();
             }
         } catch (e) {}
     }
@@ -699,7 +692,9 @@
         }
 
         renderTargetPosts();
-        renderTable();
+        if (document.activeElement !== document.getElementById('searchBox')) {
+            renderTable();
+        }
     }
 
     function renderTargetPosts() {
@@ -851,7 +846,7 @@
         const p = appState.participants.find(x => x.id === userId);
         if (p) {
             p.has_duck_avatar = hasDuck;
-            p.points = ((p.duck_posts || []).length * 5) + ((p.duck_comments || []).length * 2) + (hasDuck ? 10 : 0);
+            p.points = (p.target_post_points || 0) + ((p.duck_posts || []).length * 5) + ((p.duck_comments || []).length * 2) + (hasDuck ? 10 : 0);
             renderTable();
         }
         try {
