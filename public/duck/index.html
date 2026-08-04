@@ -558,7 +558,7 @@
             <div class="logo-icon">🦆</div>
             <div>
                 <h1>Большой Утиный День</h1>
-                <div class="subtitle">Трекер активности и подсчет баллов участников ReManga (Eternal Watchers)</div>
+                <div class="subtitle">Трекер активности и подсчет баллов участников ReManga</div>
             </div>
         </div>
         <div class="header-actions">
@@ -659,28 +659,34 @@
 </div>
 
 <script>
-    const API_BASE = window.DUCK_API_URL || '';
     let appState = {
         settings: { target_posts: [] },
         participants: [],
         last_scan_time: null
     };
 
+    let lastStateStr = '';
+
     async function loadData() {
         try {
-            const res = await fetch(API_BASE + '/api/state?t=' + Date.now(), { cache: 'no-store' });
+            const res = await fetch('/api/state?t=' + Date.now(), { cache: 'no-store' });
             if (res.ok) {
-                appState = await res.json();
-                renderUI();
+                const data = await res.json();
+                const freshStr = JSON.stringify(data);
+                if (freshStr !== lastStateStr) {
+                    appState = data;
+                    lastStateStr = freshStr;
+                    renderUI();
+                }
             }
         } catch (e) {}
     }
 
     function renderUI() {
-        document.getElementById('statParticipants').innerText = (appState.participants || []).length;
-        const qualifiedCount = (appState.participants || []).filter(p => p.points >= 100).length;
+        document.getElementById('statParticipants').innerText = appState.participants.length;
+        const qualifiedCount = appState.participants.filter(p => p.points >= 100).length;
         document.getElementById('statQualified').innerText = qualifiedCount;
-        document.getElementById('statPostsCount').innerText = ((appState.settings && appState.settings.target_posts) || []).length;
+        document.getElementById('statPostsCount').innerText = (appState.settings.target_posts || []).length;
         document.getElementById('statLastScan').innerText = appState.last_scan_time || '--:--';
         
         const statusEl = document.getElementById('scannerStatus');
@@ -699,7 +705,7 @@
     function renderTargetPosts() {
         const container = document.getElementById('targetPostsList');
         container.innerHTML = '';
-        const posts = (appState.settings && appState.settings.target_posts) || [];
+        const posts = appState.settings.target_posts || [];
         
         posts.forEach(p => {
             const chip = document.createElement('div');
@@ -713,6 +719,22 @@
         });
     }
 
+    function getInitialAvatarSVG(username) {
+        const name = (username || 'U').trim();
+        const initial = (name.charAt(0) || 'U').toUpperCase();
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+            <defs>
+                <linearGradient id="grad_${initial}" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#1e293b"/>
+                    <stop offset="100%" stop-color="#0f172a"/>
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="48" fill="url(#grad_${initial})" stroke="#f59e0b" stroke-width="4"/>
+            <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#fbbf24" font-family="Outfit, sans-serif" font-size="44" font-weight="800">${initial}</text>
+        </svg>`;
+        return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    }
+
     function renderTable() {
         const body = document.getElementById('leaderboardBody');
         body.innerHTML = '';
@@ -720,11 +742,11 @@
         const searchQuery = document.getElementById('searchBox').value.toLowerCase().trim();
         const sortFilter = document.getElementById('sortFilter').value;
 
-        let list = [...(appState.participants || [])];
+        let list = [...appState.participants];
 
         if (searchQuery) {
             list = list.filter(p => 
-                (p.username || '').toLowerCase().includes(searchQuery) || 
+                p.username.toLowerCase().includes(searchQuery) || 
                 String(p.id).includes(searchQuery)
             );
         }
@@ -754,7 +776,12 @@
             else if (idx === 1) rankClass = 'rank-2';
             else if (idx === 2) rankClass = 'rank-3';
 
-            const avatarUrl = p.avatar ? (p.avatar.startsWith('http') ? p.avatar : `https://remanga.org${p.avatar}`) : 'https://remanga.org/media/users/default.webp';
+            const fallbackSvg = getInitialAvatarSVG(p.username);
+            let avatarUrl = fallbackSvg;
+            if (p.avatar && typeof p.avatar === 'string' && !p.avatar.endsWith('.webm') && !p.avatar.endsWith('.mp4')) {
+                avatarUrl = p.avatar.startsWith('http') ? p.avatar : `https://remanga.org${p.avatar}`;
+            }
+
             const isQualified = p.points >= 100;
             const pointsClass = isQualified ? 'points-badge points-qualified' : 'points-badge';
 
@@ -762,7 +789,7 @@
                 <td><div class="rank-badge ${rankClass}">${idx + 1}</div></td>
                 <td>
                     <div class="user-info">
-                        <img src="${avatarUrl}" class="user-avatar" onerror="this.src='https://remanga.org/media/users/default.webp'">
+                        <img src="${avatarUrl}" class="user-avatar" onerror="this.onerror=null; this.src='${fallbackSvg}';">
                         <a href="https://remanga.org/user/${p.id}/about" target="_blank" class="user-name">${p.username}</a>
                     </div>
                 </td>
@@ -794,7 +821,7 @@
         if (!url) return;
 
         try {
-            const res = await fetch(API_BASE + '/api/target_posts/add', {
+            const res = await fetch('/api/target_posts/add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url })
@@ -811,7 +838,7 @@
 
     async function removePost(postId) {
         try {
-            await fetch(API_BASE + '/api/target_posts/remove', {
+            await fetch('/api/target_posts/remove', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ post_id: postId })
@@ -821,14 +848,14 @@
     }
 
     async function toggleAvatar(userId, hasDuck) {
-        const p = (appState.participants || []).find(x => x.id === userId);
+        const p = appState.participants.find(x => x.id === userId);
         if (p) {
             p.has_duck_avatar = hasDuck;
             p.points = ((p.duck_posts || []).length * 5) + ((p.duck_comments || []).length * 2) + (hasDuck ? 10 : 0);
             renderTable();
         }
         try {
-            await fetch(API_BASE + '/api/toggle_avatar', {
+            await fetch('/api/toggle_avatar', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: userId, has_duck_avatar: hasDuck })
@@ -838,13 +865,13 @@
     }
 
     async function togglePrizeSent(userId, isSent) {
-        const p = (appState.participants || []).find(x => x.id === userId);
+        const p = appState.participants.find(x => x.id === userId);
         if (p) {
             p.prize_sent = isSent;
             renderTable();
         }
         try {
-            await fetch(API_BASE + '/api/toggle_prize_sent', {
+            await fetch('/api/toggle_prize_sent', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ user_id: userId, prize_sent: isSent })
@@ -862,7 +889,7 @@
             statusEl.style.color = '#fbbf24';
         }
         try {
-            await fetch(API_BASE + '/api/scan_now', { method: 'POST' });
+            await fetch('/api/scan_now', { method: 'POST' });
             let count = 0;
             if (scanPollTimer) clearInterval(scanPollTimer);
             scanPollTimer = setInterval(async () => {
@@ -879,7 +906,7 @@
     }
 
     function openModal(userId) {
-        const p = (appState.participants || []).find(x => x.id === userId);
+        const p = appState.participants.find(x => x.id === userId);
         if (!p) return;
         document.getElementById('modalUserName').innerText = `🦆 Участник: ${p.username} (${p.points} очков)`;
         const content = document.getElementById('modalContent');
@@ -946,7 +973,7 @@
     }
 
     loadData();
-    setInterval(loadData, 1000);
+    setInterval(loadData, 3000);
 </script>
 </body>
 </html>
