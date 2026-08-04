@@ -20,7 +20,7 @@ FROM base AS builder
 RUN apk update && apk add libc6-compat
 WORKDIR /app
 
-RUN npm install -g pnpm@latest
+RUN npm install -g pnpm@9.15.4
 
 COPY . .
 ENV GIT_HASH=$GIT_HASH
@@ -28,13 +28,13 @@ RUN pnpm dlx turbo telemetry disable
 RUN pnpm dlx turbo prune web --docker
 
 FROM base AS installer
-RUN apk update && apk add libc6-compat
+RUN apk update && apk add libc6-compat python3 make g++ cairo-dev pango-dev jpeg-dev giflib-dev librsvg-dev pixman-dev
 WORKDIR /app
 
-RUN npm install -g pnpm@latest
+RUN npm install -g pnpm@9.15.4
 
 COPY --from=builder /app/out/json/ .
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 COPY --from=builder /app/out/full/ .
 RUN pnpm dlx turbo telemetry disable

@@ -1,6 +1,7 @@
 {
   "name": "eternal-watchers-event",
   "version": "1.0.2",
+  "packageManager": "pnpm@9.15.4",
   "description": "Event website with interactive board game, 3D character customizer, and guild scanner",
   "main": "server.js",
   "type": "module",

@@ -2,7 +2,7 @@ export default function DuckPage() {
   return (
     <div style={{ width: '100%', height: '100vh', border: 'none' }}>
       <iframe
-        src="/duck/index.html"
+        src="/duck/index.html?v=3"
         style={{
           width: '100%',
           height: '100%',
