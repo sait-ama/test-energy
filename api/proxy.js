@@ -35,16 +35,12 @@ async function refreshBackendUrls(now) {
 async function proxyToDuckBackend(req, res, duckUrl) {
   const targetUrl = duckUrl.replace(/\/$/, '') + req.url;
   try {
-    const headers = {};
-    const ignoredHeaders = ['host', 'connection', 'content-length', 'accept-encoding'];
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (!ignoredHeaders.includes(key.toLowerCase())) {
-        headers[key] = value;
-      }
-    }
-    headers['bypass-tunnel-reminder'] = 'true';
-    headers['Bypass-Tunnel-Reminder'] = 'true';
-    headers['user-agent'] = 'Mozilla/5.0';
+    const headers = {
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+      'Accept': 'application/json, text/plain, */*',
+      'bypass-tunnel-reminder': 'true',
+      'Bypass-Tunnel-Reminder': 'true'
+    };
 
     const fetchOptions = {
       method: req.method,
@@ -57,19 +53,12 @@ async function proxyToDuckBackend(req, res, duckUrl) {
         chunks.push(chunk);
       }
       fetchOptions.body = Buffer.concat(chunks);
-      headers['content-length'] = fetchOptions.body.length.toString();
+      headers['Content-Type'] = req.headers['content-type'] || 'application/json';
     }
 
     const targetRes = await fetch(targetUrl, fetchOptions);
 
-    targetRes.headers.forEach((value, key) => {
-      if (key !== 'content-encoding' && key !== 'transfer-encoding') {
-        res.setHeader(key, value);
-      }
-    });
-
     res.status(targetRes.status);
-
     const contentType = targetRes.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
       const json = await targetRes.json();
