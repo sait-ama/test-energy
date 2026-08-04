@@ -4,21 +4,17 @@ export const config = {
   },
 };
 
-let cachedBackendUrl = 'https://patrina-unlusty-vince.ngrok-free.dev';
-let cachedDuckBackendUrl = 'https://shiny-oranges-strive.loca.lt';
+let cachedBackendUrl = '';
+let cachedDuckBackendUrl = '';
 let lastFetchTime = 0;
 
 async function refreshBackendUrls(now) {
-  if (now - lastFetchTime < 2000) return;
+  if (cachedDuckBackendUrl && now - lastFetchTime < 5000) return;
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
     const binRes = await fetch('https://extendsclass.com/api/json-storage/bin/ffaabaf?nocache=' + now, {
       cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
-      signal: controller.signal
+      headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
     });
-    clearTimeout(timeoutId);
     if (binRes.ok) {
       const data = await binRes.json();
       if (data && data.backendUrl) {
