@@ -87,7 +87,7 @@ export default async function handler(req, res) {
   const now = Date.now();
   const url = req.url || '';
 
-  refreshBackendUrls(now);
+  await refreshBackendUrls(now);
 
   const isDuckRoute = url.startsWith('/api/state') || url.startsWith('/api/scan_now') || url.startsWith('/api/toggle_avatar') || url.startsWith('/api/toggle_prize_sent') || url.startsWith('/api/target_posts') || url.startsWith('/api/reset_participant_posts');
 
