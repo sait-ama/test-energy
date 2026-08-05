@@ -100,7 +100,7 @@ let duckSettings = {
 let duckState = {
   scanner_is_running: false,
   scanner_paused: false,
-  last_scan_time: new Date().toLocaleString('ru-RU'),
+  last_scan_time: new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date()),
   settings: duckSettings,
   participants: {
     "12762": {
@@ -271,7 +271,7 @@ async function runDuckScanCycle() {
       }
     }
     duckState.participants = cleaned;
-    duckState.last_scan_time = new Date().toLocaleString('ru-RU');
+    duckState.last_scan_time = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Moscow', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date());
   } catch (e) {
   } finally {
     duckState.scanner_is_running = false;
