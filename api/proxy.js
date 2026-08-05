@@ -6,21 +6,35 @@ export const config = {
 
 let cachedBackendUrl = '';
 let cachedDuckBackendUrl = '';
+let lastFetchTime = 0;
 
 async function refreshBackendUrls() {
+  const now = Date.now();
+  if (now - lastFetchTime < 10000 && (cachedDuckBackendUrl || cachedBackendUrl)) {
+    return;
+  }
   try {
-    const binRes = await fetch('https://extendsclass.com/api/json-storage/bin/ffaabaf?nocache=' + Date.now(), {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 2000);
+    const binRes = await fetch('https://extendsclass.com/api/json-storage/bin/ffaabaf?nocache=' + now, {
       cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' },
+      signal: controller.signal
     });
+    clearTimeout(timeoutId);
     if (binRes.ok) {
       const data = await binRes.json();
       if (data) {
         if (data.backendUrl) cachedBackendUrl = data.backendUrl.trim();
         if (data.duckBackendUrl) cachedDuckBackendUrl = data.duckBackendUrl.trim();
+        lastFetchTime = Date.now();
       }
     }
-  } catch (err) {}
+  } catch (err) {
+    if (!cachedDuckBackendUrl && !cachedBackendUrl) {
+      lastFetchTime = 0;
+    }
+  }
 }
 
 export default async function handler(req, res) {
@@ -84,6 +98,7 @@ export default async function handler(req, res) {
       res.send(Buffer.from(buffer));
     }
   } catch (err) {
+    lastFetchTime = 0;
     res.status(500).json({ error: 'Ошибка проксирования запроса к бэкенду: ' + err.message + ' | Target: ' + targetUrl + (err.cause ? ' | Cause: ' + String(err.cause.message || err.cause) : '') });
   }
 }
