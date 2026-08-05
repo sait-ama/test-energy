@@ -611,10 +611,13 @@
             }
         }
 
+        .read-only-mode #scannerStatus,
         .read-only-mode #triggerScanBtn,
         .read-only-mode #scannerToggleBtn,
         .read-only-mode .add-post-form,
-        .read-only-mode .btn-del {
+        .read-only-mode .btn-del,
+        .read-only-mode #cardPostsCount,
+        .read-only-mode #cardLastScan {
             display: none !important;
         }
     </style>
@@ -662,14 +665,14 @@
                 </div>
                 <div class="stat-icon">🏆</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" id="cardPostsCount">
                 <div>
                     <div class="stat-val" id="statPostsCount">0</div>
                     <div class="stat-lbl">Закрепленных постов</div>
                 </div>
                 <div class="stat-icon">📌</div>
             </div>
-            <div class="stat-card">
+            <div class="stat-card" id="cardLastScan">
                 <div>
                     <div class="stat-val" id="statLastScan">--:--</div>
                     <div class="stat-lbl">Последнее обновление (МСК)</div>
