@@ -6,43 +6,89 @@ export const config = {
 
 let cachedBackendUrl = '';
 let cachedDuckBackendUrl = '';
-let lastFetchTime = 0;
+
+const ALLOWED_IPS = [
+  '89.219.20.15',
+  '5.166.218.201',
+  '127.0.0.1',
+  '::1',
+  '::ffff:127.0.0.1'
+];
+
+function getClientIp(req) {
+  const xForwardedFor = req.headers['x-forwarded-for'];
+  if (xForwardedFor) {
+    const ips = String(xForwardedFor).split(',');
+    return ips[0].trim();
+  }
+  return req.headers['x-real-ip'] || req.socket?.remoteAddress || '';
+}
+
+function isIpAllowed(clientIp) {
+  const cleanIp = clientIp.replace(/^::ffff:/, '');
+  return ALLOWED_IPS.includes(cleanIp) || ALLOWED_IPS.includes(clientIp);
+}
 
 async function refreshBackendUrls() {
-  const now = Date.now();
-  if (now - lastFetchTime < 10000 && (cachedDuckBackendUrl || cachedBackendUrl)) {
-    return;
-  }
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 2000);
-    const binRes = await fetch('https://extendsclass.com/api/json-storage/bin/ffaabaf?nocache=' + now, {
+    const binRes = await fetch('https://extendsclass.com/api/json-storage/bin/ffaabaf?nocache=' + Date.now(), {
       cache: 'no-store',
-      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' },
-      signal: controller.signal
+      headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
     });
-    clearTimeout(timeoutId);
     if (binRes.ok) {
       const data = await binRes.json();
       if (data) {
         if (data.backendUrl) cachedBackendUrl = data.backendUrl.trim();
         if (data.duckBackendUrl) cachedDuckBackendUrl = data.duckBackendUrl.trim();
-        lastFetchTime = Date.now();
       }
     }
-  } catch (err) {
-    if (!cachedDuckBackendUrl && !cachedBackendUrl) {
-      lastFetchTime = 0;
-    }
-  }
+  } catch (err) {}
 }
 
 export default async function handler(req, res) {
   const url = req.url || '';
+  const clientIp = getClientIp(req);
+  const allowed = isIpAllowed(clientIp);
+
+  // Защита страницы /duck по IP
+  if (url === '/duck' || url.startsWith('/duck?') || url.startsWith('/duck/')) {
+    if (!allowed) {
+      res.status(403);
+      res.setHeader('Content-Type', 'text/html; charset=utf-8');
+      return res.send(`<!DOCTYPE html>
+<html lang="ru">
+<head><meta charset="UTF-8"><title>403 Forbidden</title></head>
+<body style="background:#0b0f19;color:#ef4444;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+  <div style="text-align:center;background:rgba(22,30,49,0.9);padding:40px;border-radius:12px;border:1px solid rgba(239,68,68,0.3);max-width:480px;box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+    <div style="font-size:48px;margin-bottom:16px;">🚫</div>
+    <h1 style="margin:0 0 10px 0;font-size:24px;">403 Forbidden</h1>
+    <p style="color:#9ca3af;margin:0;font-size:14px;line-height:1.5;">Доступ к админ-панели запрещен.<br>Ваш IP-адрес: <strong style="color:#fbbf24;">${clientIp}</strong> не находится в списке разрешенных.</p>
+  </div>
+</body>
+</html>`);
+    }
+  }
+
+  // Защита административных POST действий по IP
+  const isAdminPostAction = req.method === 'POST' && (
+    url.startsWith('/api/scan_now') ||
+    url.startsWith('/api/toggle_scanner') ||
+    url.startsWith('/api/toggle_avatar') ||
+    url.startsWith('/api/toggle_prize_sent') ||
+    url.startsWith('/api/target_posts') ||
+    url.startsWith('/api/reset_participant_posts')
+  );
+
+  if (isAdminPostAction && !allowed) {
+    return res.status(403).json({
+      error: '403 Forbidden: Ваш IP-адрес не имеет прав для выполнения административных действий',
+      clientIp: clientIp
+    });
+  }
 
   await refreshBackendUrls();
 
-  const isDuckRoute = url.startsWith('/api/state') || url.startsWith('/api/scan_now') || url.startsWith('/api/toggle_scanner') || url.startsWith('/api/toggle_avatar') || url.startsWith('/api/toggle_prize_sent') || url.startsWith('/api/target_posts') || url.startsWith('/api/reset_participant_posts');
+  const isDuckRoute = url.startsWith('/duck') || url.startsWith('/api/state') || url.startsWith('/api/scan_now') || url.startsWith('/api/toggle_scanner') || url.startsWith('/api/toggle_avatar') || url.startsWith('/api/toggle_prize_sent') || url.startsWith('/api/target_posts') || url.startsWith('/api/reset_participant_posts');
 
   const backendUrl = isDuckRoute ? (cachedDuckBackendUrl || cachedBackendUrl) : cachedBackendUrl;
 
@@ -98,7 +144,6 @@ export default async function handler(req, res) {
       res.send(Buffer.from(buffer));
     }
   } catch (err) {
-    lastFetchTime = 0;
     res.status(500).json({ error: 'Ошибка проксирования запроса к бэкенду: ' + err.message + ' | Target: ' + targetUrl + (err.cause ? ' | Cause: ' + String(err.cause.message || err.cause) : '') });
   }
 }
