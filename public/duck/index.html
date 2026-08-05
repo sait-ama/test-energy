@@ -458,6 +458,25 @@
             font-weight: 600;
         }
 
+        .status-badge {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            display: inline-block;
+            cursor: default;
+            user-select: none;
+        }
+
+        .status-badge.active {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: var(--duck-orange);
+            color: var(--duck-yellow);
+            font-weight: 600;
+        }
+
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -607,7 +626,7 @@
             </div>
             <div class="header-actions">
                 <div id="scannerStatus" style="font-size: 13px; color: var(--text-muted);">Сканирование...</div>
-                <button class="btn" onclick="triggerScan()">🔄 Сканировать сейчас</button>
+                <button id="triggerScanBtn" class="btn" onclick="triggerScan()">🔄 Сканировать сейчас</button>
                 <button id="scannerToggleBtn" class="btn btn-scanner-stop" onclick="toggleScanner()">⏸ Остановить автосканер</button>
             </div>
         </header>
@@ -729,23 +748,40 @@
             document.getElementById('statPostsCount').innerText = (appState.settings.target_posts || []).length;
             document.getElementById('statLastScan').innerText = appState.last_scan_time || '--:--';
 
+            const isReadOnly = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
+
             const statusEl = document.getElementById('scannerStatus');
             const toggleBtn = document.getElementById('scannerToggleBtn');
+            const triggerScanBtn = document.getElementById('triggerScanBtn');
+            const addPostForm = document.querySelector('.add-post-form');
+
+            if (isReadOnly) {
+                if (toggleBtn) toggleBtn.style.display = 'none';
+                if (triggerScanBtn) triggerScanBtn.style.display = 'none';
+                if (addPostForm) addPostForm.style.display = 'none';
+            }
+
             if (appState.scanner_paused) {
                 statusEl.innerText = '⏸ Автосканер остановлен';
                 statusEl.style.color = '#ef4444';
-                toggleBtn.innerHTML = '▶ Запустить автосканер';
-                toggleBtn.className = 'btn btn-scanner-start';
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = '▶ Запустить автосканер';
+                    toggleBtn.className = 'btn btn-scanner-start';
+                }
             } else if (appState.scanner_is_running) {
                 statusEl.innerText = '⏳ Идет сканирование...';
                 statusEl.style.color = '#fbbf24';
-                toggleBtn.innerHTML = '⏸ Остановить автосканер';
-                toggleBtn.className = 'btn btn-scanner-stop';
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = '⏸ Остановить автосканер';
+                    toggleBtn.className = 'btn btn-scanner-stop';
+                }
             } else {
                 statusEl.innerText = '✅ Активно';
                 statusEl.style.color = '#10b981';
-                toggleBtn.innerHTML = '⏸ Остановить автосканер';
-                toggleBtn.className = 'btn btn-scanner-stop';
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = '⏸ Остановить автосканер';
+                    toggleBtn.className = 'btn btn-scanner-stop';
+                }
             }
 
             renderTargetPosts();
@@ -758,14 +794,16 @@
             const container = document.getElementById('targetPostsList');
             container.innerHTML = '';
             const posts = appState.settings.target_posts || [];
+            const isReadOnly = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
 
             posts.forEach(p => {
                 const chip = document.createElement('div');
                 chip.className = 'post-chip';
+                const delBtnHtml = isReadOnly ? '' : `<button class="btn-del" onclick="removePost(${p.post_id})">&times;</button>`;
                 chip.innerHTML = `
                 <span>📌</span>
-                <a href="${p.post_url}" target="_blank">${p.header || p.post_slug}</a>
-                <button class="btn-del" onclick="removePost(${p.post_id})">&times;</button>
+                <a href="${p.post_url}" target="_blank">${escapeHtml(p.header || p.post_slug)}</a>
+                ${delBtnHtml}
             `;
                 container.appendChild(chip);
             });
@@ -851,6 +889,28 @@
                     const pointsClass = isQualified ? 'points-badge points-qualified' : 'points-badge';
                     const safeUsername = escapeHtml(p.username);
 
+                    const isReadOnly = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
+
+                    const duckAvatarCell = isReadOnly ? `
+                        <span class="status-badge ${p.has_duck_avatar ? 'active' : ''}">
+                            ${p.has_duck_avatar ? '🦆 Утка (+10)' : '❌ Нет (0)'}
+                        </span>
+                    ` : `
+                        <button class="toggle-btn ${p.has_duck_avatar ? 'active' : ''}" onclick="toggleAvatar(${p.id}, ${!p.has_duck_avatar})">
+                            ${p.has_duck_avatar ? '🦆 Утка (+10)' : '❌ Нет (0)'}
+                        </button>
+                    `;
+
+                    const prizeSentCell = isReadOnly ? `
+                        <span class="status-badge ${p.prize_sent ? 'prize-sent-active' : ''}">
+                            ${p.prize_sent ? '🎁 Приз выдан' : '⏳ Не выдан'}
+                        </span>
+                    ` : `
+                        <button class="toggle-btn ${p.prize_sent ? 'prize-sent-active' : ''}" onclick="togglePrizeSent(${p.id}, ${!p.prize_sent})">
+                            ${p.prize_sent ? '🎁 Приз выдан' : '⏳ Не выдан'}
+                        </button>
+                    `;
+
                     tr.innerHTML = `
                     <td><div class="rank-badge ${rankClass}">${idx + 1}</div></td>
                     <td>
@@ -860,19 +920,11 @@
                         </div>
                     </td>
                     <td><span class="${pointsClass}">${p.points || 0} ${isQualified ? '🎉' : ''}</span></td>
-                    <td>
-                        <button class="toggle-btn ${p.has_duck_avatar ? 'active' : ''}" onclick="toggleAvatar(${p.id}, ${!p.has_duck_avatar})">
-                            ${p.has_duck_avatar ? '🦆 Утка (+10)' : '❌ Нет (0)'}
-                        </button>
-                    </td>
+                    <td>${duckAvatarCell}</td>
                     <td><strong>${p.target_post_points || 0}</strong> (${p.target_post_points || 0} очков)</td>
                     <td><strong>${(p.duck_posts || []).length}</strong> (${(p.duck_posts || []).length * 5} очков)</td>
                     <td><strong>${(p.duck_comments || []).length}</strong> (${(p.duck_comments || []).length * 2} очков)</td>
-                    <td>
-                        <button class="toggle-btn ${p.prize_sent ? 'prize-sent-active' : ''}" onclick="togglePrizeSent(${p.id}, ${!p.prize_sent})">
-                            ${p.prize_sent ? '🎁 Приз выдан' : '⏳ Не выдан'}
-                        </button>
-                    </td>
+                    <td>${prizeSentCell}</td>
                     <td>
                         <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="openModal(${p.id})">Подробнее</button>
                     </td>

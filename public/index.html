@@ -2,1300 +2,1122 @@
 <html lang="ru">
 
 <head>
-  <script>
-    window.addEventListener('error', function (e) {
-      if (e.message && (e.message.includes('ResizeObserver') || e.message.includes('Script error.'))) {
-        return;
-      }
-      const errorDiv = document.createElement('div');
-      errorDiv.style.position = 'fixed';
-      errorDiv.style.top = '10px';
-      errorDiv.style.left = '10px';
-      errorDiv.style.right = '10px';
-      errorDiv.style.background = 'rgba(231, 76, 60, 0.95)';
-      errorDiv.style.color = '#fff';
-      errorDiv.style.padding = '15px';
-      errorDiv.style.borderRadius = '8px';
-      errorDiv.style.zIndex = '99999';
-      errorDiv.style.fontFamily = 'monospace';
-      errorDiv.style.fontSize = '12px';
-      errorDiv.style.boxShadow = '0 0 20px rgba(0,0,0,0.5)';
-      errorDiv.innerHTML = '<strong>JS Error:</strong> ' + e.message + ' <br>at ' + e.filename + ':' + e.lineno;
-      document.body.appendChild(errorDiv);
-    });
-    window.addEventListener('unhandledrejection', function (e) {
-      const errorDiv = document.createElement('div');
-      errorDiv.style.position = 'fixed';
-      errorDiv.style.top = '10px';
-      errorDiv.style.left = '10px';
-      errorDiv.style.right = '10px';
-      errorDiv.style.background = 'rgba(231, 76, 60, 0.95)';
-      errorDiv.style.color = '#fff';
-      errorDiv.style.padding = '15px';
-      errorDiv.style.borderRadius = '8px';
-      errorDiv.style.zIndex = '99999';
-      errorDiv.style.fontFamily = 'monospace';
-      errorDiv.style.fontSize = '12px';
-      errorDiv.style.boxShadow = '0 0 20px rgba(0,0,0,0.5)';
-      errorDiv.innerHTML = '<strong>Unhandled Rejection:</strong> ' + e.reason;
-      document.body.appendChild(errorDiv);
-    });
-    window.handleRewardImageError = function (img, originalUrl) {
-      if (!img.dataset.retries) img.dataset.retries = '0';
-      let retries = parseInt(img.dataset.retries);
-      if (retries < 5) {
-        retries++;
-        img.dataset.retries = String(retries);
-        const spinner = document.createElement('div');
-        spinner.className = 'image-loader-spinner';
-        spinner.style.position = 'absolute';
-        spinner.style.width = '20px';
-        spinner.style.height = '20px';
-        spinner.style.border = '2px solid rgba(0,240,255,0.1)';
-        spinner.style.borderRadius = '50%';
-        spinner.style.borderTopColor = '#00f0ff';
-        spinner.style.animation = 'spin 1s linear infinite';
-        img.parentNode.insertBefore(spinner, img);
-        img.style.opacity = '0';
-        setTimeout(() => {
-          img.src = originalUrl + (originalUrl.includes('?') ? '&' : '?') + 'retry=' + Date.now();
-        }, 2000);
-      } else {
-        img.src = 'https://api.remanga.org/media/card-item/cover_2a9a0d1b6da54356.webp';
-        img.style.opacity = '1';
-      }
-    };
-  </script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Eternal Watchers Event</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Orbitron:wght@400;700&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=1.1.0">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
-  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦆 Большой Утиный День — Панель Розыгрыша 🦆</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&family=Inter:wght@400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-main: #0b0f19;
+            --bg-card: rgba(22, 30, 49, 0.7);
+            --bg-card-hover: rgba(30, 41, 67, 0.85);
+            --border-color: rgba(245, 158, 11, 0.2);
+            --border-glow: rgba(245, 158, 11, 0.4);
+
+            --duck-yellow: #fbbf24;
+            --duck-orange: #f59e0b;
+            --duck-accent: #f97316;
+            --purple-accent: #a855f7;
+            --green-success: #10b981;
+
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --text-gold: #fde047;
+
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            background-image:
+                radial-gradient(circle at 15% 15%, rgba(245, 158, 11, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.12) 0%, transparent 45%);
+            background-attachment: fixed;
+            padding-bottom: 60px;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 24px 16px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo-icon {
+            font-size: 40px;
+            filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.6));
+            animation: bounce 2s infinite ease-in-out;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-6px);
+            }
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 26px;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--duck-yellow), var(--duck-accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--duck-orange), var(--duck-accent));
+            color: #fff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: none;
+        }
+
+        .btn-scanner-stop {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-scanner-stop:hover {
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
+        }
+
+        .btn-scanner-start {
+            background: linear-gradient(135deg, #10b981, #059669);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-scanner-start:hover {
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stat-val {
+            font-family: 'Outfit', sans-serif;
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--text-gold);
+        }
+
+        .stat-lbl {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            opacity: 0.8;
+        }
+
+        .posts-section {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 20px 24px;
+            margin-bottom: 24px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .add-post-form {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .input-text {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 10px 16px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-text:focus {
+            border-color: var(--duck-yellow);
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
+        }
+
+        .target-posts-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .post-chip {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+        }
+
+        .post-chip a {
+            color: var(--duck-yellow);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .post-chip a:hover {
+            text-decoration: underline;
+        }
+
+        .btn-del {
+            background: none;
+            border: none;
+            color: #ef4444;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            transition: var(--transition);
+        }
+
+        .btn-del:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+
+        .leaderboard-section {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            min-width: 260px;
+        }
+
+        .select-filter {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 10px 14px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            padding: 14px 16px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 14px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+        }
+
+        tr:hover td {
+            background: var(--bg-card-hover);
+        }
+
+        .rank-badge {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 16px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .rank-1 {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+
+        .rank-2 {
+            background: linear-gradient(135deg, #9ca3af, #4b5563);
+            color: #fff;
+        }
+
+        .rank-3 {
+            background: linear-gradient(135deg, #b45309, #78350f);
+            color: #fff;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--duck-orange);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.3);
+            transition: var(--transition);
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 16px rgba(245, 158, 11, 0.6);
+        }
+
+        .user-name {
+            font-weight: 600;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        .user-name:hover {
+            color: var(--duck-yellow);
+        }
+
+        .points-badge {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            font-size: 16px;
+            color: var(--duck-yellow);
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid var(--border-glow);
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        .points-qualified {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: rgba(16, 185, 129, 0.5);
+            color: #34d399;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .toggle-btn {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .toggle-btn.active {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: var(--duck-orange);
+            color: var(--duck-yellow);
+            font-weight: 600;
+        }
+
+        .prize-sent-active {
+            background: rgba(16, 185, 129, 0.2) !important;
+            border-color: #10b981 !important;
+            color: #34d399 !important;
+            font-weight: 600;
+        }
+
+        .status-badge {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: var(--radius-md);
+            font-size: 13px;
+            display: inline-block;
+            cursor: default;
+            user-select: none;
+        }
+
+        .status-badge.active {
+            background: rgba(245, 158, 11, 0.2);
+            border-color: var(--duck-orange);
+            color: var(--duck-yellow);
+            font-weight: 600;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-card {
+            background: #121827;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .detail-item {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: var(--radius-md);
+            padding: 12px 16px;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 12px 10px;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+                padding: 16px;
+            }
+
+            .header-actions {
+                width: 100%;
+                justify-content: space-between;
+                flex-wrap: wrap;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 12px 14px;
+            }
+
+            .stat-val {
+                font-size: 22px;
+            }
+
+            .stat-lbl {
+                font-size: 11px;
+            }
+
+            .stat-icon {
+                font-size: 24px;
+            }
+
+            .add-post-form {
+                flex-direction: column;
+            }
+
+            .add-post-form .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 14px;
+            }
+
+            .controls-row>div {
+                flex-direction: column;
+                width: 100%;
+                gap: 10px;
+            }
+
+            .search-box,
+            .select-filter {
+                width: 100%;
+                min-width: unset;
+            }
+
+            th,
+            td {
+                padding: 10px 8px;
+                font-size: 12px;
+            }
+
+            .user-avatar {
+                width: 44px;
+                height: 44px;
+            }
+
+            .modal-card {
+                width: 95%;
+                padding: 16px;
+            }
+        }
+    </style>
 </head>
 
 <body>
-  <div id="auth-screen" class="auth-container">
-    <div class="auth-card">
-      <div class="neon-logo">ETERNAL EVENT</div>
-      <h1>Регистрация и Вход</h1>
-      <p class="subtitle">Присоединяйтесь к ивенту гильдии Eternal Watchers</p>
 
-      <div id="telegram-login-container"
-        style="display: flex; flex-direction: column; align-items: center; gap: 12px; margin: 20px 0; min-height: 40px;">
-        <button id="tg-bot-auth-btn" class="btn btn-primary btn-glow btn-block"
-          style="display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 15px; padding: 14px 24px;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
-            <path
-              d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.94 8.13l-1.97 9.28c-.15.67-.54.83-1.09.52l-3.02-2.23-1.46 1.4c-.16.16-.3.3-.61.3l.22-3.07 5.56-5.02c.24-.22-.05-.33-.38-.13L8.69 13.7l-2.98-.93c-.65-.2-.66-.65.14-.96l11.64-4.49c.54-.19 1.01.13.84.96l-.39-.15z" />
-          </svg>
-          Войти через Telegram
-        </button>
-        <div id="tg-auth-status" style="font-size: 12px; color: #8c9ba5; display: none;"></div>
-      </div>
-
-
-    </div>
-  </div>
-
-  <div id="link-remanga-screen" class="auth-container hidden">
-    <div class="auth-card">
-      <div class="neon-logo">REMANGA PROFILE</div>
-      <h1>Привязка Remanga</h1>
-      <p class="subtitle">Шаг 2 из 3: Привяжите ваш профиль Remanga для отслеживания</p>
-      <div class="form-group">
-        <label for="remanga-url-input-onboarding">Ссылка на профиль Remanga</label>
-        <input type="text" id="remanga-url-input-onboarding" placeholder="https://remanga.org/user/364625/about">
-      </div>
-      <button id="link-remanga-btn-onboarding" class="btn btn-primary btn-glow btn-block">Привязать и
-        продолжить</button>
-    </div>
-  </div>
-
-  <div id="character-creator-screen" class="auth-container hidden">
-    <div class="modal-content" style="max-width: 1000px; max-height: none; overflow: visible;">
-      <div class="modal-header">
-        <h2 id="creator-step-title">Создание персонажа (Шаг 1 из 3)</h2>
-      </div>
-      <div class="customizer-layout">
-        <div class="customizer-preview">
-          <div id="creator-canvas-container"></div>
-        </div>
-        <div class="customizer-controls">
-          <div class="creator-stats-panel"
-            style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(0, 240, 255, 0.2); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
-            <h4
-              style="margin: 0 0 8px 0; font-size: 12px; color: #00f0ff; text-transform: uppercase; font-family: 'Orbitron', sans-serif;">
-              Характеристики персонажа</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 12px; margin-bottom: 8px;">
-              <div>Здоровье (HP): <span id="creator-stat-hp" style="font-weight: bold; color: #00ff66;">100</span></div>
-              <div>Урон (DMG): <span id="creator-stat-dmg" style="font-weight: bold; color: #ffcc00;">10</span></div>
-            </div>
-            <div
-              style="font-size: 11px; color: #8c9ba5; border-top: 1px dashed rgba(255,255,255,0.08); padding-top: 6px;">
-              Стихия: <span id="creator-stat-element" style="font-weight: bold; color: #00f0ff;">Вода</span>
-              <div id="creator-stat-element-desc" style="margin-top: 3px; font-size: 10px; color: #a3b2bc;">
-                Эффективна против боссов: Лев, Стрелец.
-              </div>
-            </div>
-          </div>
-
-          <div id="creator-step-1" class="creator-step">
-            <h3>Шаг 1: Тело и костюм</h3>
-            <div class="form-group">
-              <label>Цвет кожи</label>
-              <input type="color" id="creator-skin" value="#ffdbac">
-            </div>
-            <div class="form-group">
-              <label>Тип костюма</label>
-              <select id="creator-costume">
-                <option value="normal">Обычный (без бонусов)</option>
-                <option value="armor">Рыцарский доспех (+100 HP)</option>
-                <option value="robe">Мантия мага (+20 HP, +10 DMG)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Стихия</label>
-              <select id="creator-element">
-                <option value="water">Вода</option>
-                <option value="fire">Огонь</option>
-                <option value="earth">Земля</option>
-                <option value="wind">Ветер</option>
-              </select>
-              <div id="creator-element-help"
-                style="font-size: 11px; color: #8c9ba5; margin-top: 5px; line-height: 1.4;">
-                Вода наносит повышенный урон боссам: Лев (120 ячейка), Стрелец (240 ячейка).
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Цвет костюма</label>
-              <input type="color" id="creator-clothes" value="#2a3f5f">
-            </div>
-            <button id="creator-next-1" class="btn btn-primary btn-block btn-glow">Далее</button>
-          </div>
-
-          <div id="creator-step-2" class="creator-step hidden">
-            <h3>Шаг 2: Голова и прическа</h3>
-            <div class="form-group">
-              <label>Стиль прически/аксессуара</label>
-              <select id="creator-hair-style">
-                <option value="none">Лысый</option>
-                <option value="mohawk">Ирокез</option>
-                <option value="crown">Корона</option>
-                <option value="horns">Рога демона</option>
-                <option value="helmet">Шлем воина</option>
-                <option value="cap">Кепка</option>
-                <option value="ninja">Маска ниндзя</option>
-                <option value="wizard">Шляпа волшебника</option>
-                <option value="cat_ears">Кошачьи ушки</option>
-                <option value="hair_long">Длинные волосы</option>
-                <option value="hair_spiky">Взъерошенные волосы</option>
-                <option value="halo">Ангельский нимб</option>
-                <option value="cyber_viser">Кибер-очки</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Цвет прически/аксессуара</label>
-              <input type="color" id="creator-hair-color" value="#e74c3c">
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-              <button id="creator-prev-2" class="btn btn-secondary" style="flex: 1;">Назад</button>
-              <button id="creator-next-2" class="btn btn-primary btn-glow" style="flex: 1;">Далее</button>
-            </div>
-          </div>
-
-          <div id="creator-step-3" class="creator-step hidden">
-            <h3>Шаг 3: Снаряжение</h3>
-            <div class="form-group">
-              <label>Оружие</label>
-              <select id="creator-weapon">
-                <option value="none">Без оружия (без бонусов)</option>
-                <option value="sword">Энергетический меч (+20 DMG)</option>
-                <option value="staff">Посох мага (+10 HP, +10 DMG)</option>
-                <option value="shield">Энергетический щит (+30 HP, +5 DMG)</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Крылья</label>
-              <select id="creator-wings">
-                <option value="none">Без крыльев</option>
-                <option value="angel">Крылья ангела</option>
-                <option value="demon">Крылья демона</option>
-                <option value="fairy">Крылья феи</option>
-                <option value="butterfly">Крылья бабочки</option>
-                <option value="cyber_wings">Кибер-крылья</option>
-                <option value="bat_wings">Крылья летучей мыши</option>
-              </select>
-            </div>
-            <div style="display: flex; gap: 10px; margin-top: 15px;">
-              <button id="creator-prev-3" class="btn btn-secondary" style="flex: 1;">Назад</button>
-              <button id="creator-save-btn" class="btn btn-primary btn-glow" style="flex: 1;">Создать персонажа</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="app-screen" class="app-container hidden">
-    <!-- Mobile top navigation buttons -->
-    <div class="mobile-nav-buttons mobile-only" style="display: flex; gap: 6px; padding: 10px; width: 100%; box-sizing: border-box;">
-      <button id="mobile-open-shop-btn" class="btn" style="flex: 1; padding: 8px 4px; font-size: 11px;">Магазин</button>
-      <button id="mobile-open-leaders-btn" class="btn" style="flex: 1; padding: 8px 4px; font-size: 11px; background: #27ae60; border-color: #27ae60; color: #fff; box-shadow: 0 0 8px rgba(39, 174, 96, 0.3);">🏆 Топ</button>
-      <button id="mobile-pvp-btn" class="btn btn-glow" style="background: linear-gradient(135deg, #ff007c 0%, #ff4b00 100%); border: none; box-shadow: 0 0 10px rgba(255, 0, 124, 0.4); flex: 1.2; padding: 8px 4px; font-size: 11px;">⚔️ Дуэль</button>
-      <button id="mobile-open-profile-btn" class="btn" style="flex: 1; padding: 8px 4px; font-size: 11px;">Профиль</button>
-    </div>
-
-    <header class="app-header">
-      <div class="header-brand">
-        <span class="brand-glow">ETERNAL WATCHERS</span>
-      </div>
-      <div class="user-summary">
-        <div class="user-info-group">
-          <div class="user-avatar-container">
-            <img id="user-avatar" class="hidden avatar-img" referrerpolicy="no-referrer" src="" alt="">
-            <div id="avatar-fallback" class="avatar-placeholder"></div>
-          </div>
-          <div class="user-meta">
-            <span id="user-display-name" class="font-bold"></span>
-            <span id="user-tg-username" class="text-cyan"></span>
-          </div>
-        </div>
-        <div class="user-stats-group">
-          <div class="header-stat" id="header-balance-container" style="cursor: pointer; display: flex; align-items: center; gap: 4px;">
-            <span class="label">Монеты:</span>
-            <span id="user-balance" class="value text-gold">0</span>
-            <span style="color: #ffb800; font-weight: bold; font-size: 16px; margin-left: 2px;">+</span>
-          </div>
-          <div class="header-stat" style="display: none;">
-            <span class="label">Победы:</span>
-            <span id="user-wins" class="value text-cyan">0</span>
-          </div>
-        </div>
-        <div class="user-actions-group">
-          <button id="pvp-matchmaking-btn" class="btn btn-primary btn-sm btn-glow" style="background: linear-gradient(135deg, #ff007c 0%, #ff4b00 100%); border: none; box-shadow: 0 0 10px rgba(255, 0, 124, 0.4);">⚔️ Дуэль</button>
-          <button id="open-leaders-btn" class="btn btn-primary btn-sm btn-glow" style="background: #27ae60; border-color: #27ae60; box-shadow: 0 0 10px rgba(39, 174, 96, 0.4);">🏆 Лидеры</button>
-          <button id="open-profile-btn" class="btn btn-primary btn-sm btn-glow">Мой Профиль</button>
-          <button id="logout-btn" class="btn btn-secondary btn-sm">Выйти</button>
-        </div>
-      </div>
-    </header>
-
-    <div class="app-grid">
-      <div class="grid-left">
-        <div class="card shop-card">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-            <h2 style="margin: 0;">Магазин</h2>
-            <button id="close-shop-btn" class="btn btn-secondary btn-sm mobile-only" style="padding: 4px 8px;">&times;
-              Закрыть</button>
-          </div>
-          <!-- Mobile shop balance display -->
-          <div class="mobile-shop-balance mobile-only" id="shop-balance-container"
-            style="margin-bottom: 15px; padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05); display: flex; justify-content: space-between; align-items: center; cursor: pointer;">
-            <span style="font-size: 13px; color: #8c9ba5;">Баланс монет:</span>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span id="shop-balance" class="text-gold"
-                style="font-weight: 700; font-size: 16px; font-family: 'Orbitron', sans-serif;">0</span>
-              <span style="color: #ffb800; font-weight: bold; font-size: 18px;">+</span>
-            </div>
-          </div>
-          <div class="shop-tabs">
-            <button class="shop-tab-btn active" data-tab="buffs">Баффы</button>
-            <button class="shop-tab-btn" data-tab="debuffs">Дебаффы</button>
-            <button class="shop-tab-btn" data-tab="equipment">Экипировка</button>
-            <button class="shop-tab-btn" data-tab="casino">Казино</button>
-          </div>
-          <div id="shop-items-list" class="shop-list"></div>
-          <div id="casino-section" class="hidden">
-            <div class="casino-container">
-              <div class="casino-wheel-wrapper">
-                <div class="casino-pointer"></div>
-                <canvas id="casino-wheel-canvas" width="280" height="280"></canvas>
-              </div>
-              <div class="casino-controls">
-                <div class="casino-bet-group">
-                  <label>Ставка (монеты)</label>
-                  <input type="number" id="casino-bet-amount" min="1" value="10" class="casino-input">
+    <div class="container">
+        <header>
+            <div class="logo-group">
+                <div class="logo-icon">🦆</div>
+                <div>
+                    <h1>Большой Утиный День</h1>
+                    <div class="subtitle">Трекер активности и подсчет баллов участников ReManga</div>
                 </div>
-                <div class="casino-color-group">
-                  <label>Выбери цвет</label>
-                  <div class="casino-colors">
-                    <button class="casino-color-btn casino-red selected" data-color="red">Красный<span
-                        class="casino-mult">×2</span></button>
-                    <button class="casino-color-btn casino-black" data-color="black">Чёрный<span
-                        class="casino-mult">×2</span></button>
-                    <button class="casino-color-btn casino-green" data-color="green">Зелёный<span
-                        class="casino-mult">×50</span></button>
-                  </div>
+            </div>
+            <div class="header-actions">
+                <div id="scannerStatus" style="font-size: 13px; color: var(--text-muted);">Сканирование...</div>
+                <button id="triggerScanBtn" class="btn" onclick="triggerScan()">🔄 Сканировать сейчас</button>
+                <button id="scannerToggleBtn" class="btn btn-scanner-stop" onclick="toggleScanner()">⏸ Остановить автосканер</button>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div>
+                    <div class="stat-val" id="statParticipants">0</div>
+                    <div class="stat-lbl">Всего участников</div>
                 </div>
-                <button id="casino-spin-btn" class="btn btn-primary btn-block btn-glow">Крутить!</button>
-                <div id="casino-result" class="casino-result hidden"></div>
-              </div>
+                <div class="stat-icon">🦆</div>
             </div>
-          </div>
-        </div>
-
-        <div class="card inventory-card">
-          <h2>Инвентарь и эффекты</h2>
-          <h3
-            style="font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 10px; font-weight: 600;">
-            Ваши предметы</h3>
-          <div id="inventory-list" class="inventory-grid"></div>
-
-          <h3
-            style="margin-top: 20px; font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 10px; font-weight: 600;">
-            Активные эффекты</h3>
-          <div id="effects-list" class="effects-list"></div>
-        </div>
-      </div>
-
-      <div class="grid-center">
-        <div class="card map-card">
-          <div class="map-header">
-            <h2>Карта ивента</h2>
-            <div class="dice-section">
-              <button id="roll-dice-btn" class="btn btn-primary btn-glow">Бросить кубик</button>
-              <button id="claim-reward-current-cell-btn" class="btn btn-glow hidden"
-                style="background: linear-gradient(135deg, #00ff66, #00b3ff); border: none; color: #fff; margin-left: 10px;">Забрать
-                награду</button>
-              <div id="dice-cooldown" class="cooldown-timer">Готов к броску</div>
-            </div>
-          </div>
-          <div class="board-3d-wrapper">
-            <div id="board-canvas-container"></div>
-            <div id="mobile-joystick-container" class="mobile-joystick-container">
-              <div id="mobile-joystick-ring" class="mobile-joystick-ring">
-                <div id="mobile-joystick-dot" class="mobile-joystick-dot"></div>
-              </div>
-            </div>
-            <div id="cell-info-tag" class="cell-info-tag hidden">
-              <button id="close-cell-info-tag" class="close-cell-info-tag">&times;</button>
-              <div id="cell-info-tag-content"></div>
-            </div>
-            <div id="username-tag" class="username-tag hidden"></div>
-          </div>
-
-        </div>
-
-        <div class="card history-card">
-          <h2>История действий</h2>
-          <div id="action-history" class="history-list"></div>
-        </div>
-      </div>
-
-      <div class="grid-right">
-        <div class="card online-card">
-          <h2>Игроки онлайн</h2>
-          <div id="online-players-list" class="online-list"></div>
-        </div>
-
-        <div id="admin-panel" class="card admin-card hidden">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
-            <h2 style="margin: 0;">Панель администратора</h2>
-            <button id="admin-refresh-btn" class="btn btn-secondary btn-sm"
-              style="padding: 4px 8px; font-size: 11px;">🔄 Обновить</button>
-          </div>
-          <div class="admin-tabs">
-            <button class="tab-btn active" data-tab="admin-tab-users">Игроки</button>
-            <button class="tab-btn" data-tab="admin-tab-cells">Настройка ячеек</button>
-            <button class="tab-btn" data-tab="admin-tab-settings">Настройки</button>
-            <button class="tab-btn" data-tab="admin-tab-bosses">Настройка боссов</button>
-          </div>
-
-          <div id="admin-tab-users" class="tab-content active">
-            <div class="form-group" style="margin-bottom: 12px; margin-top: 10px;">
-              <input type="text" id="admin-search-users" placeholder="Поиск по имени / username / ID..."
-                style="width: 100%; box-sizing: border-box;">
-            </div>
-            <div class="admin-users-table-wrapper">
-              <table class="admin-table">
-                <thead>
-                  <tr>
-                    <th>ID</th>
-                    <th>Игрок</th>
-                    <th>Ячейка</th>
-                    <th>Баланс</th>
-                    <th>Действие</th>
-                  </tr>
-                </thead>
-                <tbody id="admin-users-tbody"></tbody>
-              </table>
-            </div>
-          </div>
-
-          <div id="admin-tab-cells" class="tab-content">
-            <div
-              style="background: rgba(0, 240, 255, 0.08); border: 1px solid rgba(0, 240, 255, 0.2); border-radius: 6px; padding: 10px; margin-top: 10px; margin-bottom: 15px; font-size: 11px; color: #00f0ff;">
-              💡 Вы можете кликнуть по ячейке на 3D-карте, чтобы быстро настроить её параметры.
-            </div>
-            <div class="form-group">
-              <label>Номер ячейки (0-299)</label>
-              <input type="number" id="admin-cell-number" min="0" max="299" value="0">
-            </div>
-            <div class="form-group">
-              <label>Тип ячейки</label>
-              <select id="admin-cell-type">
-                <option value="normal">Обычная</option>
-                <option value="forward">Портал вперед</option>
-                <option value="backward">Ловушка назад</option>
-                <option value="obstacle">Болото (пропуск хода)</option>
-                <option value="guild_tax">Налог гильдии</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Значение сдвига / штрафа / налога</label>
-              <input type="number" id="admin-cell-value" value="0">
-            </div>
-            <div class="form-group">
-              <label>Тип награды на ячейке</label>
-              <select id="admin-cell-rew-type">
-                <option value="none">Нет награды</option>
-                <option value="currency">Монеты</option>
-                <option value="card">Карта предметов</option>
-                <option value="premium">Премиум статус</option>
-              </select>
-            </div>
-            <div id="admin-card-helper-group" class="form-group hidden"
-              style="background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 6px; margin-bottom: 12px;">
-              <label style="font-size: 10px; color: #00f0ff;">Ссылка на карту Remanga</label>
-              <input type="text" id="admin-cell-card-url" placeholder="https://remanga.org/card/124112"
-                style="margin-bottom: 6px; font-size: 11px;">
-              <button id="admin-fetch-card-btn" class="btn btn-secondary btn-sm btn-block"
-                style="padding: 4px; font-size: 10px;">📥 Загрузить данные карты</button>
-            </div>
-            <div class="form-group">
-              <label>Название награды</label>
-              <input type="text" id="admin-cell-rew-name" placeholder="Например: 50 монет">
-            </div>
-            <div class="form-group">
-              <label>Детали награды</label>
-              <input type="text" id="admin-cell-rew-detail" placeholder="Например: 50">
-            </div>
-            <div class="form-group" style="border-top: 1px dashed rgba(255, 255, 255, 0.15); padding-top: 10px; margin-top: 15px;">
-              <label style="font-weight: bold; color: #00f0ff; display: block; margin-bottom: 8px;">Множественные награды (Объединенная ячейка)</label>
-              <div style="margin-bottom: 8px;">
-                <label style="font-size: 11px; opacity: 0.8;">Монеты в ячейке</label>
-                <input type="number" id="admin-cell-multi-coins" value="0" placeholder="Количество монет" style="font-size: 12px; padding: 6px;">
-              </div>
-              <div style="margin-bottom: 8px;">
-                <label style="font-size: 11px; opacity: 0.8;">Дни премиума в ячейке</label>
-                <input type="number" id="admin-cell-multi-premium" value="0" placeholder="Дни премиума" style="font-size: 12px; padding: 6px;">
-              </div>
-              <div style="margin-bottom: 8px; background: rgba(0, 0, 0, 0.2); padding: 8px; border-radius: 6px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                <label style="font-size: 11px; opacity: 0.8; display: block; margin-bottom: 6px;">Карты в ячейке</label>
-                <div id="admin-cell-multi-cards-list" style="margin-bottom: 6px; display: flex; flex-direction: column; gap: 4px;"></div>
-                <div style="display: flex; gap: 4px;">
-                  <input type="text" id="admin-cell-multi-card-url" placeholder="Ссылка на карту Remanga" style="flex: 1; font-size: 11px; margin-bottom: 0; padding: 6px;">
-                  <button id="admin-cell-multi-card-add-btn" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;">Добавить</button>
+            <div class="stat-card">
+                <div>
+                    <div class="stat-val" id="statQualified">0</div>
+                    <div class="stat-lbl">Достигли 100+ очков</div>
                 </div>
-              </div>
+                <div class="stat-icon">🏆</div>
             </div>
-            <button id="save-cell-btn" class="btn btn-primary btn-block">Сохранить ячейку</button>
-          </div>
-
-          <div id="admin-tab-settings" class="tab-content">
-            <div class="form-group" style="margin-top: 15px;">
-              <label>Время отката броска кубика (в секундах)</label>
-              <input type="number" id="admin-setting-cooldown" min="0" placeholder="Например: 1800">
-            </div>
-            <h3 style="margin-top: 20px; font-size: 11px; text-transform: uppercase; color: #8c9ba5; font-weight: 600;">
-              Цены в магазине</h3>
-            <div class="form-group">
-              <label>Энергетический Щит (Shield)</label>
-              <input type="number" id="admin-price-shield" min="0">
-            </div>
-            <div class="form-group">
-              <label>Ледяной Свиток (Freeze)</label>
-              <input type="number" id="admin-price-freeze" min="0">
-            </div>
-            <div class="form-group">
-              <label>Гравитационный Импульс (Pusher)</label>
-              <input type="number" id="admin-price-pusher" min="0">
-            </div>
-            <div class="form-group">
-              <label>Очищающее Зелье (Cure)</label>
-              <input type="number" id="admin-price-cure" min="0">
-            </div>
-            <div class="form-group">
-              <label>Магические Оковы (Slowness)</label>
-              <input type="number" id="admin-price-slowness" min="0">
-            </div>
-            <div class="form-group">
-              <label>Крылья Ветра (Double Roll)</label>
-              <input type="number" id="admin-price-double_roll" min="0">
-            </div>
-            <div class="form-group">
-              <label>Стоимость удаления награды из инвентаря</label>
-              <input type="number" id="admin-price-remove-reward" min="0">
-            </div>
-            <h3 style="margin-top: 20px; font-size: 11px; text-transform: uppercase; color: #ffcc00; font-weight: 600;">
-              Цены на экипировку</h3>
-            <div class="form-group">
-              <label>Боевой топор (Axe)</label>
-              <input type="number" id="admin-price-eq_axe" min="0">
-            </div>
-            <div class="form-group">
-              <label>Лук (Bow)</label>
-              <input type="number" id="admin-price-eq_bow" min="0">
-            </div>
-            <div class="form-group">
-              <label>Коса смерти (Scythe)</label>
-              <input type="number" id="admin-price-eq_scythe" min="0">
-            </div>
-            <div class="form-group">
-              <label>Молот Тора (Hammer)</label>
-              <input type="number" id="admin-price-eq_hammer" min="0">
-            </div>
-            <div class="form-group">
-              <label>Кибер-костюм (Cyber Costume)</label>
-              <input type="number" id="admin-price-eq_cyber" min="0">
-            </div>
-            <div class="form-group">
-              <label>Стимпанк жилет (Steampunk Vest)</label>
-              <input type="number" id="admin-price-eq_steampunk" min="0">
-            </div>
-            <div class="form-group">
-              <label>Костюм шиноби (Ninja Suit)</label>
-              <input type="number" id="admin-price-eq_ninja" min="0">
-            </div>
-            <h3 style="margin-top: 20px; font-size: 11px; text-transform: uppercase; color: #ff4444; font-weight: 600;">
-              🔒 Белый список (ограничение регистрации)</h3>
-            <div
-              style="background: rgba(255,68,68,0.06); border: 1px solid rgba(255,68,68,0.2); border-radius: 6px; padding: 10px; margin-bottom: 12px; font-size: 11px; color: #ff9999; line-height: 1.5;">
-              Если поле заполнено — регистрироваться смогут только участники указанных групп/каналов. Оставьте пустым,
-              чтобы разрешить всем. Бот должен быть администратором в каждой группе.
-            </div>
-            <div class="form-group">
-              <label>ID групп/каналов (через запятую)</label>
-              <input type="text" id="admin-whitelist-chats" placeholder="Например: -1001234567890, @mychannel">
-              <div style="font-size: 10px; color: #8c9ba5; margin-top: 4px;">Узнать ID группы: добавьте @getmyid_bot в
-                группу и напишите /id</div>
-            </div>
-            <button id="save-settings-btn" class="btn btn-primary btn-block" style="margin-top: 15px;">Сохранить
-              настройки</button>
-          </div>
-
-          <div id="admin-tab-bosses" class="tab-content" style="margin-top: 10px;">
-            <div class="form-group">
-              <label>Выберите босса</label>
-              <select id="admin-boss-select">
-                <option value="30">Ячейка 30: Телец</option>
-                <option value="60">Ячейка 60: Близнецы</option>
-                <option value="90">Ячейка 90: Рак</option>
-                <option value="120">Ячейка 120: Лев</option>
-                <option value="150">Ячейка 150: Дева</option>
-                <option value="180">Ячейка 180: Весы</option>
-                <option value="210">Ячейка 210: Скорпион</option>
-                <option value="240">Ячейка 240: Стрелец</option>
-                <option value="270">Ячейка 270: Козерог</option>
-                <option value="299">Ячейка 299: Водолей</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Имя босса</label>
-              <input type="text" id="admin-boss-name" placeholder="Название босса">
-            </div>
-            <div class="form-group">
-              <label>3D Модель</label>
-              <select id="admin-boss-model"></select>
-            </div>
-            <div class="form-group">
-              <label>Изначальное здоровье (Max HP)</label>
-              <input type="number" id="admin-boss-max-hp" min="1">
-            </div>
-            <div class="form-group">
-              <label>Текущее здоровье (HP)</label>
-              <input type="number" id="admin-boss-hp" min="0">
-            </div>
-            <div class="form-group">
-              <label>Урон босса (DMG)</label>
-              <input type="number" id="admin-boss-dmg" min="0">
-            </div>
-            <div class="form-group">
-              <label>Кд ударов игрока (сек)</label>
-              <input type="number" id="admin-boss-cooldown" min="0">
-            </div>
-            <div class="form-group">
-              <label>Шанс крита (%)</label>
-              <input type="number" id="admin-boss-crit" min="0" max="100" value="0">
-            </div>
-            <div class="form-group">
-              <label>Награда за победу (монеты)</label>
-              <input type="number" id="admin-boss-reward" min="0">
-            </div>
-            <div class="form-group">
-              <label>Тип награды</label>
-              <select id="admin-boss-reward-type">
-                <option value="coins">Монеты</option>
-                <option value="card">Карта (предмет)</option>
-              </select>
-            </div>
-            <div id="admin-boss-card-helper" class="form-group hidden"
-              style="background: rgba(255, 255, 255, 0.02); border: 1px dashed rgba(255, 255, 255, 0.1); padding: 8px; border-radius: 6px; margin-bottom: 12px;">
-              <label style="font-size: 10px; color: #00f0ff;">Наградные карты босса</label>
-              <div id="admin-boss-cards-list" style="margin-bottom: 6px; display: flex; flex-direction: column; gap: 4px;"></div>
-              <div style="display: flex; gap: 6px; margin-top: 8px;">
-                <input type="text" id="admin-boss-card-url" placeholder="Ссылка на Remanga" style="margin-bottom: 0; font-size: 11px; flex: 1;">
-                <button id="admin-boss-fetch-card-btn" class="btn btn-secondary btn-sm" style="padding: 4px 8px; font-size: 11px;">Добавить</button>
-              </div>
-            </div>
-            <div class="form-group" id="admin-boss-reward-detail-group">
-              <label>Детали награды (описание)</label>
-              <input type="text" id="admin-boss-reward-detail" placeholder="Например: Легендарная карта SSR">
-            </div>
-            <button id="admin-boss-save-btn" class="btn btn-primary btn-block">Сохранить настройки босса</button>
-            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.08);">
-              <h3
-                style="font-size: 11px; text-transform: uppercase; color: #00f0ff; margin-bottom: 10px; font-weight: 600;">
-                Позиция на карте</h3>
-              <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
-                <div class="form-group">
-                  <label style="font-size: 10px;">Смещ. X</label>
-                  <input type="number" id="admin-boss-offset-x" step="0.1" value="0">
+            <div class="stat-card">
+                <div>
+                    <div class="stat-val" id="statPostsCount">0</div>
+                    <div class="stat-lbl">Закрепленных постов</div>
                 </div>
-                <div class="form-group">
-                  <label style="font-size: 10px;">Смещ. Y</label>
-                  <input type="number" id="admin-boss-offset-y" step="0.1" value="0">
+                <div class="stat-icon">📌</div>
+            </div>
+            <div class="stat-card">
+                <div>
+                    <div class="stat-val" id="statLastScan">--:--</div>
+                    <div class="stat-lbl">Последнее обновление (МСК)</div>
                 </div>
-                <div class="form-group">
-                  <label style="font-size: 10px;">Смещ. Z</label>
-                  <input type="number" id="admin-boss-offset-z" step="0.1" value="0">
+                <div class="stat-icon">⏱️</div>
+            </div>
+        </div>
+
+        <div class="posts-section">
+            <div class="section-header">
+                <div class="section-title">📌 Отслеживаемые целевые посты</div>
+            </div>
+            <div class="add-post-form">
+                <input type="text" id="newPostUrl" class="input-text"
+                    placeholder="Вставьте ссылку на пост форума (например, https://remanga.org/forum/...)...">
+                <button class="btn" onclick="addPost()">Добавить пост</button>
+            </div>
+            <div class="target-posts-list" id="targetPostsList">
+            </div>
+        </div>
+
+        <div class="leaderboard-section">
+            <div class="controls-row">
+                <div class="section-title">📊 Рейтинг Уточек</div>
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                    <input type="text" id="searchBox" class="input-text search-box"
+                        placeholder="Поиск по никнейму или ID..." oninput="renderTable()">
+                    <select id="sortFilter" class="select-filter" onchange="renderTable()">
+                        <option value="points">Сортировка: По очкам (Сначала лидеры)</option>
+                        <option value="posts">Сортировка: По количеству постов</option>
+                        <option value="comments">Сортировка: По «кря»-комментариям</option>
+                        <option value="qualified">Фильтр: Только 100+ очков</option>
+                        <option value="unclaimed">Фильтр: Приз НЕ выдан</option>
+                        <option value="claimed">Фильтр: Приз ВЫДАН</option>
+                    </select>
                 </div>
-              </div>
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                <div class="form-group">
-                  <label style="font-size: 10px;">Поворот (градусы, 0-360)</label>
-                  <input type="number" id="admin-boss-rotation" step="15" min="0" max="360" value="0">
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Место</th>
+                            <th>Участник</th>
+                            <th>Очки</th>
+                            <th>Утиная аватарка (+10)</th>
+                            <th>Целевые посты (+1)</th>
+                            <th>Посты (+5)</th>
+                            <th>«Кря»-комменты (+2)</th>
+                            <th>Приз</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2 id="modalUserName" style="font-family: 'Outfit', sans-serif;">Детали активности</h2>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="modalContent"></div>
+        </div>
+    </div>
+
+    <script>
+        let appState = {
+            settings: { target_posts: [] },
+            participants: [],
+            last_scan_time: null
+        };
+
+        async function loadData() {
+            try {
+                const res = await fetch('/api/state?t=' + Date.now(), { cache: 'no-store' });
+                if (res.ok) {
+                    appState = await res.json();
+                    renderUI();
+                }
+            } catch (e) { }
+        }
+
+        function renderUI() {
+            document.getElementById('statParticipants').innerText = appState.participants.length;
+            const qualifiedCount = appState.participants.filter(p => p.points >= 100).length;
+            document.getElementById('statQualified').innerText = qualifiedCount;
+            document.getElementById('statPostsCount').innerText = (appState.settings.target_posts || []).length;
+            document.getElementById('statLastScan').innerText = appState.last_scan_time || '--:--';
+
+            const isReadOnly = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
+
+            const statusEl = document.getElementById('scannerStatus');
+            const toggleBtn = document.getElementById('scannerToggleBtn');
+            const triggerScanBtn = document.getElementById('triggerScanBtn');
+            const addPostForm = document.querySelector('.add-post-form');
+
+            if (isReadOnly) {
+                if (toggleBtn) toggleBtn.style.display = 'none';
+                if (triggerScanBtn) triggerScanBtn.style.display = 'none';
+                if (addPostForm) addPostForm.style.display = 'none';
+            }
+
+            if (appState.scanner_paused) {
+                statusEl.innerText = '⏸ Автосканер остановлен';
+                statusEl.style.color = '#ef4444';
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = '▶ Запустить автосканер';
+                    toggleBtn.className = 'btn btn-scanner-start';
+                }
+            } else if (appState.scanner_is_running) {
+                statusEl.innerText = '⏳ Идет сканирование...';
+                statusEl.style.color = '#fbbf24';
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = '⏸ Остановить автосканер';
+                    toggleBtn.className = 'btn btn-scanner-stop';
+                }
+            } else {
+                statusEl.innerText = '✅ Активно';
+                statusEl.style.color = '#10b981';
+                if (toggleBtn) {
+                    toggleBtn.innerHTML = '⏸ Остановить автосканер';
+                    toggleBtn.className = 'btn btn-scanner-stop';
+                }
+            }
+
+            renderTargetPosts();
+            if (document.activeElement !== document.getElementById('searchBox')) {
+                renderTable();
+            }
+        }
+
+        function renderTargetPosts() {
+            const container = document.getElementById('targetPostsList');
+            container.innerHTML = '';
+            const posts = appState.settings.target_posts || [];
+            const isReadOnly = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
+
+            posts.forEach(p => {
+                const chip = document.createElement('div');
+                chip.className = 'post-chip';
+                const delBtnHtml = isReadOnly ? '' : `<button class="btn-del" onclick="removePost(${p.post_id})">&times;</button>`;
+                chip.innerHTML = `
+                <span>📌</span>
+                <a href="${p.post_url}" target="_blank">${escapeHtml(p.header || p.post_slug)}</a>
+                ${delBtnHtml}
+            `;
+                container.appendChild(chip);
+            });
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function getInitialAvatarSVG(username, userId) {
+            const name = String(username || 'U').trim();
+            const initial = (name.charAt(0) || 'U').toUpperCase();
+            const safeInitial = escapeHtml(initial);
+            const gradId = 'grad_' + (userId || Math.floor(Math.random() * 1000000));
+            const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+            <defs>
+                <linearGradient id="${gradId}" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#1e293b"/>
+                    <stop offset="100%" stop-color="#0f172a"/>
+                </linearGradient>
+            </defs>
+            <circle cx="50" cy="50" r="48" fill="url(#${gradId})" stroke="#f59e0b" stroke-width="4"/>
+            <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" fill="#fbbf24" font-family="Outfit, sans-serif" font-size="44" font-weight="800">${safeInitial}</text>
+        </svg>`;
+            return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+        }
+
+        function renderTable() {
+            const body = document.getElementById('leaderboardBody');
+            body.innerHTML = '';
+
+            const searchQuery = document.getElementById('searchBox').value.toLowerCase().trim();
+            const sortFilter = document.getElementById('sortFilter').value;
+
+            let list = [...appState.participants];
+
+            if (searchQuery) {
+                list = list.filter(p =>
+                    (p.username || '').toLowerCase().includes(searchQuery) ||
+                    String(p.id).includes(searchQuery)
+                );
+            }
+
+            if (sortFilter === 'points') {
+                list.sort((a, b) => (b.points || 0) - (a.points || 0));
+            } else if (sortFilter === 'posts') {
+                list.sort((a, b) => (b.duck_posts || []).length - (a.duck_posts || []).length);
+            } else if (sortFilter === 'comments') {
+                list.sort((a, b) => (b.duck_comments || []).length - (a.duck_comments || []).length);
+            } else if (sortFilter === 'qualified') {
+                list = list.filter(p => (p.points || 0) >= 100);
+                list.sort((a, b) => (b.points || 0) - (a.points || 0));
+            } else if (sortFilter === 'unclaimed') {
+                list = list.filter(p => !p.prize_sent);
+                list.sort((a, b) => (b.points || 0) - (a.points || 0));
+            } else if (sortFilter === 'claimed') {
+                list = list.filter(p => p.prize_sent);
+                list.sort((a, b) => (b.points || 0) - (a.points || 0));
+            }
+
+            list.forEach((p, idx) => {
+                try {
+                    const tr = document.createElement('tr');
+
+                    let rankClass = '';
+                    if (idx === 0) rankClass = 'rank-1';
+                    else if (idx === 1) rankClass = 'rank-2';
+                    else if (idx === 2) rankClass = 'rank-3';
+
+                    const fallbackSvg = getInitialAvatarSVG(p.username, p.id);
+                    let avatarUrl = fallbackSvg;
+                    if (p.avatar && typeof p.avatar === 'string' && !p.avatar.endsWith('.webm') && !p.avatar.endsWith('.mp4')) {
+                        avatarUrl = p.avatar.startsWith('http') ? p.avatar : `https://remanga.org${p.avatar}`;
+                    }
+
+                    const isQualified = (p.points || 0) >= 100;
+                    const pointsClass = isQualified ? 'points-badge points-qualified' : 'points-badge';
+                    const safeUsername = escapeHtml(p.username);
+
+                    const isReadOnly = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
+
+                    const duckAvatarCell = isReadOnly ? `
+                        <span class="status-badge ${p.has_duck_avatar ? 'active' : ''}">
+                            ${p.has_duck_avatar ? '🦆 Утка (+10)' : '❌ Нет (0)'}
+                        </span>
+                    ` : `
+                        <button class="toggle-btn ${p.has_duck_avatar ? 'active' : ''}" onclick="toggleAvatar(${p.id}, ${!p.has_duck_avatar})">
+                            ${p.has_duck_avatar ? '🦆 Утка (+10)' : '❌ Нет (0)'}
+                        </button>
+                    `;
+
+                    const prizeSentCell = isReadOnly ? `
+                        <span class="status-badge ${p.prize_sent ? 'prize-sent-active' : ''}">
+                            ${p.prize_sent ? '🎁 Приз выдан' : '⏳ Не выдан'}
+                        </span>
+                    ` : `
+                        <button class="toggle-btn ${p.prize_sent ? 'prize-sent-active' : ''}" onclick="togglePrizeSent(${p.id}, ${!p.prize_sent})">
+                            ${p.prize_sent ? '🎁 Приз выдан' : '⏳ Не выдан'}
+                        </button>
+                    `;
+
+                    tr.innerHTML = `
+                    <td><div class="rank-badge ${rankClass}">${idx + 1}</div></td>
+                    <td>
+                        <div class="user-info">
+                            <img src="${avatarUrl}" class="user-avatar" onerror="this.onerror=null; this.src='${fallbackSvg}';">
+                            <a href="https://remanga.org/user/${p.id}/about" target="_blank" class="user-name">${safeUsername}</a>
+                        </div>
+                    </td>
+                    <td><span class="${pointsClass}">${p.points || 0} ${isQualified ? '🎉' : ''}</span></td>
+                    <td>${duckAvatarCell}</td>
+                    <td><strong>${p.target_post_points || 0}</strong> (${p.target_post_points || 0} очков)</td>
+                    <td><strong>${(p.duck_posts || []).length}</strong> (${(p.duck_posts || []).length * 5} очков)</td>
+                    <td><strong>${(p.duck_comments || []).length}</strong> (${(p.duck_comments || []).length * 2} очков)</td>
+                    <td>${prizeSentCell}</td>
+                    <td>
+                        <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;" onclick="openModal(${p.id})">Подробнее</button>
+                    </td>
+                `;
+                    body.appendChild(tr);
+                } catch (e) { }
+            });
+        }
+
+        async function addPost() {
+            const input = document.getElementById('newPostUrl');
+            const url = input.value.trim();
+            if (!url) return;
+
+            try {
+                const res = await fetch('/api/target_posts/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    input.value = '';
+                    loadData();
+                } else {
+                    alert(data.error || 'Ошибка добавления поста');
+                }
+            } catch (e) { }
+        }
+
+        async function removePost(postId) {
+            try {
+                await fetch('/api/target_posts/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ post_id: postId })
+                });
+                loadData();
+            } catch (e) { }
+        }
+
+        async function toggleAvatar(userId, hasDuck) {
+            const p = appState.participants.find(x => String(x.id) === String(userId));
+            if (p) {
+                p.has_duck_avatar = hasDuck;
+                p.points = (p.target_post_points || 0) + ((p.duck_posts || []).length * 5) + ((p.duck_comments || []).length * 2) + (hasDuck ? 10 : 0);
+                renderTable();
+            }
+            try {
+                const res = await fetch('/api/toggle_avatar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: String(userId), has_duck_avatar: hasDuck })
+                });
+                const data = await res.json();
+                if (data && data.success && p) {
+                    p.points = data.points;
+                    renderTable();
+                }
+            } catch (e) { }
+        }
+
+        async function togglePrizeSent(userId, isSent) {
+            const p = appState.participants.find(x => String(x.id) === String(userId));
+            if (p) {
+                p.prize_sent = isSent;
+                renderTable();
+            }
+            try {
+                const res = await fetch('/api/toggle_prize_sent', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id: String(userId), prize_sent: isSent })
+                });
+                const data = await res.json();
+                if (data && data.success && p) {
+                    p.prize_sent = data.prize_sent;
+                    renderTable();
+                }
+            } catch (e) { }
+        }
+
+        let scanPollTimer = null;
+
+        async function triggerScan() {
+            const statusEl = document.getElementById('scannerStatus');
+            if (statusEl) {
+                statusEl.innerText = '⏳ Идет сканирование...';
+                statusEl.style.color = '#fbbf24';
+            }
+            try {
+                await fetch('/api/scan_now', { method: 'POST' });
+                let count = 0;
+                if (scanPollTimer) clearInterval(scanPollTimer);
+                scanPollTimer = setInterval(async () => {
+                    await loadData();
+                    count++;
+                    if (!appState.scanner_is_running || count >= 15) {
+                        clearInterval(scanPollTimer);
+                        scanPollTimer = null;
+                    }
+                }, 1000);
+            } catch (e) {
+                loadData();
+            }
+        }
+
+        async function toggleScanner() {
+            const toggleBtn = document.getElementById('scannerToggleBtn');
+            toggleBtn.disabled = true;
+            toggleBtn.style.opacity = '0.6';
+            try {
+                const res = await fetch('/api/toggle_scanner', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    appState.scanner_paused = data.scanner_paused;
+                    renderUI();
+                }
+            } catch (e) {}
+            toggleBtn.disabled = false;
+            toggleBtn.style.opacity = '1';
+        }
+
+        function openModal(userId) {
+            const p = appState.participants.find(x => x.id === userId);
+            if (!p) return;
+            document.getElementById('modalUserName').innerText = `🦆 Участник: ${p.username} (${p.points} очков)`;
+            const content = document.getElementById('modalContent');
+
+            let postsHtml = (p.duck_posts || []).map(post => `
+            <div class="detail-item">
+                <div style="font-weight: 600; color: var(--duck-yellow);">
+                    <a href="https://remanga.org/forum/${post.dir}" target="_blank" style="color: inherit;">📌 ${post.header || 'Пост'}</a>
                 </div>
-                <div class="form-group">
-                  <label style="font-size: 10px;">Размер (масштаб)</label>
-                  <input type="number" id="admin-boss-scale" step="0.1" min="0.1" max="10.0" value="1.0">
+                <div style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">${post.text}</div>
+            </div>
+        `).join('');
+
+            let commentsHtml = (p.duck_comments || []).map(c => `
+            <div class="detail-item">
+                <div style="font-size: 13px; font-weight: 600; color: var(--purple-accent);">💬 Комментарий ID: ${c.id}</div>
+                <div style="font-size: 13px; margin-top: 4px;">"${c.text}"</div>
+            </div>
+        `).join('');
+
+            let targetDetailsHtml = (p.target_post_details || []).map(d => `
+            <div class="detail-item" style="border-left: 3px solid ${d.earned_point ? 'var(--green-success)' : 'var(--text-muted)'};">
+                <div style="font-weight: 600; color: var(--duck-yellow);">
+                    <a href="${d.post_url || '#'}" target="_blank" style="color: inherit;">📌 ${d.post_header || 'Целевой пост'}</a>
                 </div>
-              </div>
-              <button id="admin-boss-pos-save-btn" class="btn btn-secondary btn-block"
-                style="font-size: 11px;">Сохранить позицию</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="profile-drawer" class="profile-drawer">
-    <div class="drawer-header">
-      <h2>Профиль игрока</h2>
-      <button id="close-profile-btn" class="btn btn-secondary btn-sm" style="padding: 4px 8px;">&times; Закрыть</button>
-    </div>
-    <div class="drawer-content">
-      <div class="drawer-profile-card">
-        <div class="drawer-avatar-wrapper">
-          <img id="drawer-avatar-img" class="hidden avatar-img" referrerpolicy="no-referrer" src="" alt="">
-          <div id="drawer-avatar-fallback" class="avatar-placeholder"></div>
-        </div>
-        <div class="drawer-names">
-          <div id="drawer-display-name" class="display-name">-</div>
-          <div id="drawer-tg-username" class="tg-username">-</div>
-        </div>
-        <div class="remanga-info-box">
-          <span class="label">Remanga профиль:</span>
-          <span id="drawer-remanga-name" class="value text-gold">-</span>
-          <span id="drawer-remanga-id" class="sub-value">-</span>
-        </div>
-      </div>
-      <div class="drawer-char-preview" style="position: relative;">
-        <div id="drawer-char-canvas"></div>
-        <div class="equipped-slots-container">
-          <div class="equipped-slot" id="slot-costume">
-            <span class="slot-label">Костюм</span>
-            <span class="slot-value" id="slot-costume-value">Обычный</span>
-          </div>
-          <div class="equipped-slot" id="slot-weapon">
-            <span class="slot-label">Оружие</span>
-            <span class="slot-value" id="slot-weapon-value">Без оружия</span>
-          </div>
-        </div>
-        <div id="drawer-eq-select-panel" class="eq-select-panel hidden">
-          <div class="eq-panel-header">
-            <span id="eq-panel-title">Выбор экипировки</span>
-            <button class="eq-panel-close" id="eq-panel-close-btn">&times;</button>
-          </div>
-          <div id="eq-panel-list" class="eq-panel-grid"></div>
-        </div>
-      </div>
-      <div class="drawer-section">
-        <h3>Характеристики персонажа</h3>
-        <div class="drawer-stats-row"
-          style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 15px;">
-          <div class="drawer-stat">
-            <span class="stat-label">Здоровье (HP)</span>
-            <span id="drawer-hp" class="stat-value text-green" style="color: #00ff66;">100</span>
-          </div>
-          <div class="drawer-stat">
-            <span class="stat-label">Урон (DMG)</span>
-            <span id="drawer-dmg" class="stat-value text-yellow" style="color: #ffcc00;">10</span>
-          </div>
-          <div class="drawer-stat">
-            <span class="stat-label">Стихия</span>
-            <span id="drawer-element" class="stat-value text-cyan"
-              style="color: #00f0ff; text-transform: capitalize;">-</span>
-          </div>
-        </div>
-      </div>
-      <div class="drawer-section">
-        <h3>Статистика</h3>
-        <div class="drawer-stats-row">
-          <div class="drawer-stat" id="drawer-balance-container" style="cursor: pointer; display: flex; flex-direction: row; justify-content: space-between; align-items: center; width: 100%;">
-            <span class="stat-label">Монеты</span>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span id="drawer-balance" class="stat-value text-gold">0</span>
-              <span style="color: #ffb800; font-weight: bold; font-size: 16px;">+</span>
-            </div>
-          </div>
-          <div class="drawer-stat" style="display: none;">
-            <span class="stat-label">Победы</span>
-            <span id="drawer-wins" class="stat-value text-cyan">0</span>
-          </div>
-        </div>
-      </div>
-      <div class="drawer-section">
-        <h3>Ваши предметы <span id="drawer-inventory-slots-info" style="font-size: 10px; color: #8c9ba5; font-weight: normal; margin-left: 6px;"></span></h3>
-        <div id="drawer-inventory-list" class="inventory-grid"></div>
-        <div id="buy-slots-container" style="margin-top: 10px;" class="hidden">
-          <button id="buy-slots-btn" class="btn btn-secondary btn-sm btn-block" style="background: linear-gradient(135deg, #00f0ff 0%, #0072ff 100%); color: #fff; border: none; font-weight: bold; padding: 6px 12px; font-size: 11px;">🔓 Купить +10 слотов (3000 монет)</button>
-        </div>
-      </div>
-
-      <div class="drawer-section">
-        <h3>Активные эффекты</h3>
-        <div id="drawer-effects-list" class="effects-list"></div>
-      </div>
-      <div class="drawer-section">
-        <h3>История действий</h3>
-        <div id="drawer-history-list" class="history-list"></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="buy-slots-modal" class="modal hidden">
-    <div class="modal-content modal-sm">
-      <div class="modal-header">
-        <h2>Расширение инвентаря</h2>
-      </div>
-      <div class="modal-body">
-        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 20px; color: #ffffff; text-align: center;">
-          Ваш инвентарь наград заполнен!<br>
-          Хотите открыть дополнительные <strong>+10 слотов</strong> за <strong>3000 монет</strong>?
-        </p>
-        <div style="display: flex; gap: 10px;">
-          <button id="buy-slots-modal-yes" class="btn btn-primary" style="flex: 1; background: linear-gradient(135deg, #00f0ff 0%, #0072ff 100%); border: none;">Купить за 3000</button>
-          <button id="buy-slots-modal-no" class="btn btn-secondary" style="flex: 1;">Отмена</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="confirm-char-modal" class="modal hidden">
-    <div class="modal-content modal-sm">
-      <div class="modal-header">
-        <h2>Подтверждение создания</h2>
-      </div>
-      <div class="modal-body">
-        <p style="font-size: 12px; line-height: 1.5; margin-bottom: 20px;">Вы уверены? После подтверждения персонажа
-          больше нельзя будет поменять!</p>
-        <div style="display: flex; gap: 10px;">
-          <button id="confirm-char-yes" class="btn btn-primary" style="flex: 1;">Да, создать</button>
-          <button id="confirm-char-no" class="btn btn-secondary" style="flex: 1;">Отмена</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="use-item-modal" class="modal hidden">
-    <div class="modal-content modal-sm">
-      <div class="modal-header">
-        <h2>Применить способность</h2>
-        <button id="close-use-modal-btn" class="close-btn">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p id="use-item-name" class="text-gold font-bold"></p>
-        <p id="use-item-desc"></p>
-        <div class="form-group">
-          <label for="use-target-select">Выберите цель (игрока)</label>
-          <select id="use-target-select"></select>
-        </div>
-        <button id="confirm-use-btn" class="btn btn-primary btn-block btn-glow">Применить способность</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="admin-edit-modal" class="modal hidden">
-    <div class="modal-content modal-lg">
-      <div class="modal-header">
-        <h2>Редактирование игрока</h2>
-        <button id="close-admin-edit-btn" class="close-btn">&times;</button>
-      </div>
-      <div class="modal-body" style="display: grid; grid-template-columns: 350px 1fr; gap: 24px;">
-        <div>
-          <input type="hidden" id="edit-user-id">
-          <div class="form-group">
-            <label>Игрок</label>
-            <input type="text" id="edit-user-name" disabled style="opacity: 0.6;">
-          </div>
-          <div class="form-group">
-            <label>Баланс монет</label>
-            <input type="number" id="edit-user-balance">
-          </div>
-          <div class="form-group">
-            <label>Текущая ячейка (0-299)</label>
-            <input type="number" id="edit-user-cell" min="0" max="299">
-          </div>
-          <div class="form-group">
-            <label>Налог гильдии (Требуется)</label>
-            <input type="number" id="edit-user-tax-required" min="0">
-          </div>
-          <div class="form-group">
-            <label>Налог гильдии (Оплачено)</label>
-            <input type="number" id="edit-user-tax-paid" min="0">
-          </div>
-          <div class="form-group">
-            <label>Кулдаун броска кубика (минут)</label>
-            <input type="number" id="edit-user-cooldown" min="0" placeholder="0 - нет кулдауна">
-          </div>
-          <div class="form-group">
-            <label>Ссылка на Remanga</label>
-            <div id="edit-user-remanga-link-container" style="margin-top: 5px;"></div>
-          </div>
-          <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
-            <input type="checkbox" id="edit-user-admin" style="width: auto; margin: 0;">
-            <label for="edit-user-admin" style="margin: 0; cursor: pointer;">Администратор</label>
-          </div>
-          <button id="save-user-edit-btn" class="btn btn-primary btn-block btn-glow" style="margin-top: 15px;">Сохранить
-            изменения</button>
-        </div>
-        <div
-          style="border-left: 1px solid rgba(255,255,255,0.08); padding-left: 20px; display: flex; flex-direction: column; gap: 15px;">
-          <div>
-            <h3
-              style="font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 8px; font-weight: 600;">
-              Инвентарь игрока</h3>
-            <div id="edit-user-inventory" class="inventory-grid"
-              style="grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; max-height: 420px; overflow-y: auto;">
-              <div style="font-size: 11px; color: #8c9ba5;">Загрузка...</div>
-            </div>
-          </div>
-          <div>
-            <h3
-              style="font-size: 11px; text-transform: uppercase; color: #8c9ba5; margin-bottom: 8px; font-weight: 600;">
-              Активные эффекты</h3>
-            <div id="edit-user-effects"
-              style="display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto;">
-              <div style="font-size: 11px; color: #8c9ba5;">Загрузка...</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="boss-battle-modal" class="modal hidden" style="z-index: 9999;">
-    <div class="modal-content modal-md"
-      style="background: linear-gradient(135deg, #0b0f19 0%, #152035 100%); border: 1px solid rgba(0, 240, 255, 0.2); box-shadow: 0 0 35px rgba(0, 0, 0, 0.8);">
-      <div class="modal-header" style="border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 15px;">
-        <h2 id="boss-modal-title"
-          style="margin: 0; color: #ff3333; font-family: 'Orbitron', sans-serif; font-size: 20px;">Борьба с боссом</h2>
-      </div>
-      <div class="modal-body" style="padding-top: 15px;">
-        <div id="boss-status-defeated" class="hidden" style="text-align: center; margin-bottom: 20px;">
-          <div style="font-size: 48px; margin-bottom: 10px;">🏆</div>
-          <p style="font-size: 14px; line-height: 1.5; color: #00ff66;">Босс повержен игроком <b id="boss-victor-name"
-              class="text-gold"></b>!</p>
-          <p style="font-size: 12px; color: #8c9ba5; margin-bottom: 15px;">С этим боссом больше нельзя сражаться.</p>
-          <div id="boss-defeated-rewards-container" class="hidden" style="text-align: left; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; border: 1px solid rgba(0, 240, 255, 0.15); margin-top: 15px;">
-            <div style="font-size: 11px; font-weight: 700; color: #00f0ff; margin-bottom: 4px;">Доступные награды:</div>
-            <div style="font-size: 10px; color: #8c9ba5; margin-bottom: 10px; font-style: italic;">Выберите доступные карты босса:</div>
-            <div id="boss-defeated-rewards-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
-          </div>
-        </div>
-        <div id="boss-status-occupied" class="hidden" style="text-align: center; margin-bottom: 20px;">
-          <div style="font-size: 48px; margin-bottom: 10px;">⚔️</div>
-          <p style="font-size: 14px; line-height: 1.5; color: #ff9900;">Сражается с боссом: <b id="boss-fighter-name"
-              class="text-gold"></b></p>
-          <p style="font-size: 12px; color: #8c9ba5;">Вы должны подождать, пока бой не завершится, либо можете пройти
-            дальше.</p>
-        </div>
-        <div id="boss-status-ready" class="hidden" style="margin-bottom: 20px;">
-          <div id="boss-preview-3d"
-            style="width: 100%; height: 200px; background: rgba(0,0,0,0.4); border-radius: 8px; margin-bottom: 15px; position: relative; overflow: hidden;">
-            <div id="boss-preview-canvas" style="width: 100%; height: 100%;"></div>
-            <div style="position: absolute; top: 8px; left: 12px; display: flex; flex-direction: column; gap: 4px;">
-              <div
-                style="background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,50,50,0.4);">
-                <span style="font-size: 10px; color: #ff4444;">❤️ HP:</span>
-                <span id="boss-preview-hp" style="font-size: 12px; color: #ff6666; font-weight: bold;"></span>
-              </div>
-              <div
-                style="background: rgba(0,0,0,0.6); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(255,170,0,0.4);">
-                <span style="font-size: 10px; color: #ffaa00;">⚔️ DMG:</span>
-                <span id="boss-preview-dmg" style="font-size: 12px; color: #ffcc44; font-weight: bold;"></span>
-              </div>
-            </div>
-          </div>
-          <div
-            style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-            <p style="font-size: 13px; margin: 0 0 10px 0;">Перед вами босс: <span id="boss-info-name"
-                class="text-gold font-bold"></span></p>
-            <p style="font-size: 12px; color: #a3b2bc; margin: 0 0 10px 0;">Характеристики: Здоровье <span
-                id="boss-info-hp" class="text-cyan font-bold"></span>, Урон <span id="boss-info-dmg"
-                class="text-gold font-bold"></span></p>
-            <p style="font-size: 12px; color: #ff9900; margin: 0 0 10px 0;">Слабость к стихии: <span
-                id="boss-info-weakness" class="text-gold font-bold" style="text-transform: capitalize;"></span></p>
-            <p style="font-size: 12px; color: #00ff66; margin: 0 0 10px 0;">Награда за победу: <span
-                id="boss-info-reward" class="text-gold font-bold"></span></p>
-            <div id="boss-reward-card-img" class="hidden"
-              style="display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 6px; border: 1px solid rgba(255,200,0,0.2);">
-              <div
-                style="position: relative; width: 45px; height: 63px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 4px; overflow: hidden;">
-                <div class="image-loader-spinner"
-                  style="position: absolute; width: 20px; height: 20px; border: 2px solid rgba(0,240,255,0.1); border-radius: 50%; border-top-color: #00f0ff; animation: spin 1s linear infinite;">
+                <div style="font-size: 13px; margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap;">
+                    <span>Лайк на пост: ${d.has_like ? '✅ Да' : '❌ Нет'}</span>
+                    <span>Коммент на пост: ${d.has_comment ? '✅ Да' : '❌ Нет'}</span>
+                    <span>Подписка на автора: ${d.has_sub ? '✅ Да' : '❌ Нет'}</span>
                 </div>
-                <img id="boss-reward-card-cover" src="" referrerpolicy="no-referrer"
-                  onload="if(this.previousElementSibling)this.previousElementSibling.remove(); this.style.opacity='1';"
-                  onerror="if(this.previousElementSibling)this.previousElementSibling.remove(); handleRewardImageError(this, this.dataset.src || this.src);"
-                  style="width: 45px; height: 63px; object-fit: cover; border-radius: 4px; border: 1px solid rgba(255,255,255,0.15); opacity: 0; transition: opacity 0.3s;">
-              </div>
-              <div>
-                <div id="boss-reward-card-name" style="font-size: 12px; color: #ffcc00; font-weight: 600;"></div>
-                <div id="boss-reward-card-char" style="font-size: 10px; color: #8c9ba5;"></div>
-              </div>
-            </div>
-          </div>
-          <p style="font-size: 12px; color: #8c9ba5; line-height: 1.5;">Сражение длится до полной победы или вашего
-            поражения. При поражении вы теряете 300 монет и откидываетесь назад на от 5 ячеек до 10 ячеек.</p>
-        </div>
-        <div id="boss-status-battle" class="hidden" style="margin-bottom: 20px;">
-          <!-- 3D Battle Arena -->
-          <div id="boss-battle-3d"
-            style="width: 100%; height: 260px; background: radial-gradient(circle, #101622 0%, #07090e 100%); border-radius: 8px; margin-bottom: 15px; position: relative; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1);">
-            <div id="boss-battle-canvas" style="width: 100%; height: 100%;"></div>
-
-            <!-- Player Overlay (Left) -->
-            <div
-              style="position: absolute; top: 10px; left: 10px; width: 140px; background: rgba(0,0,0,0.7); padding: 8px; border-radius: 6px; border: 1px solid rgba(0, 240, 255, 0.35); text-align: left; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-              <div
-                style="font-weight: bold; font-size: 13px; color: #00f0ff; margin-bottom: 3px; display: flex; justify-content: space-between;">
-                <span>Вы</span>
-              </div>
-              <div style="font-size: 9px; color: #8c9ba5; margin-bottom: 3px;">Стихия: <span id="battle-player-element"
-                  style="font-weight: 700; text-transform: capitalize;"></span></div>
-              <div style="font-size: 9px; color: #8c9ba5; margin-bottom: 6px;">Урон: <span id="battle-player-dmg"
-                  class="text-gold font-bold" style="font-size: 10px;"></span></div>
-
-              <div class="progress-bar-container"
-                style="background: rgba(255,255,255,0.08); border-radius: 4px; height: 14px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
-                <div id="battle-player-hp-bar"
-                  style="background: linear-gradient(90deg, #00ff66 0%, #00ffaa 100%); height: 100%; width: 100%; transition: width 0.3s;">
+                <div style="font-size: 12px; margin-top: 4px; font-weight: 600; color: ${d.earned_point ? 'var(--green-success)' : '#ef4444'};">
+                    ${d.earned_point ? '🎉 +1 балл зачислен' : '❌ 0 баллов (нужна Подписка на автора + Лайк/Коммент)'}
                 </div>
-                <div id="battle-player-hp-text"
-                  style="position: absolute; width: 100%; text-align: center; top: 0; font-size: 8px; font-weight: bold; color: #fff; line-height: 12px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">
-                  100 / 100</div>
-              </div>
             </div>
+        `).join('');
 
-            <!-- Boss Overlay (Right) -->
-            <div
-              style="position: absolute; top: 10px; right: 10px; width: 140px; background: rgba(0,0,0,0.7); padding: 8px; border-radius: 6px; border: 1px solid rgba(255, 51, 51, 0.35); text-align: right; box-shadow: 0 4px 15px rgba(0,0,0,0.5);">
-              <div id="battle-boss-name-label"
-                style="font-weight: bold; font-size: 13px; color: #ff3333; margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                Босс</div>
-              <div style="font-size: 9px; color: #8c9ba5; margin-bottom: 3px;">Слабость: <span id="battle-boss-weakness"
-                  style="font-weight: 700; text-transform: capitalize; color: #ff9900;"></span></div>
-              <div style="font-size: 9px; color: #8c9ba5; margin-bottom: 6px;">Урон: <span id="battle-boss-dmg"
-                  class="text-gold font-bold" style="font-size: 10px;"></span></div>
-
-              <div class="progress-bar-container"
-                style="background: rgba(255,255,255,0.08); border-radius: 4px; height: 14px; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05);">
-                <div id="battle-boss-hp-bar"
-                  style="background: linear-gradient(90deg, #ff3333 0%, #ff5555 100%); height: 100%; width: 100%; transition: width 0.3s;">
+            content.innerHTML = `
+            <div style="margin-bottom: 16px;">
+                <h4 style="margin-bottom: 8px;">Формула очков:</h4>
+                <div style="font-size: 14px; color: var(--text-muted);">
+                    Целевые посты (Лайк/Коммент + Подписка): ${p.target_post_points || 0} × 1 = <strong>${p.target_post_points || 0}</strong><br>
+                    Пользовательские посты: ${(p.duck_posts || []).length} × 5 = <strong>${(p.duck_posts || []).length * 5}</strong><br>
+                    Комментарии: ${(p.duck_comments || []).length} × 2 = <strong>${(p.duck_comments || []).length * 2}</strong><br>
+                    Аватарка: <strong>${p.has_duck_avatar ? 10 : 0}</strong><br>
+                    Итого: <strong style="color: var(--duck-yellow); font-size: 16px;">${p.points} очков</strong>
                 </div>
-                <div id="battle-boss-hp-text"
-                  style="position: absolute; width: 100%; text-align: center; top: 0; font-size: 8px; font-weight: bold; color: #fff; line-height: 12px; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">
-                  100 / 100</div>
-              </div>
-            </div>
-          </div>
-          <div id="battle-log"
-            style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.03); padding: 8px; border-radius: 6px; font-size: 11px; color: #a3b2bc; min-height: 40px; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; text-align: center;">
-            Нажмите кнопку «Нанести удар» для атаки!
-          </div>
-          <div id="battle-cooldown-text"
-            style="text-align: center; font-size: 12px; color: #ff9900; margin-bottom: 10px;" class="hidden">
-            Следующий удар доступен через: <span id="battle-cooldown-time" style="font-weight: bold;"></span>
-          </div>
-        </div>
-        <div style="display: flex; gap: 10px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px;">
-          <button id="boss-btn-close" class="btn btn-secondary hidden" style="flex: 1;">Закрыть</button>
-          <button id="boss-btn-bypass-only" class="btn btn-primary hidden" style="flex: 1;">Пройти дальше</button>
-          <button id="boss-btn-fight" class="btn btn-primary btn-glow hidden" style="flex: 1;">Сразиться</button>
-          <button id="boss-btn-wait" class="btn btn-secondary hidden" style="flex: 1;">Подождать</button>
-          <button id="boss-btn-bypass" class="btn btn-secondary hidden" style="flex: 1;">Пройти дальше</button>
-          <button id="boss-btn-attack" class="btn btn-primary btn-glow hidden" style="flex: 1;">Нанести удар</button>
-          <button id="boss-btn-forfeit" class="btn btn-secondary hidden" style="flex: 1;">Сдаться</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="dice-overlay" class="modal hidden"
-    style="background: rgba(0, 0, 0, 0.85); display: flex; align-items: center; justify-content: center; z-index: 10000;">
-    <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 30px;">
-      <div id="dice-container" class="dice-scene">
-        <div id="dice-cube" class="dice-cube">
-          <div class="dice-face front">1</div>
-          <div class="dice-face back">6</div>
-          <div class="dice-face right">2</div>
-          <div class="dice-face left">5</div>
-          <div class="dice-face top">3</div>
-          <div class="dice-face bottom">4</div>
-        </div>
-      </div>
-      <div id="dice-result-text" class="text-gold font-bold"
-        style="font-size: 24px; min-height: 36px; text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);"></div>
-    </div>
-  </div>
-
-
-  <div id="reward-popup" class="reward-popup hidden">
-    <h3 id="reward-popup-title">Вы получили награду!</h3>
-    <div id="reward-popup-body"></div>
-  </div>
-
-  <div id="guild-tax-modal" class="modal hidden" style="z-index: 9999;">
-    <div class="modal-content modal-sm">
-      <div class="modal-header">
-        <h2>Налог гильдии!</h2>
-      </div>
-      <div class="modal-body">
-        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 15px;">Вы попали на ячейку налога гильдии. Вы не
-          сможете ходить дальше, пока не пожертвуете в сумме <span id="tax-amount-span"
-            class="text-gold font-bold">0</span> молний в любую из следующих гильдий на Remanga:</p>
-        <p
-          style="font-size: 13px; line-height: 1.5; margin-bottom: 15px; background: rgba(255,255,255,0.05); padding: 8px; border-radius: 6px; text-align: center;">
-          Внесено: <span id="tax-paid-span" class="text-cyan font-bold">0</span> / <span id="tax-total-span"
-            class="text-gold font-bold">0</span> молний<br>
-          <span style="font-size: 11px; color: #8c9ba5;">Сканер обновит статус в течение 5 минут.</span>
-        </p>
-        <div style="display: flex; flex-direction: column; gap: 10px;">
-          <a href="https://remanga.org/clubs/eternal-watchers-5fdc5a3d/" target="_blank" class="btn btn-primary"
-            style="text-align: center; text-decoration: none;">Eternal Watchers</a>
-          <a href="https://remanga.org/clubs/eternal-keepers-of-knowledge-06969ad9/" target="_blank"
-            class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Keepers</a>
-          <a href="https://remanga.org/clubs/eternalangelicguardianse-w-da9b9d1b/" target="_blank"
-            class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Angelic Guardians</a>
-          <button id="close-guild-tax-btn" class="btn btn-secondary">Закрыть</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="reward-choice-modal" class="modal hidden" style="z-index: 9999;">
-    <div class="modal-content modal-sm">
-      <div class="modal-header">
-        <h2>Награда найдена!</h2>
-      </div>
-      <div class="modal-body">
-        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 15px;">Вы попали на ячейку с наградой. Хотите
-          забрать её?</p>
-        <div style="font-size: 16px; font-weight: 700; color: #ffb800; text-align: center; margin-bottom: 15px;"
-          id="reward-choice-name"></div>
-        <p style="font-size: 12px; color: #8c9ba5; line-height: 1.4; margin-bottom: 15px; text-align: center;"
-          id="reward-choice-desc"></p>
-        <div style="display: flex; gap: 10px;">
-          <button id="claim-reward-yes-btn" class="btn btn-primary" style="flex: 1;">Забрать</button>
-          <button id="claim-reward-no-btn" class="btn btn-secondary" style="flex: 1;">Отказаться</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="leaders-modal" class="modal hidden" style="z-index: 9999;">
-    <div class="modal-content modal-md" style="max-width: 500px; width: 95%;">
-      <div class="modal-header">
-        <h2 style="color: #ffb800; font-family: 'Orbitron', sans-serif;">🏆 Таблица Лидеров</h2>
-        <button id="close-leaders-modal-btn" class="close-btn">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-          <button id="leaders-tab-balance" class="btn btn-primary" style="flex: 1; background: #27ae60; border-color: #27ae60; font-size: 13px; font-weight: bold; padding: 10px;">🪙 По золоту</button>
-          <button id="leaders-tab-wins" class="btn btn-secondary" style="flex: 1; font-size: 13px; font-weight: bold; padding: 10px;">⚔️ По победам</button>
-        </div>
-        <div id="leaders-list-container" style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; padding-right: 4px;">
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="pvp-lobby-modal" class="modal hidden" style="z-index: 9999;">
-    <div class="modal-content" style="max-width: 600px; width: 95%;">
-      <div class="modal-header">
-        <h2 id="pvp-lobby-title">⚔️ Подготовка к Дуэли</h2>
-        <button id="pvp-lobby-cancel-btn" class="close-btn">&times;</button>
-      </div>
-      <div class="modal-body" style="text-align: center;">
-        <div id="pvp-searching-container" class="hidden">
-          <div class="loader" style="margin: 20px auto; border: 4px solid rgba(255,255,255,0.1); border-left-color: #ff007c; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;"></div>
-          <p style="font-size: 15px; color: #fff;">Поиск достойного соперника...</p>
-          <p style="font-size: 12px; color: #8c9ba5; margin-top: 8px;">Вы встали в очередь. Пожалуйста, подождите.</p>
-          <button id="pvp-searching-cancel-btn" class="btn btn-secondary" style="margin-top: 15px; width: 100%;">Отмена</button>
-        </div>
-
-        <div id="pvp-setup-container" class="hidden">
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-            <div id="pvp-setup-p1" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-              <div id="pvp-p1-avatar-container" style="width: 60px; height: 60px; margin: 0 auto 8px auto; border-radius: 50%; overflow: hidden; border: 2px solid #00f0ff; position: relative;">
-                <img id="pvp-p1-avatar" src="" style="width: 100%; height: 100%; object-fit: cover;">
-                <div id="pvp-p1-avatar-fallback" class="avatar-placeholder hidden" style="line-height: 60px; font-size: 20px;"></div>
-              </div>
-              <div id="pvp-p1-name" style="font-weight: 700; color: #fff; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Игрок 1</div>
-              <div style="font-size: 11px; color: #8c9ba5; margin-top: 4px;">Ставка:</div>
-              <div id="pvp-p1-card-preview" style="margin-top: 8px; min-height: 156px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px dashed rgba(255,255,255,0.1);">
-                <span style="font-size: 11px; color: #8c9ba5;">Выбирает карту...</span>
-              </div>
-              <div id="pvp-p1-ready-status" style="margin-top: 10px; font-weight: bold; font-size: 12px; color: #ffb800;">Не готов</div>
             </div>
 
-            <div id="pvp-setup-p2" style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);">
-              <div id="pvp-p2-avatar-container" style="width: 60px; height: 60px; margin: 0 auto 8px auto; border-radius: 50%; overflow: hidden; border: 2px solid #ff007c; position: relative;">
-                <img id="pvp-p2-avatar" src="" style="width: 100%; height: 100%; object-fit: cover;">
-                <div id="pvp-p2-avatar-fallback" class="avatar-placeholder hidden" style="line-height: 60px; font-size: 20px;"></div>
-              </div>
-              <div id="pvp-p2-name" style="font-weight: 700; color: #fff; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Игрок 2</div>
-              <div style="font-size: 11px; color: #8c9ba5; margin-top: 4px;">Ставка:</div>
-              <div id="pvp-p2-card-preview" style="margin-top: 8px; min-height: 156px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px dashed rgba(255,255,255,0.1);">
-                <span style="font-size: 11px; color: #8c9ba5;">Выбирает карту...</span>
-              </div>
-              <div id="pvp-p2-ready-status" style="margin-top: 10px; font-weight: bold; font-size: 12px; color: #ffb800;">Не готов</div>
-            </div>
-          </div>
+            <h4 style="margin-bottom: 8px;">Проверка целевых постов (${(p.target_post_details || []).length}):</h4>
+            ${targetDetailsHtml || '<div style="color: var(--text-muted); font-size: 13px;">Целевых постов нет</div>'}
+            
+            <h4 style="margin-top: 16px; margin-bottom: 8px;">Найденные утиные посты (${(p.duck_posts || []).length}):</h4>
+            ${postsHtml || '<div style="color: var(--text-muted); font-size: 13px;">Утиных постов пока нет</div>'}
 
-          <div id="pvp-select-card-section" style="margin-bottom: 20px; text-align: left;">
-            <label style="font-size: 12px; font-weight: 600; color: #00f0ff; display: block; margin-bottom: 8px;">Выберите карты для ставки:</label>
-            <div id="pvp-cards-selection-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; max-height: 240px; overflow-y: auto; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid rgba(255,255,255,0.05);"></div>
-          </div>
+            <h4 style="margin-top: 16px; margin-bottom: 8px;">Написанные «кря»-комментарии (${(p.duck_comments || []).length}):</h4>
+            ${commentsHtml || '<div style="color: var(--text-muted); font-size: 13px;">Комментариев «кря» пока нет</div>'}
+        `;
 
-          <div style="display: flex; gap: 10px;">
-            <button id="pvp-agree-btn" class="btn btn-primary" style="flex: 1; background: linear-gradient(135deg, #00f0ff 0%, #0072ff 100%); border: none;">Согласиться на дуэль</button>
-            <button id="pvp-lobby-exit-btn" class="btn btn-secondary" style="flex: 1;">Выйти</button>
-          </div>
-        </div>
+            document.getElementById('modalOverlay').style.display = 'flex';
+        }
 
-        <div id="pvp-active-container" class="hidden">
-          <div style="display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: center; margin-bottom: 20px;">
-            <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
-              <div id="pvp-active-p1-name" style="font-weight: 700; color: #fff; font-size: 13px; margin-bottom: 6px;">Игрок 1</div>
-              <div style="display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: bold; color: #ff4a4a; font-size: 15px; margin-bottom: 8px;">
-                ❤️ <span id="pvp-active-p1-hp">12</span> / 12
-              </div>
-              <div style="width: 100%; background: rgba(255,255,255,0.05); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
-                <div id="pvp-active-p1-hp-bar" style="background: #ff4a4a; height: 100%; width: 100%; transition: width 0.3s ease;"></div>
-              </div>
-              <div id="pvp-active-p1-card" style="min-height: 156px; display: flex; align-items: center; justify-content: center;"></div>
-            </div>
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
 
-            <div style="font-size: 24px; font-weight: bold; color: #ff007c; font-family: 'Orbitron', sans-serif;">VS</div>
-
-            <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
-              <div id="pvp-active-p2-name" style="font-weight: 700; color: #fff; font-size: 13px; margin-bottom: 6px;">Игрок 2</div>
-              <div style="display: flex; align-items: center; justify-content: center; gap: 4px; font-weight: bold; color: #ff4a4a; font-size: 15px; margin-bottom: 8px;">
-                ❤️ <span id="pvp-active-p2-hp">12</span> / 12
-              </div>
-              <div style="width: 100%; background: rgba(255,255,255,0.05); height: 6px; border-radius: 3px; overflow: hidden; margin-bottom: 10px;">
-                <div id="pvp-active-p2-hp-bar" style="background: #ff4a4a; height: 100%; width: 100%; transition: width 0.3s ease;"></div>
-              </div>
-              <div id="pvp-active-p2-card" style="min-height: 156px; display: flex; align-items: center; justify-content: center;"></div>
-            </div>
-          </div>
-
-          <div id="pvp-turn-indicator" style="font-size: 16px; font-weight: 700; color: #ffb800; margin-bottom: 15px; font-family: 'Orbitron', sans-serif;">Определяем первый ход...</div>
-
-          <div id="pvp-action-section" style="min-height: 100px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;">
-            <div id="pvp-dice-area" style="font-size: 40px; margin-bottom: 10px; min-height: 60px;">🎲</div>
-            <button id="pvp-roll-btn" class="btn btn-primary btn-glow" style="width: 200px; background: linear-gradient(135deg, #ff007c 0%, #ff4b00 100%); border: none; font-size: 16px; font-weight: bold; padding: 12px;">Бросить Кубик</button>
-            <button id="pvp-surrender-btn" class="btn btn-secondary" style="width: 200px; margin-top: 5px; background: rgba(231, 76, 60, 0.15); border: 1px solid #e74c3c; color: #ff4a4a; font-size: 13px; font-weight: bold; padding: 8px;">Сдаться</button>
-          </div>
-
-          <div id="pvp-battle-log" style="margin-top: 15px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; padding: 8px; max-height: 80px; overflow-y: auto; font-size: 11px; text-align: left; color: #8c9ba5; line-height: 1.4;"></div>
-        </div>
-
-        <div id="pvp-result-container" class="hidden">
-          <div id="pvp-result-title" style="font-size: 28px; font-weight: 900; font-family: 'Orbitron', sans-serif; margin-bottom: 10px;">ПОБЕДА!</div>
-          <p id="pvp-result-text" style="font-size: 14px; margin-bottom: 20px; color: #fff;">Вы выиграли карту соперника!</p>
-          <div id="pvp-result-prize-card" style="margin: 0 auto 20px auto; max-width: 100%; display: flex; justify-content: center; align-items: center; min-height: 200px;"></div>
-          <button id="pvp-result-close-btn" class="btn btn-primary" style="width: 100%;">Вернуться к игре</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="pvp-invite-modal" class="modal hidden" style="z-index: 99999;">
-    <div class="modal-content modal-sm" style="text-align: center;">
-      <div class="modal-header">
-        <h2>⚔️ Вызов на Дуэль</h2>
-      </div>
-      <div class="modal-body">
-        <p id="pvp-invite-text" style="font-size: 14px; line-height: 1.5; color: #fff; margin-bottom: 20px;"></p>
-        <div style="display: flex; gap: 10px;">
-          <button id="pvp-invite-accept-btn" class="btn btn-primary" style="flex: 1; background: linear-gradient(135deg, #00f0ff 0%, #0072ff 100%); border: none;">Принять</button>
-          <button id="pvp-invite-decline-btn" class="btn btn-secondary" style="flex: 1;">Отклонить</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="multi-reward-modal" class="modal hidden" style="z-index: 9999;">
-    <div class="modal-content" style="max-width: 500px; width: 90%;">
-      <div class="modal-header">
-        <h2>Выбор награды!</h2>
-      </div>
-      <div class="modal-body">
-        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 10px;">Вы попали на ячейку со множеством наград. Вы можете выбрать одну из доступных наград ниже:</p>
-        <p id="multi-reward-slots-info" style="font-size: 12px; color: #00f0ff; text-align: center; margin-bottom: 15px; font-weight: bold;"></p>
-        
-        <div id="multi-rewards-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; margin-bottom: 20px; max-height: 300px; overflow-y: auto; padding: 4px;"></div>
-
-        <div style="display: flex; gap: 10px;">
-          <button id="claim-multi-reward-yes-btn" class="btn btn-primary" style="flex: 1;" disabled>Забрать выбранное</button>
-          <button id="claim-multi-reward-no-btn" class="btn btn-secondary" style="flex: 1;">Отказаться</button>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div id="deposit-modal" class="modal hidden" style="z-index: 99999;">
-    <div class="modal-content modal-sm">
-      <div class="modal-header">
-        <h2>Пополнение</h2>
-        <button id="close-deposit-modal-btn" class="close-btn">&times;</button>
-      </div>
-      <div class="modal-body" style="text-align: center;">
-        <p style="font-size: 13px; line-height: 1.5; margin-bottom: 15px;">Чтобы пополнить монеты, перейдите в одну из трех гильдий и просто сделайте вклад. Пополнения проверяются каждые 5 минут. 1 молния = 1 монета.</p>
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px;">
-          <a href="https://remanga.org/clubs/eternal-watchers-5fdc5a3d/" target="_blank" class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Watchers</a>
-          <a href="https://remanga.org/clubs/eternal-keepers-of-knowledge-06969ad9/" target="_blank" class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Keepers</a>
-          <a href="https://remanga.org/clubs/eternalangelicguardianse-w-da9b9d1b/" target="_blank" class="btn btn-primary" style="text-align: center; text-decoration: none;">Eternal Angelic Guardians</a>
-        </div>
-        <button id="close-deposit-modal-btn-bottom" class="btn btn-secondary btn-block">Закрыть</button>
-      </div>
-    </div>
-  </div>
-  <script src="app.js?v=1.7.0"></script>
+        loadData();
+        setInterval(loadData, 3000);
+    </script>
 </body>
 
 </html>
