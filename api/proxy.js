@@ -68,7 +68,7 @@ async function proxyToDuckBackend(req, res, duckUrl) {
       res.send(Buffer.from(buffer));
     }
   } catch (err) {
-    res.status(500).json({ error: 'Duck proxy error: ' + err.message });
+    res.status(500).json({ error: 'Duck proxy error: ' + err.message + (err.cause ? ' | Cause: ' + String(err.cause.message || err.cause) : '') });
   }
 }
 
