@@ -36,18 +36,19 @@ export default async function handler(req, res) {
     return res.status(503).json({ error: 'Адрес бэкенда не опубликован' });
   }
 
-  const targetUrl = backendUrl.replace(/\/$/, '') + req.url;
+  const cleanUrl = req.url.replace(/([?&])path=[^&]*&?/, '$1').replace(/[?&]$/, '');
+  const targetUrl = backendUrl.replace(/\/$/, '') + cleanUrl;
 
   try {
-    const headers = {};
-    const ignoredHeaders = ['host', 'connection', 'content-length', 'accept-encoding'];
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (!ignoredHeaders.includes(key.toLowerCase())) {
-        headers[key] = value;
-      }
+    const headers = {
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+      'accept': 'application/json, text/plain, */*',
+      'bypass-tunnel-reminder': 'true'
+    };
+
+    if (req.headers['authorization']) {
+      headers['authorization'] = req.headers['authorization'];
     }
-    headers['ngrok-skip-browser-warning'] = 'true';
-    headers['bypass-tunnel-reminder'] = 'true';
 
     const fetchOptions = {
       method: req.method,
@@ -60,7 +61,7 @@ export default async function handler(req, res) {
         chunks.push(chunk);
       }
       fetchOptions.body = Buffer.concat(chunks);
-      headers['content-length'] = fetchOptions.body.length.toString();
+      headers['content-type'] = req.headers['content-type'] || 'application/json';
     }
 
     const targetRes = await fetch(targetUrl, fetchOptions);
@@ -83,6 +84,6 @@ export default async function handler(req, res) {
       res.send(Buffer.from(buffer));
     }
   } catch (err) {
-    res.status(500).json({ error: 'Ошибка проксирования запроса к бэкенду: ' + err.message + (err.cause ? ' | Cause: ' + String(err.cause) : '') });
+    res.status(500).json({ error: 'Ошибка проксирования запроса к бэкенду: ' + err.message + ' | Target: ' + targetUrl + (err.cause ? ' | Cause: ' + String(err.cause.message || err.cause) : '') });
   }
 }
