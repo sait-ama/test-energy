@@ -99,6 +99,7 @@ let duckSettings = {
 
 let duckState = {
   scanner_is_running: false,
+  scanner_paused: false,
   last_scan_time: new Date().toLocaleString('ru-RU'),
   settings: duckSettings,
   participants: {
@@ -288,6 +289,7 @@ app.get('/api/state', (req, res) => {
     settings: duckState.settings,
     participants: partsArray,
     scanner_is_running: duckState.scanner_is_running,
+    scanner_paused: !!duckState.scanner_paused,
     last_scan_time: duckState.last_scan_time
   });
 });
@@ -295,6 +297,11 @@ app.get('/api/state', (req, res) => {
 app.post('/api/scan_now', async (req, res) => {
   res.json({ success: true, message: 'Scan started' });
   runDuckScanCycle();
+});
+
+app.post('/api/toggle_scanner', (req, res) => {
+  duckState.scanner_paused = !duckState.scanner_paused;
+  res.json({ success: true, scanner_paused: duckState.scanner_paused });
 });
 
 app.post('/api/toggle_avatar', (req, res) => {
