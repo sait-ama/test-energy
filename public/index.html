@@ -610,7 +610,23 @@
                 padding: 16px;
             }
         }
+
+        .read-only-mode #triggerScanBtn,
+        .read-only-mode #scannerToggleBtn,
+        .read-only-mode .add-post-form,
+        .read-only-mode .btn-del {
+            display: none !important;
+        }
     </style>
+    <script>
+        (function() {
+            var isDuckAdminPath = window.location.pathname.startsWith('/duck');
+            var isLocalhost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+            if (!isLocalhost && !isDuckAdminPath) {
+                document.documentElement.classList.add('read-only-mode');
+            }
+        })();
+    </script>
 </head>
 
 <body>
