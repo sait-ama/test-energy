@@ -731,6 +731,12 @@
             last_scan_time: null
         };
 
+        function getIsReadOnly() {
+            const isDuckAdminPath = window.location.pathname.startsWith('/duck');
+            const isLocalhost = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+            return !isLocalhost && !isDuckAdminPath;
+        }
+
         async function loadData() {
             try {
                 const res = await fetch('/api/state?t=' + Date.now(), { cache: 'no-store' });
@@ -748,7 +754,7 @@
             document.getElementById('statPostsCount').innerText = (appState.settings.target_posts || []).length;
             document.getElementById('statLastScan').innerText = appState.last_scan_time || '--:--';
 
-            const isReadOnly = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
+            const isReadOnly = getIsReadOnly();
 
             const statusEl = document.getElementById('scannerStatus');
             const toggleBtn = document.getElementById('scannerToggleBtn');
@@ -794,7 +800,7 @@
             const container = document.getElementById('targetPostsList');
             container.innerHTML = '';
             const posts = appState.settings.target_posts || [];
-            const isReadOnly = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
+            const isReadOnly = getIsReadOnly();
 
             posts.forEach(p => {
                 const chip = document.createElement('div');
@@ -889,7 +895,7 @@
                     const pointsClass = isQualified ? 'points-badge points-qualified' : 'points-badge';
                     const safeUsername = escapeHtml(p.username);
 
-                    const isReadOnly = (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1');
+                    const isReadOnly = getIsReadOnly();
 
                     const duckAvatarCell = isReadOnly ? `
                         <span class="status-badge ${p.has_duck_avatar ? 'active' : ''}">
