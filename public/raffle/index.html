@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0a0a0a">
+  <title>Демо розыгрыша · Eternal Watchers — Розыгрыш ReManga Premium</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/raffle/style.css">
+  <script defer src="/raffle/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="top-inner">
+      <a class="brand" href="#home" aria-label="Eternal Watchers, главная"><span class="eye-mark" aria-hidden="true"></span><span>Eternal Watchers</span></a>
+      <nav class="section-nav" aria-label="Разделы розыгрыша"><a href="#my-cards"><span aria-hidden="true">▤</span> Мои карты</a><a href="#participants"><span aria-hidden="true">◎</span> Участники</a><a href="#activity"><span aria-hidden="true">✦</span> Открытия</a></nav>
+      <button class="profile" id="profile" type="button">◉ <span>Войти</span></button>
+    </div>
+  </header>
+  <main class="wrap">
+    <div class="overview" data-page="home">
+    <section class="hero" aria-labelledby="title">
+      <div class="hero-art"></div>
+      <div class="hero-content">
+        <p class="muted">Демо розыгрыша</p>
+        <h1 id="title">Открой свой<br><em>Premium.</em></h1>
+        <p class="intro">Три подписки ReManga на месяц. Поставь лайк на пост и отправь B-карты в обмен. Каждая B-карта из принятого обмена получает шанс на приз.</p>
+        <div class="hero-actions"><a class="primary" href="#my-cards">Мои карты <span>↗</span></a><button class="text-button" type="button" id="rules">Условия участия</button></div>
+      </div>
+    </section>
+
+    <section class="summary" aria-label="Состояние розыгрыша">
+      <div class="countdown"><div><span class="live-dot"></span><span id="phase">ДО РАСПРЕДЕЛЕНИЯ ПРИЗОВ</span></div><strong id="time">00:00:45</strong><button class="text-button" id="finish" type="button" hidden>Завершить демо ↗</button></div>
+      <div class="stat"><span>Участники</span><strong id="total-people">–</strong></div>
+      <div class="stat"><span>Карт в пуле</span><strong id="total-cards">–</strong></div>
+      <div class="stat prize-stat"><span>Найдено призов</span><strong id="prizes">0 / 3</strong></div>
+    </section>
+    </div>
+
+    <div class="dashboard">
+        <section class="panel" id="my-cards" data-page="my-cards" hidden>
+          <div class="section-head"><h2>Мои карты</h2><span class="badge" id="my-count" hidden></span></div>
+          <p class="muted" id="my-note"></p>
+          <button class="primary" id="cards-login" type="button">Войти в демо</button>
+          <div class="card-grid" id="my-grid"></div>
+        </section>
+        <section class="panel" id="participants" data-page="participants" hidden>
+          <div class="section-head"><h2>Участники</h2><span class="badge" id="roster-count"></span></div>
+          <div class="roster-tools">
+            <div class="filters" aria-label="Фильтр участников"><button type="button" data-filter="all" aria-pressed="true">Все</button><button type="button" data-filter="in" aria-pressed="false">Допущены</button><button type="button" data-filter="out" aria-pressed="false">Ожидают допуска</button></div>
+            <label class="search"><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Ник или ID" aria-label="Найти участника"></label>
+          </div>
+          <div id="roster"></div>
+        </section>
+      <section class="panel" id="activity" data-page="activity" hidden>
+        <div class="section-head"><h2>Открытия</h2><span class="badge" id="feed-count" aria-label="Всего открытий">0</span></div>
+        <p class="muted">Здесь появляются карты, которые открыли участники.</p>
+        <div id="feed" aria-live="polite"></div>
+      </section>
+    </div>
+    <footer><a href="https://eternal-watchers.com/">Eternal Watchers ↗</a><button type="button" class="text-button" id="reset" hidden>Начать демо заново</button></footer>
+  </main>
+
+  <dialog id="profile-dialog">
+    <form id="profile-form">
+      <div class="section-head"><h2>Демо-профиль</h2><button class="close" type="button" data-close aria-label="Закрыть">×</button></div>
+      <p class="muted">Выбери вымышленного участника, чтобы открыть его карты в демо.</p>
+      <label class="dialog-label" for="identity">Ник или ID профиля</label>
+      <input id="identity" list="identities" autocomplete="off" required>
+      <datalist id="identities"></datalist>
+      <p id="profile-error" role="alert"></p>
+      <div class="profile-actions"><button class="primary" type="submit">Войти в демо</button><button class="text-button" id="logout" type="button" hidden>Выйти</button></div>
+    </form>
+  </dialog>
+  <dialog id="rules-dialog">
+    <div class="section-head"><h2>Условия участия</h2><button class="close" type="button" data-close aria-label="Закрыть">×</button></div>
+    <ol><li>Поставь лайк на пост розыгрыша.</li><li>Отправь одну или несколько B-карт и дождись, пока обмен примут. Подходит целая, сломанная или пробуждённая B-карта.</li><li>После таймера три случайные карты получат по месяцу Premium. Открой свои карты, чтобы узнать результат.</li></ol>
+    <p class="muted">Учитываются все принятые обмены. Повторная проверка одного обмена сохраняет прежнее число карт.</p>
+  </dialog>
+</body>
+</html>

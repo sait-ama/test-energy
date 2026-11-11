@@ -1,7 +1,20 @@
 {
   "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/proxy.js" },
-    { "source": "/duck", "destination": "/api/proxy.js" },
-    { "source": "/", "destination": "/index.html" }
+    {
+      "source": "/raffle",
+      "destination": "/raffle/index.html"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "/api/proxy.js"
+    },
+    {
+      "source": "/duck",
+      "destination": "/api/proxy.js"
+    },
+    {
+      "source": "/",
+      "destination": "/index.html"
+    }
   ]
 }
