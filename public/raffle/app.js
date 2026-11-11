@@ -101,7 +101,9 @@ function renderTimer() {
   $('time').textContent = round.finished ? 'Можно открывать карты' :
     round.deadline ? countdown(round.deadline) : 'Ожидаем начала';
   $('time').classList.toggle('finished', round.finished || !round.deadline);
-  $('sync-time').textContent = connection || (round.nextScan ? 'Обновление через ' + countdown(round.nextScan) : '');
+  const status = $('sync-time');
+  status.textContent = connection;
+  status.hidden = !connection;
 }
 
 function cardState(card, allowReveal) {
