@@ -1,8 +1,11 @@
 {
+  "redirects": [
+    { "source": "/raffle", "destination": "/", "permanent": false }
+  ],
   "rewrites": [
     {
-      "source": "/raffle",
-      "destination": "/raffle/index.html"
+      "source": "/raffle-api/:action",
+      "destination": "/api/raffle?operation=:action"
     },
     {
       "source": "/api/:path*",
@@ -13,8 +16,12 @@
       "destination": "/api/proxy.js"
     },
     {
-      "source": "/",
+      "source": "/duck-event",
       "destination": "/index.html"
+    },
+    {
+      "source": "/",
+      "destination": "/raffle/index.html"
     }
   ]
 }
