@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/raffle/style.css?v=live1">
-  <script defer src="/raffle/app.js?v=live1"></script>
+  <link rel="stylesheet" href="/raffle/style.css?v=live2">
+  <script defer src="/raffle/app.js?v=live2"></script>
 </head>
 <body>
   <header class="top">
@@ -25,7 +25,7 @@
       <div class="hero-art"></div>
       <div class="hero-content">
         <h1 id="title">Открой свой<br><em>Premium.</em></h1>
-        <p class="intro">Три подписки ReManga на месяц. Поставь лайк на пост и отправь B-карты в обмен. Каждая B-карта из принятого обмена получает шанс на приз.</p>
+        <p class="intro"><span id="prize-intro">3 подписки</span> ReManga на месяц. Поставь лайк на пост и отправь B-карты в обмен. Каждая B-карта из принятого обмена получает шанс на приз.</p>
         <div class="hero-actions"><a class="primary" href="#my-cards">Мои карты <span>↗</span></a><a id="post-link" class="text-button" target="_blank" rel="noopener" hidden>Пост ReManga ↗</a><button class="text-button" type="button" id="rules">Условия участия</button></div>
       </div>
     </section>
@@ -75,8 +75,14 @@
   </dialog>
   <dialog id="rules-dialog">
     <div class="section-head"><h2>Условия участия</h2><button class="close" type="button" data-close aria-label="Закрыть">×</button></div>
-    <ol><li>Поставь лайк на пост розыгрыша.</li><li>Отправь одну или несколько B-карт и дождись, пока обмен примут. Подходит целая, сломанная или пробуждённая B-карта.</li><li>После таймера три случайные карты получат по месяцу Premium. Открой свои карты, чтобы узнать результат.</li></ol>
-    <p class="muted">Учитываются все принятые обмены. Повторная проверка одного обмена сохраняет прежнее число карт.</p>
+    <ol>
+      <li>Поставь лайк на пост <a id="rules-post-link" target="_blank" rel="noopener">розыгрыша</a>.</li>
+      <li>Отправь одну или несколько B-карт и дождись, пока обмен примут. Подходит целая, сломанная или пробуждённая B-карта.
+        <a class="primary rules-exchange" href="https://remanga.org/user/12762/create/exchange?ordering=-id&amp;is_favorite=false&amp;is_exchangeable=true&amp;card__is_exchangeable=true" target="_blank" rel="noopener">Отправить</a>
+      </li>
+      <li>После таймера <span id="rules-prize-draw">3 случайные карты получат</span> по месяцу Premium. Открой свои карты, чтобы узнать результат.</li>
+    </ol>
+    <p class="muted">Учитываются все принятые обмены.</p>
   </dialog>
 </body>
 </html>

@@ -171,7 +171,7 @@ function renderFeed() {
 function renderHome() {
   $('total-people').textContent = new Set(pool.map(card => card.owner)).size;
   $('total-cards').textContent = pool.length;
-  $('prizes').textContent = `${round.reveals.filter(event => event.won).length} / 3`;
+  $('prizes').textContent = `${round.reveals.filter(event => event.won).length} / ${round.prizeCount ?? 3}`;
 }
 
 function renderMyCards() {
@@ -203,7 +203,16 @@ function render() {
   $('profile').querySelector('span').textContent = viewer?.name || 'Войти';
   $('logout').hidden = !viewer;
   $('post-link').hidden = !round.post;
-  if (round.post) $('post-link').href = round.post;
+  for (const id of ['post-link', 'rules-post-link']) {
+    if (round.post) $(id).href = round.post;
+    else $(id).removeAttribute('href');
+  }
+  const prizeCount = round.prizeCount ?? 3;
+  const form = new Intl.PluralRules('ru').select(prizeCount);
+  const subscription = {one: 'подписка', few: 'подписки', many: 'подписок', other: 'подписки'}[form];
+  const cards = {one: 'случайная карта получит', few: 'случайные карты получат', many: 'случайных карт получат', other: 'случайной карты получат'}[form];
+  $('prize-intro').textContent = `${prizeCount} ${subscription}`;
+  $('rules-prize-draw').textContent = `${prizeCount} ${cards}`;
   if (currentPage === 'home') renderHome();
   if (!$('my-cards').hidden) renderMyCards();
   if (!$('participants').hidden) renderRoster();

@@ -119,6 +119,8 @@ dialog { width: min(460px, calc(100% - 28px)); padding: 23px; background: var(--
 dialog::backdrop { background: #000c; }
 dialog ol { padding-left: 20px; line-height: 1.5; }
 dialog li { margin-bottom: 10px; }
+#rules-post-link[href] { text-decoration: underline; text-underline-offset: .18em; }
+.rules-exchange { display: table; margin-top: 8px; line-height: 1.45; }
 .dialog-label { display: block; margin: 10px 0 6px; }
 dialog input { width: 100%; border: 1px solid #565656; border-radius: 8px; background: #202020; color: var(--text); padding: 11px; font-size: max(1rem, 16px); }
 #profile-error { color: #ffadad; font-size: .85rem; }
