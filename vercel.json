@@ -6,6 +6,11 @@
       "permanent": false
     },
     {
+      "source": "/raffle/",
+      "destination": "/",
+      "permanent": false
+    },
+    {
       "source": "/raffle/index.html",
       "destination": "/",
       "permanent": false
