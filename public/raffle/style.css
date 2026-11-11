@@ -124,6 +124,10 @@ dialog li { margin-bottom: 10px; }
 .dialog-label { display: block; margin: 10px 0 6px; }
 dialog input { width: 100%; border: 1px solid #565656; border-radius: 8px; background: #202020; color: var(--text); padding: 11px; font-size: max(1rem, 16px); }
 #profile-error { color: #ffadad; font-size: .85rem; }
+#profile-code-value { padding: 2px 6px; border: 1px solid var(--line); border-radius: 6px; background: #242424; color: var(--text); font: 700 .82rem ui-monospace, monospace; max-width: 100%; overflow-wrap: anywhere; text-align: left; user-select: text; }
+#profile-code-value:hover { background: #383838; }
+#profile-copy-status { color: var(--muted); font-size: .85rem; margin: 0; }
+#profile-copy-status:not(:empty) { margin-bottom: 10px; }
 .profile-actions { display: flex; align-items: center; gap: 16px; }
 @media (min-width: 751px) {
   .top { position: sticky; top: 0; z-index: 3; }

@@ -256,6 +256,7 @@ $('search').addEventListener('input', renderRoster);
 $('rules').addEventListener('click', () => $('rules-dialog').showModal());
 function openProfile() {
   $('profile-error').textContent = '';
+  $('profile-copy-status').textContent = '';
   challenge = undefined;
   $('identity').value = '';
   $('identity').readOnly = false;
@@ -265,6 +266,16 @@ function openProfile() {
 }
 $('profile').addEventListener('click', openProfile);
 $('cards-login').addEventListener('click', openProfile);
+$('profile-code-value').addEventListener('click', async event => {
+  const code = event.currentTarget.textContent;
+  const status = $('profile-copy-status');
+  try {
+    await navigator.clipboard.writeText(code);
+    status.textContent = 'Код скопирован';
+  } catch {
+    status.textContent = 'Не удалось скопировать код. Выдели его и скопируй вручную.';
+  }
+});
 
 $('profile-form').addEventListener('submit', async event => {
   event.preventDefault();

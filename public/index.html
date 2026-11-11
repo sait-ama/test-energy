@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/raffle/style.css?v=live2">
-  <script defer src="/raffle/app.js?v=live2"></script>
+  <link rel="stylesheet" href="/raffle/style.css?v=live3">
+  <script defer src="/raffle/app.js?v=live3"></script>
 </head>
 <body>
   <header class="top">
@@ -68,7 +68,8 @@
       <p class="muted">Введи свой ник или ID в ReManga.</p>
       <label class="dialog-label" for="identity">Ник или ID профиля</label>
       <input id="identity" autocomplete="off" maxlength="100" required>
-      <p id="profile-code" class="muted" hidden>Опубликуй в любом месте ReManga комментарий с кодом <strong id="profile-code-value"></strong>. Затем вернись сюда и нажми «Проверить код».</p>
+      <p id="profile-code" class="muted" hidden>Опубликуй в любом месте ReManga комментарий с кодом <button id="profile-code-value" type="button" title="Нажми, чтобы скопировать" aria-describedby="profile-copy-status"></button>. Затем вернись сюда и нажми «Проверить код».</p>
+      <p id="profile-copy-status" role="status"></p>
       <p id="profile-error" role="alert"></p>
       <div class="profile-actions"><button class="primary" id="profile-submit" type="submit">Получить код</button><button class="text-button" id="logout" type="button" hidden>Выйти</button></div>
     </form>
