@@ -1,6 +1,15 @@
 {
   "redirects": [
-    { "source": "/raffle", "destination": "/", "permanent": false }
+    {
+      "source": "/raffle",
+      "destination": "/",
+      "permanent": false
+    },
+    {
+      "source": "/raffle/index.html",
+      "destination": "/",
+      "permanent": false
+    }
   ],
   "rewrites": [
     {
@@ -17,11 +26,11 @@
     },
     {
       "source": "/duck-event",
-      "destination": "/index.html"
+      "destination": "/duck-event.html"
     },
     {
       "source": "/",
-      "destination": "/raffle/index.html"
+      "destination": "/index.html"
     }
   ]
 }
