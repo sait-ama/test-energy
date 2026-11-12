@@ -5,7 +5,8 @@ const pages = [...document.querySelectorAll('[data-page]')];
 let currentPage = 'home';
 let filter = 'all';
 let viewer;
-let token = sessionStorage.getItem('ew-raffle-session') || '';
+const SESSION_KEY = 'ew-raffle-session';
+let token = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY) || '';
 let challenge;
 let openingCard = false;
 let serverOffset = 0;
@@ -61,7 +62,13 @@ async function syncRound() {
   const auth = token;
   try {
     const result = await request('state', undefined, auth);
-    if (auth === token) useState(result);
+    if (auth === token) {
+      if (auth && result.user !== null && sessionStorage.getItem(SESSION_KEY) === auth) {
+        localStorage.setItem(SESSION_KEY, auth);
+        sessionStorage.removeItem(SESSION_KEY);
+      }
+      useState(result);
+    }
   } catch (error) {
     connection = error.message === 'Сервер розыгрыша пока не подключён.'
       ? error.message : 'Связь с сервером розыгрыша потеряна. Повторяем подключение.';
@@ -295,7 +302,8 @@ $('profile-form').addEventListener('submit', async event => {
       submit.textContent = 'Проверить код';
     } else {
       token = result.token;
-      sessionStorage.setItem('ew-raffle-session', token);
+      localStorage.setItem(SESSION_KEY, token);
+      sessionStorage.removeItem(SESSION_KEY);
       $('profile-dialog').close();
       await syncRound();
     }
@@ -307,11 +315,23 @@ $('profile-form').addEventListener('submit', async event => {
 });
 
 $('logout').addEventListener('click', () => {
+  const previousToken = token;
   token = '';
   viewer = undefined;
-  sessionStorage.removeItem('ew-raffle-session');
+  localStorage.removeItem(SESSION_KEY);
+  sessionStorage.removeItem(SESSION_KEY);
   $('profile-dialog').close();
   render();
+  if (previousToken) void request('logout', {}, previousToken).catch(() => {});
+});
+
+window.addEventListener('storage', event => {
+  if (event.key !== SESSION_KEY) return;
+  sessionStorage.removeItem(SESSION_KEY);
+  token = event.newValue || '';
+  viewer = undefined;
+  render();
+  void syncRound();
 });
 
 async function poll() {

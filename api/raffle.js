@@ -1,5 +1,5 @@
 const operations = new Map([
-  ['state', 'GET'], ['login', 'POST'], ['reveal', 'POST'],
+  ['state', 'GET'], ['login', 'POST'], ['logout', 'POST'], ['reveal', 'POST'],
 ]);
 
 export default async function handler(req, res) {
