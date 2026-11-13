@@ -1,21 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/raffle",
-      "destination": "/",
-      "permanent": false
-    },
-    {
-      "source": "/raffle/",
-      "destination": "/",
-      "permanent": false
-    },
-    {
-      "source": "/raffle/index.html",
-      "destination": "/",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     {
       "source": "/raffle-api/:action",
@@ -35,6 +18,18 @@
     },
     {
       "source": "/",
+      "destination": "/pixel/index.html"
+    },
+    {
+      "source": "/raffle",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/raffle/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/raffle/index.html",
       "destination": "/index.html"
     }
   ]
