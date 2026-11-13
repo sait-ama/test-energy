@@ -15,22 +15,6 @@
     {
       "source": "/duck-event",
       "destination": "/duck-event.html"
-    },
-    {
-      "source": "/",
-      "destination": "/pixel/index.html"
-    },
-    {
-      "source": "/raffle",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/raffle/",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/raffle/index.html",
-      "destination": "/index.html"
     }
   ]
 }
